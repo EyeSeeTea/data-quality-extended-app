@@ -16,7 +16,7 @@ type UseManualStepProps = {
 
 export function useManualIssuesStep(props: UseManualStepProps) {
     const { analysis, section, updateAnalysis } = props;
-    const { compositionRoot } = useAppContext();
+    const { compositionRoot, metadata } = useAppContext();
 
     const [isLoading, setIsLoading] = React.useState<boolean>(false);
     const [error, setError] = React.useState<Maybe<string>>(undefined);
@@ -30,6 +30,7 @@ export function useManualIssuesStep(props: UseManualStepProps) {
                     qualityAnalysisId: analysis.id,
                     issues: issues,
                     sectionId: section.id,
+                    metadata: metadata,
                 })
                 .run(
                     analysis => {
@@ -44,7 +45,7 @@ export function useManualIssuesStep(props: UseManualStepProps) {
                     }
                 );
         },
-        [compositionRoot, section, analysis, updateAnalysis]
+        [compositionRoot, section, analysis, updateAnalysis, metadata]
     );
 
     const closeAddIssueDialog = React.useCallback(() => {

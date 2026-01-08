@@ -9,7 +9,7 @@ import _ from "$/domain/entities/generic/Collection";
 
 export function useNursingMidwiferyStep(props: UseNursingMidwiferyStepProps) {
     const { analysis, section, updateAnalysis } = props;
-    const { compositionRoot } = useAppContext();
+    const { compositionRoot, metadata } = useAppContext();
     const [isLoading, setLoading] = React.useState<boolean>(false);
     const [error, setError] = React.useState<Maybe<string>>(undefined);
     const [reload, refreshReload] = React.useState(0);
@@ -43,6 +43,7 @@ export function useNursingMidwiferyStep(props: UseNursingMidwiferyStepProps) {
                 analysisId: analysis.id,
                 disaggregationsIds: selectedDisaggregations,
                 sectionId: section.id,
+                metadata: metadata,
             })
             .run(
                 analysis => {
@@ -62,6 +63,7 @@ export function useNursingMidwiferyStep(props: UseNursingMidwiferyStepProps) {
         updateAnalysis,
         selectedDisaggregations,
         section.id,
+        metadata,
     ]);
 
     return {

@@ -27,7 +27,6 @@ import { SettingsD2Repository } from "./data/repositories/SettingsD2Repository";
 import { SettingsTestRepository } from "./data/repositories/SettingsTestRepository";
 import { UserD2Repository } from "./data/repositories/UserD2Repository";
 import { UserTestRepository } from "./data/repositories/UserTestRepository";
-import { MetadataItem } from "./domain/entities/MetadataItem";
 import { AnalysisSectionRepository } from "./domain/repositories/AnalysisSectionRepository";
 import { MetadataRepository } from "./domain/repositories/MetadataRepository";
 import { ModuleRepository } from "./domain/repositories/ModuleRepository";
@@ -193,22 +192,22 @@ function getCompositionRoot(repositories: Repositories) {
     };
 }
 
-export function getWebappCompositionRoot(api: D2Api, metadata: MetadataItem) {
+export function getWebappCompositionRoot(api: D2Api) {
     const repositories: Repositories = {
         usersRepository: new UserD2Repository(api),
-        qualityAnalysisRepository: new QualityAnalysisD2Repository(api, metadata),
+        qualityAnalysisRepository: new QualityAnalysisD2Repository(api),
         metadataRepository: new MetadataD2Repository(api),
         settingsRepository: new SettingsD2Repository(api),
-        moduleRepository: new ModuleD2Repository(api, metadata),
-        analysisSectionRepository: new AnalysisSectionD2Repository(metadata),
+        moduleRepository: new ModuleD2Repository(api),
+        analysisSectionRepository: new AnalysisSectionD2Repository(),
         outlierRepository: new OutlierD2Repository(api),
-        issueRepository: new IssueD2Repository(api, metadata),
+        issueRepository: new IssueD2Repository(api),
         countryRepository: new CountryD2Repository(api),
-        sequentialRepository: new SequentialD2Repository(api, metadata),
+        sequentialRepository: new SequentialD2Repository(api),
         dataValueRepository: new DataValueD2Repository(api),
         validationRuleGroupRepository: new ValidationRuleD2Repository(api),
         validationRuleAnalysisRepository: new ValidationRuleAnalysisD2Repository(api),
-        issueExportRepository: new IssueSpreadSheetRepository(metadata),
+        issueExportRepository: new IssueSpreadSheetRepository(),
     };
 
     return getCompositionRoot(repositories);

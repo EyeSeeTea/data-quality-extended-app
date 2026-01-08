@@ -24,7 +24,7 @@ export class SaveIssueUseCase {
     execute(options: SaveIssueOptions): FutureData<SaveIssueResponse> {
         return Future.joinObj({
             analysis: this.getAnalysis(options),
-            issue: this.getIssueById(options.issue.id),
+            issue: this.getIssueById(options.issue.id, options.metadata),
         }).flatMap(({ analysis, issue }) => {
             return this.generateContactEmails(analysis, options, issue, options.metadata).flatMap(
                 contactEmails => {
@@ -45,16 +45,18 @@ export class SaveIssueUseCase {
                         }),
                     }).get();
 
-                    return this.analysisRepository.save([analysisUpdate]).flatMap(() => {
-                        return Future.success({ contactEmailsChanged: Boolean(contactEmails) });
-                    });
+                    return this.analysisRepository
+                        .save([analysisUpdate], options.metadata)
+                        .flatMap(() => {
+                            return Future.success({ contactEmailsChanged: Boolean(contactEmails) });
+                        });
                 }
             );
         });
     }
 
-    private getIssueById(issueId: Id): FutureData<QualityAnalysisIssue> {
-        return this.issueRepository.getById(issueId);
+    private getIssueById(issueId: Id, metadata: MetadataItem): FutureData<QualityAnalysisIssue> {
+        return this.issueRepository.getById(issueId, metadata);
     }
 
     private generateContactEmails(
@@ -227,7 +229,7 @@ export class SaveIssueUseCase {
     }
 
     private getAnalysis(options: SaveIssueOptions): FutureData<QualityAnalysis> {
-        return this.analysisRepository.getById(options.analysisId);
+        return this.analysisRepository.getById(options.analysisId, options.metadata);
     }
 
     private isUrl(value: string): boolean {

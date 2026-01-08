@@ -4,15 +4,15 @@ import { useSnackbar } from "@eyeseetea/d2-ui-components";
 import { Module } from "$/domain/entities/Module";
 
 export function useModules() {
-    const { compositionRoot } = useAppContext();
+    const { compositionRoot, metadata } = useAppContext();
     const snackBar = useSnackbar();
     const [modules, setModules] = React.useState<Module[]>([]);
 
     React.useEffect(() => {
-        compositionRoot.modules.get.execute().run(setModules, err => {
+        compositionRoot.modules.get.execute({ metadata: metadata }).run(setModules, err => {
             snackBar.error(err.message);
         });
-    }, [compositionRoot.modules.get, snackBar]);
+    }, [compositionRoot.modules.get, snackBar, metadata]);
 
     return modules;
 }

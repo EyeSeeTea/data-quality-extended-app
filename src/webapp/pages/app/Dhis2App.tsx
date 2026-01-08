@@ -67,7 +67,7 @@ async function getData(): Promise<CompositionRootResult> {
 
         const metadata = await new MetadataD2Repository(api).get().toPromise();
 
-        const compositionRoot = getWebappCompositionRoot(api, metadata);
+        const compositionRoot = getWebappCompositionRoot(api);
 
         const userSettings = await api.get<{ keyUiLocale: string }>("/userSettings").getData();
         configI18n(userSettings);

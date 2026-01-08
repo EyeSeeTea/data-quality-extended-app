@@ -21,7 +21,7 @@ import { useIssueColumns } from "./IssueColumns";
 
 export function useCopyContactEmails(props: UseCopyContactEmailsProps) {
     const { onSuccess } = props;
-    const { compositionRoot } = useAppContext();
+    const { compositionRoot, metadata } = useAppContext();
     const loading = useLoading();
     const snackbar = useSnackbar();
 
@@ -39,6 +39,7 @@ export function useCopyContactEmails(props: UseCopyContactEmailsProps) {
                     sectionId: sectionId,
                     issueId: issueId,
                     filters,
+                    metadata: metadata,
                 })
                 .run(
                     () => {
@@ -52,32 +53,34 @@ export function useCopyContactEmails(props: UseCopyContactEmailsProps) {
                     }
                 );
         },
-        [compositionRoot.issues.copyEmails, loading, snackbar, onSuccess]
+        [compositionRoot.issues.copyEmails, loading, snackbar, onSuccess, metadata]
     );
 
     return copyContactEmails;
 }
 
 export function useExportIssues() {
-    const { compositionRoot } = useAppContext();
+    const { compositionRoot, metadata } = useAppContext();
     const loading = useLoading();
     const snackbar = useSnackbar();
 
     const exportIssues = React.useCallback(
         (analysisId: Id, filters: GetIssuesOptions["filters"]) => {
             loading.show(true, i18n.t("Exporting Issues..."));
-            compositionRoot.issues.export.execute({ analysisId: analysisId, filters }).run(
-                () => {
-                    snackbar.success(i18n.t("Issues exported"));
-                    loading.hide();
-                },
-                error => {
-                    snackbar.error(error.message);
-                    loading.hide();
-                }
-            );
+            compositionRoot.issues.export
+                .execute({ analysisId: analysisId, filters, metadata: metadata })
+                .run(
+                    () => {
+                        snackbar.success(i18n.t("Issues exported"));
+                        loading.hide();
+                    },
+                    error => {
+                        snackbar.error(error.message);
+                        loading.hide();
+                    }
+                );
         },
-        [compositionRoot.issues.export, loading, snackbar]
+        [compositionRoot.issues.export, loading, snackbar, metadata]
     );
 
     return exportIssues;
@@ -156,7 +159,7 @@ export function useGetRows(
     sectionId: Maybe<Id>,
     refreshIssue: number
 ) {
-    const { compositionRoot } = useAppContext();
+    const { compositionRoot, metadata } = useAppContext();
     const [loading, setLoading] = React.useState(false);
     const getRows = React.useCallback<GetRows<QualityAnalysisIssue>>(
         (_search, pagination, sorting) => {
@@ -185,6 +188,7 @@ export function useGetRows(
                             step: filters.step,
                             search: filters.search,
                         },
+                        metadata: metadata,
                     })
                     .run(
                         response => {
@@ -211,6 +215,7 @@ export function useGetRows(
             filters.search,
             analysisId,
             sectionId,
+            metadata,
         ]
     );
 

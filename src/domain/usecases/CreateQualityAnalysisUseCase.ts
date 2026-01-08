@@ -10,6 +10,7 @@ import { QualityAnalysisRepository } from "$/domain/repositories/QualityAnalysis
 import { SequentialRepository } from "$/domain/repositories/SequentialRepository";
 import { SettingsRepository } from "$/domain/repositories/SettingsRepository";
 import { UserRepository } from "$/domain/repositories/UserRepository";
+import { MetadataItem } from "$/domain/entities/MetadataItem";
 
 const previousYear = (new Date().getFullYear() - 1).toString();
 
@@ -26,8 +27,8 @@ export class CreateQualityAnalysisUseCase {
         return Future.joinObj({
             currentUser: this.userRepository.getCurrent(),
             defaultSettings: this.settingsRepository.get(),
-            sections: this.analysisSectionRepository.get(),
-            sequential: this.sequentialRepository.get(),
+            sections: this.analysisSectionRepository.get(options.metadata),
+            sequential: this.sequentialRepository.get(options.metadata),
         }).flatMap(({ currentUser, defaultSettings, sections, sequential }) => {
             const qualityAnalysisName = QualityAnalysis.buildDefaultName(
                 options.qualityAnalysis.name,
@@ -56,7 +57,9 @@ export class CreateQualityAnalysisUseCase {
                     return Future.error(new Error(errorMessages));
                 },
                 success: entity => {
-                    return this.qualityAnalysisRepository.save([entity]).map(() => entity.id);
+                    return this.qualityAnalysisRepository
+                        .save([entity], options.metadata)
+                        .map(() => entity.id);
                 },
             });
         });
@@ -65,4 +68,5 @@ export class CreateQualityAnalysisUseCase {
 
 type CreateQualityAnalysisOptions = {
     qualityAnalysis: Pick<QualityAnalysis, "name" | "module">;
+    metadata: MetadataItem;
 };

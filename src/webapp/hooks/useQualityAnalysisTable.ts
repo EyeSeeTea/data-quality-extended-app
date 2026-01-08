@@ -40,7 +40,7 @@ export function useTableConfig(props: UseTableConfigProps) {
 }
 
 export function useGetRows(filters: AnalysisFilterState, reloadKey: number) {
-    const { compositionRoot } = useAppContext();
+    const { compositionRoot, metadata } = useAppContext();
     const [loading, setLoading] = React.useState(false);
     const getRows = React.useCallback<GetRows<QualityAnalysis>>(
         (search, pagination, sorting) => {
@@ -59,6 +59,7 @@ export function useGetRows(filters: AnalysisFilterState, reloadKey: number) {
                             module: filters.module,
                             ids: undefined,
                         },
+                        metadata: metadata,
                     })
                     .run(
                         qualityAnalysis => {
@@ -82,6 +83,7 @@ export function useGetRows(filters: AnalysisFilterState, reloadKey: number) {
             filters.startDate,
             filters.status,
             reloadKey,
+            metadata,
         ]
     );
 
@@ -90,7 +92,7 @@ export function useGetRows(filters: AnalysisFilterState, reloadKey: number) {
 
 export function useAnalysisMethods(props: UseAnalysisMethodsProps) {
     const { onSuccess, onRemove } = props;
-    const { compositionRoot } = useAppContext();
+    const { compositionRoot, metadata } = useAppContext();
     const snackbar = useSnackbar();
     const loading = useLoading();
 
@@ -98,7 +100,7 @@ export function useAnalysisMethods(props: UseAnalysisMethodsProps) {
         (module: Module, name: string) => {
             loading.show(true, i18n.t("Creating Data Quality Report..."));
             compositionRoot.qualityAnalysis.create
-                .execute({ qualityAnalysis: { module: module, name: name } })
+                .execute({ qualityAnalysis: { module: module, name: name }, metadata: metadata })
                 .run(
                     id => {
                         loading.hide();
@@ -111,7 +113,7 @@ export function useAnalysisMethods(props: UseAnalysisMethodsProps) {
                     }
                 );
         },
-        [compositionRoot.qualityAnalysis.create, loading, onSuccess, snackbar]
+        [compositionRoot.qualityAnalysis.create, loading, onSuccess, snackbar, metadata]
     );
 
     const removeQualityAnalysis = React.useCallback(
@@ -137,7 +139,7 @@ export function useAnalysisMethods(props: UseAnalysisMethodsProps) {
         (selectedIds: Id[], action: ActionType) => {
             loading.show(true, i18n.t("Updating Status..."));
             const status = action === "inprogress" ? "Completed" : "In Progress";
-            compositionRoot.qualityAnalysis.updateStatus.execute(selectedIds, status).run(
+            compositionRoot.qualityAnalysis.updateStatus.execute(selectedIds, status, metadata).run(
                 () => {
                     snackbar.success(i18n.t("Quality Analysis updated"));
                     loading.hide();
@@ -150,14 +152,14 @@ export function useAnalysisMethods(props: UseAnalysisMethodsProps) {
                 }
             );
         },
-        [compositionRoot.qualityAnalysis.updateStatus, loading, onRemove, snackbar]
+        [compositionRoot.qualityAnalysis.updateStatus, loading, onRemove, snackbar, metadata]
     );
 
     const saveConfigQualityAnalysis = React.useCallback(
         (qualityAnalysis: QualityAnalysis) => {
             loading.show(true, i18n.t("Saving..."));
             compositionRoot.qualityAnalysis.saveConfig
-                .execute({ qualityAnalysis: qualityAnalysis })
+                .execute({ qualityAnalysis: qualityAnalysis, metadata: metadata })
                 .run(
                     () => {
                         loading.hide();
@@ -170,7 +172,7 @@ export function useAnalysisMethods(props: UseAnalysisMethodsProps) {
                     }
                 );
         },
-        [compositionRoot.qualityAnalysis.saveConfig, loading, onSuccess, snackbar]
+        [compositionRoot.qualityAnalysis.saveConfig, loading, onSuccess, snackbar, metadata]
     );
 
     return {

@@ -5,10 +5,8 @@ import { AnalysisSectionRepository } from "$/domain/repositories/AnalysisSection
 import { FutureData } from "$/data/api-futures";
 
 export class AnalysisSectionD2Repository implements AnalysisSectionRepository {
-    constructor(private metadata: MetadataItem) {}
-
-    get(): FutureData<QualityAnalysisSection[]> {
-        const sections = this.metadata.programs.qualityIssues.programStages.map(
+    get(metadata: MetadataItem): FutureData<QualityAnalysisSection[]> {
+        const sections = metadata.programs.qualityIssues.programStages.map(
             (programStage, index) => {
                 return QualityAnalysisSection.create({
                     id: programStage.id,

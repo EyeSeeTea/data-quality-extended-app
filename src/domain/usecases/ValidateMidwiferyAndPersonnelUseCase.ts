@@ -19,6 +19,7 @@ import { IssueRepository } from "$/domain/repositories/IssueRepository";
 import { UCAnalysis } from "./common/UCAnalysis";
 import { UCDataValue } from "./common/UCDataValue";
 import { getCurrentSection } from "./common/utils";
+import { MetadataItem } from "$/domain/entities/MetadataItem";
 
 export class ValidateMidwiferyAndPersonnelUseCase {
     analysisUseCase: UCAnalysis;
@@ -72,7 +73,7 @@ export class ValidateMidwiferyAndPersonnelUseCase {
                     );
 
                     return this.issueUseCase
-                        .getTotalIssuesBySection(analysis, options.sectionId)
+                        .getTotalIssuesBySection(analysis, options.sectionId, options.metadata)
                         .flatMap(totalIssues => {
                             const issues = this.createIssues(
                                 midwiferyNursingValues,
@@ -94,18 +95,22 @@ export class ValidateMidwiferyAndPersonnelUseCase {
         totalIssues: number
     ): FutureData<QualityAnalysis> {
         return this.issueUseCase
-            .getRelatedIssues(issues, options.sectionId)
+            .getRelatedIssues(issues, options.sectionId, options.metadata)
             .flatMap(dismissedIssues => {
-                return this.issueUseCase.save(dismissedIssues, analysis.id).flatMap(() => {
-                    const analysisToUpdate = this.analysisUseCase.updateAnalysis(
-                        analysis,
-                        options.sectionId,
-                        totalIssues
-                    );
-                    return this.analysisRepository.save([analysisToUpdate]).flatMap(() => {
-                        return Future.success(analysisToUpdate);
+                return this.issueUseCase
+                    .save(dismissedIssues, analysis.id, options.metadata)
+                    .flatMap(() => {
+                        const analysisToUpdate = this.analysisUseCase.updateAnalysis(
+                            analysis,
+                            options.sectionId,
+                            totalIssues
+                        );
+                        return this.analysisRepository
+                            .save([analysisToUpdate], options.metadata)
+                            .flatMap(() => {
+                                return Future.success(analysisToUpdate);
+                            });
                     });
-                });
             });
     }
 
@@ -329,7 +334,7 @@ export class ValidateMidwiferyAndPersonnelUseCase {
     private getAnalysis(
         options: ValidateMidwiferyAndPersonnelOptions
     ): FutureData<QualityAnalysis> {
-        return this.analysisUseCase.getById(options.analysisId);
+        return this.analysisUseCase.getById(options.analysisId, options.metadata);
     }
 
     private getDataElementsWithValues(
@@ -378,4 +383,5 @@ type ValidateMidwiferyAndPersonnelOptions = {
     analysisId: Id;
     sectionId: Id;
     disaggregationsIds: Id[];
+    metadata: MetadataItem;
 };

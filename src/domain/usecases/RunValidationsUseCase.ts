@@ -34,7 +34,7 @@ export class RunValidationsUseCase {
         if (!options.validationRuleGroupId)
             return Future.error(new Error("Validation Rule Group is required"));
         return Future.joinObj({
-            analysis: this.analysisUseCase.getById(options.qualityAnalysisId),
+            analysis: this.analysisUseCase.getById(options.qualityAnalysisId, options.metadata),
             validationRuleGroup: this.validationRuleGroupRepository.getById(
                 options.validationRuleGroupId
             ),
@@ -49,7 +49,7 @@ export class RunValidationsUseCase {
                 return this.getValidationRuleAnalysis(analysis, countriesIds, options).flatMap(
                     rules => {
                         return this.issueUseCase
-                            .getTotalIssuesBySection(analysis, options.sectionId)
+                            .getTotalIssuesBySection(analysis, options.sectionId, options.metadata)
                             .flatMap(totalIssues => {
                                 const issuesToSave = this.buildIssuesFromRules(
                                     rules,
@@ -61,7 +61,8 @@ export class RunValidationsUseCase {
                                 return this.saveIssues(
                                     issuesToSave,
                                     analysis,
-                                    options.sectionId
+                                    options.sectionId,
+                                    options.metadata
                                 ).flatMap(() => {
                                     const analysisUpdate = this.analysisUseCase.updateAnalysis(
                                         analysis,
@@ -69,7 +70,7 @@ export class RunValidationsUseCase {
                                         issuesToSave.length
                                     );
                                     return this.analysisRepository
-                                        .save([analysisUpdate])
+                                        .save([analysisUpdate], options.metadata)
                                         .map(() => analysisUpdate);
                                 });
                             });
@@ -158,12 +159,15 @@ export class RunValidationsUseCase {
     private saveIssues(
         issues: QualityAnalysisIssue[],
         analysis: QualityAnalysis,
-        sectionId: Id
+        sectionId: Id,
+        metadata: MetadataItem
     ): FutureData<void> {
         if (issues.length === 0) return Future.success(undefined);
-        return this.issueUseCase.getRelatedIssues(issues, sectionId).flatMap(dismissedIssues => {
-            return this.issueUseCase.save(dismissedIssues, analysis.id);
-        });
+        return this.issueUseCase
+            .getRelatedIssues(issues, sectionId, metadata)
+            .flatMap(dismissedIssues => {
+                return this.issueUseCase.save(dismissedIssues, analysis.id, metadata);
+            });
     }
 }
 

@@ -20,6 +20,7 @@ import { getCurrentSection } from "./common/utils";
 import { SettingsRepository } from "$/domain/repositories/SettingsRepository";
 import { SectionDisaggregation, SectionSetting, Settings } from "$/domain/entities/Settings";
 import { MissingComboValue } from "$/domain/entities/MissingComboValue";
+import { MetadataItem } from "$/domain/entities/MetadataItem";
 
 const separator = " - ";
 export class GetMissingDisaggregatesUseCase {
@@ -39,7 +40,7 @@ export class GetMissingDisaggregatesUseCase {
     }
     execute(options: GetMissingDisaggregatesOptions): FutureData<QualityAnalysis> {
         return Future.joinObj({
-            analysis: this.analysisUseCase.getById(options.analysisId),
+            analysis: this.analysisUseCase.getById(options.analysisId, options.metadata),
             settings: this.settingsRepository.get(),
         }).flatMap(({ analysis, settings }) => {
             return this.getDisaggregatesValues(analysis, settings, options);
@@ -62,7 +63,7 @@ export class GetMissingDisaggregatesUseCase {
             );
 
             return this.issueUseCase
-                .getTotalIssuesBySection(analysis, options.sectionId)
+                .getTotalIssuesBySection(analysis, options.sectionId, options.metadata)
                 .flatMap(totalIssues => {
                     const missingDisaggregateValues = missingValues.flatMap(missingValue =>
                         missingValue.type === "dataElements" ? missingValue.values : []
@@ -88,7 +89,12 @@ export class GetMissingDisaggregatesUseCase {
 
                     const allIssues = [...issues, ...issueMissingCombos];
 
-                    return this.saveIssues(allIssues, analysis, options.sectionId);
+                    return this.saveIssues(
+                        allIssues,
+                        analysis,
+                        options.sectionId,
+                        options.metadata
+                    );
                 });
         });
     }
@@ -96,21 +102,26 @@ export class GetMissingDisaggregatesUseCase {
     private saveIssues(
         issues: QualityAnalysisIssue[],
         analysis: QualityAnalysis,
-        sectionId: Id
+        sectionId: Id,
+        metadata: MetadataItem
     ): FutureData<QualityAnalysis> {
         return this.issueUseCase
-            .getRelatedIssues(issues, sectionId)
+            .getRelatedIssues(issues, sectionId, metadata)
             .flatMap(issuesWithDissmised => {
-                return this.issueUseCase.save(issuesWithDissmised, analysis.id).flatMap(() => {
-                    const analysisUpdate = this.analysisUseCase.updateAnalysis(
-                        analysis,
-                        sectionId,
-                        issuesWithDissmised.length
-                    );
-                    return this.analysisRepository.save([analysisUpdate]).flatMap(() => {
-                        return Future.success(analysisUpdate);
+                return this.issueUseCase
+                    .save(issuesWithDissmised, analysis.id, metadata)
+                    .flatMap(() => {
+                        const analysisUpdate = this.analysisUseCase.updateAnalysis(
+                            analysis,
+                            sectionId,
+                            issuesWithDissmised.length
+                        );
+                        return this.analysisRepository
+                            .save([analysisUpdate], metadata)
+                            .flatMap(() => {
+                                return Future.success(analysisUpdate);
+                            });
                     });
-                });
             });
     }
 
@@ -461,6 +472,7 @@ type GetMissingDisaggregatesOptions = {
     analysisId: Id;
     disaggregationsIds: Id[];
     sectionId: Id;
+    metadata: MetadataItem;
 };
 
 type MissingValues = {

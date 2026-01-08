@@ -12,7 +12,7 @@ import { Maybe } from "$/utils/ts-utils";
 import { D2CategoryCombo } from "@eyeseetea/d2-api/2.36";
 
 export class ModuleD2Repository implements ModuleRepository {
-    constructor(private api: D2Api, private metadata: MetadataItem) {}
+    constructor(private api: D2Api) {}
 
     getByIds(ids: string[]): FutureData<Module[]> {
         return apiToFuture(
@@ -107,8 +107,8 @@ export class ModuleD2Repository implements ModuleRepository {
         });
     }
 
-    get(): FutureData<Module[]> {
-        return Future.success(getDefaultModules(this.metadata));
+    get(metadata: MetadataItem): FutureData<Module[]> {
+        return Future.success(getDefaultModules(metadata));
     }
 
     private getCocOrdered(categoryCombo: D2CategoryCombo) {

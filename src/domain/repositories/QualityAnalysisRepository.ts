@@ -2,11 +2,12 @@ import { FutureData } from "$/data/api-futures";
 import { Maybe } from "$/utils/ts-utils";
 import { QualityAnalysis } from "$/domain/entities/QualityAnalysis";
 import { Id } from "$/domain/entities/Ref";
+import { MetadataItem } from "$/domain/entities/MetadataItem";
 
 export interface QualityAnalysisRepository {
     get(options: QualityAnalysisOptions): FutureData<QualityAnalysisPaginated>;
-    getById(id: Id): FutureData<QualityAnalysis>;
-    save(qualityAnalysis: QualityAnalysis[]): FutureData<void>;
+    getById(id: Id, metadata: MetadataItem): FutureData<QualityAnalysis>;
+    save(qualityAnalysis: QualityAnalysis[], metadata: MetadataItem): FutureData<void>;
     remove(id: Id): FutureData<void>;
 }
 
@@ -28,6 +29,7 @@ export type QualityAnalysisOptions = {
         status: Maybe<string>;
         ids: Maybe<Id[]>;
     };
+    metadata: MetadataItem;
 };
 
 export type QualityAnalysisPaginated = {

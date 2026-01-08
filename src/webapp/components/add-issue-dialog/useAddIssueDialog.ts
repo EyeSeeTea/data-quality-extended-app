@@ -18,7 +18,7 @@ type UseAddIssueDialogProps = {
 
 export function useAddIssueDialog(props: UseAddIssueDialogProps) {
     const { analysis, onAddIssue } = props;
-    const { compositionRoot } = useAppContext();
+    const { compositionRoot, metadata } = useAppContext();
     const snackBar = useSnackbar();
 
     const [addIssueForm, updateAddIssueForm] = React.useState<AddIssueForm>({
@@ -89,7 +89,7 @@ export function useAddIssueDialog(props: UseAddIssueDialogProps) {
     );
 
     React.useEffect(() => {
-        compositionRoot.modules.get.execute([analysis.module.id]).run(
+        compositionRoot.modules.get.execute({ ids: [analysis.module.id], metadata: metadata }).run(
             modules => {
                 const module = modules[0];
                 if (module) {
@@ -100,7 +100,7 @@ export function useAddIssueDialog(props: UseAddIssueDialogProps) {
                 snackBar.error(err.message);
             }
         );
-    }, [compositionRoot, analysis, snackBar]);
+    }, [compositionRoot, analysis, snackBar, metadata]);
 
     return {
         addIssueForm,

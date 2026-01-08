@@ -36,7 +36,7 @@ const doubleCountsList = [
 
 export function useGeneralPractitionersStep(props: UseGeneralPractitionersStepProps) {
     const { analysis, section, updateAnalysis } = props;
-    const { compositionRoot } = useAppContext();
+    const { compositionRoot, metadata } = useAppContext();
     const snackbar = useSnackbar();
 
     const [reload, refreshReload] = React.useState(0);
@@ -81,6 +81,7 @@ export function useGeneralPractitionersStep(props: UseGeneralPractitionersStepPr
                 threshold: Number(threshold),
                 dissagregationsIds: selectedDisaggregations,
                 sectionId: section.id,
+                metadata: metadata,
             })
             .run(
                 analysis => {
@@ -101,6 +102,7 @@ export function useGeneralPractitionersStep(props: UseGeneralPractitionersStepPr
         updateAnalysis,
         threshold,
         selectedDisaggregations,
+        metadata,
     ]);
 
     return {

@@ -1,4 +1,5 @@
 import { FutureData } from "$/data/api-futures";
+import { MetadataItem } from "$/domain/entities/MetadataItem";
 import { QualityAnalysis } from "$/domain/entities/QualityAnalysis";
 import { QualityAnalysisSection } from "$/domain/entities/QualityAnalysisSection";
 import { Id } from "$/domain/entities/Ref";
@@ -11,19 +12,21 @@ import { Maybe } from "$/utils/ts-utils";
 export function getAnalysisAndDefaultSettings(
     qualityAnalysisRepository: QualityAnalysisRepository,
     settingsRepository: SettingsRepository,
-    id: Id
+    id: Id,
+    metadata: MetadataItem
 ) {
     return Future.joinObj({
-        analysis: getQualityAnalysis(qualityAnalysisRepository, id),
+        analysis: getQualityAnalysis(qualityAnalysisRepository, id, metadata),
         defaultSettings: settingsRepository.get(),
     });
 }
 
-export function getQualityAnalysis(
+function getQualityAnalysis(
     analysisRepository: QualityAnalysisRepository,
-    id: Id
+    id: Id,
+    metadata: MetadataItem
 ): FutureData<QualityAnalysis> {
-    return analysisRepository.getById(id).map(analysis => {
+    return analysisRepository.getById(id, metadata).map(analysis => {
         return analysis;
     });
 }
@@ -40,7 +43,8 @@ export function getCurrentSection(
 export function getIssues(
     issueRepository: IssueRepository,
     analysis: QualityAnalysis,
-    sectionName: string
+    sectionName: string,
+    metadata: MetadataItem
 ): FutureData<number> {
     const section = getCurrentSection(analysis, sectionName);
     return issueRepository
@@ -60,6 +64,7 @@ export function getIssues(
             },
             pagination: { page: 1, pageSize: 10 },
             sorting: { field: "number", order: "asc" },
+            metadata: metadata,
         })
         .map(response => {
             return response.pagination.total;

@@ -25,7 +25,7 @@ export const algorithmList = [
 
 export function useAnalysisOutlier(props: UseRunAnalysisProps) {
     const { onSucess } = props;
-    const { compositionRoot } = useAppContext();
+    const { compositionRoot, metadata } = useAppContext();
     const [isLoading, setLoading] = React.useState<boolean>(false);
     const [error, setError] = React.useState<Maybe<string>>(undefined);
 
@@ -39,6 +39,7 @@ export function useAnalysisOutlier(props: UseRunAnalysisProps) {
                     algorithm: algorithm,
                     qualityAnalysisId: analysisId,
                     threshold: threshold,
+                    metadata: metadata,
                 })
                 .run(
                     qualityAnalysis => {
@@ -51,7 +52,7 @@ export function useAnalysisOutlier(props: UseRunAnalysisProps) {
                     }
                 );
         },
-        [compositionRoot.outlier.run, onSucess]
+        [compositionRoot.outlier.run, onSucess, metadata]
     );
 
     return {

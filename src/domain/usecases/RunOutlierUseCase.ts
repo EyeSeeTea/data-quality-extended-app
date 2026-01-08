@@ -12,6 +12,7 @@ import { DataElement } from "$/domain/entities/DataElement";
 import { UCIssue } from "./common/UCIssue";
 import { UCAnalysis } from "./common/UCAnalysis";
 import { QualityAnalysisIssue } from "$/domain/entities/QualityAnalysisIssue";
+import { MetadataItem } from "$/domain/entities/MetadataItem";
 
 export class RunOutlierUseCase {
     private issueUseCase: UCIssue;
@@ -27,40 +28,42 @@ export class RunOutlierUseCase {
     }
 
     execute(options: RunOutlierUseCaseOptions): FutureData<QualityAnalysis> {
-        return this.analysisUseCase.getById(options.qualityAnalysisId).flatMap(analysis => {
-            return this.getNumericDataElements(analysis.module.id).flatMap(dataElements => {
-                return this.getOutliers(
-                    options,
-                    analysis.startDate,
-                    analysis.endDate,
-                    analysis.countriesAnalysis,
-                    dataElements.map(dataElement => dataElement.id),
-                    analysis.module.id
-                ).flatMap(outliers => {
-                    return this.issueUseCase
-                        .getTotalIssuesBySection(analysis, options.sectionId)
-                        .flatMap(totalIssues => {
-                            const issues = this.generateIssuesFromOutliers(
-                                outliers,
-                                analysis,
-                                totalIssues,
-                                options
-                            );
-                            return this.saveIssues(issues, analysis, options);
-                        })
-                        .flatMap(() => {
-                            const analysisToUpdate = this.analysisUseCase.updateAnalysis(
-                                analysis,
-                                options.sectionId,
-                                outliers.length
-                            );
-                            return this.analysisRepository
-                                .save([analysisToUpdate])
-                                .map(() => analysisToUpdate);
-                        });
+        return this.analysisUseCase
+            .getById(options.qualityAnalysisId, options.metadata)
+            .flatMap(analysis => {
+                return this.getNumericDataElements(analysis.module.id).flatMap(dataElements => {
+                    return this.getOutliers(
+                        options,
+                        analysis.startDate,
+                        analysis.endDate,
+                        analysis.countriesAnalysis,
+                        dataElements.map(dataElement => dataElement.id),
+                        analysis.module.id
+                    ).flatMap(outliers => {
+                        return this.issueUseCase
+                            .getTotalIssuesBySection(analysis, options.sectionId, options.metadata)
+                            .flatMap(totalIssues => {
+                                const issues = this.generateIssuesFromOutliers(
+                                    outliers,
+                                    analysis,
+                                    totalIssues,
+                                    options
+                                );
+                                return this.saveIssues(issues, analysis, options);
+                            })
+                            .flatMap(() => {
+                                const analysisToUpdate = this.analysisUseCase.updateAnalysis(
+                                    analysis,
+                                    options.sectionId,
+                                    outliers.length
+                                );
+                                return this.analysisRepository
+                                    .save([analysisToUpdate], options.metadata)
+                                    .map(() => analysisToUpdate);
+                            });
+                    });
                 });
             });
-        });
     }
 
     private getNumericDataElements(moduleId: Id): FutureData<DataElement[]> {
@@ -134,9 +137,9 @@ export class RunOutlierUseCase {
         options: RunOutlierUseCaseOptions
     ): FutureData<void> {
         return this.issueUseCase
-            .getRelatedIssues(issuesToSave, options.sectionId)
+            .getRelatedIssues(issuesToSave, options.sectionId, options.metadata)
             .flatMap(existingIssues => {
-                return this.issueUseCase.save(existingIssues, analysis.id);
+                return this.issueUseCase.save(existingIssues, analysis.id, options.metadata);
             });
     }
 
@@ -156,4 +159,5 @@ type RunOutlierUseCaseOptions = {
     algorithm: string;
     threshold: string;
     sectionId: Id;
+    metadata: MetadataItem;
 };

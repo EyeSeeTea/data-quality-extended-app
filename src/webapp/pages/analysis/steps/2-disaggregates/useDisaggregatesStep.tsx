@@ -10,7 +10,7 @@ import { Maybe } from "$/utils/ts-utils";
 
 export function useDisaggregatesStep(props: UseDisaggregatesStepProps) {
     const { analysis, sectionId, updateAnalysis } = props;
-    const { compositionRoot } = useAppContext();
+    const { compositionRoot, metadata } = useAppContext();
     const snackbar = useSnackbar();
 
     const [reload, refreshReload] = React.useState(0);
@@ -50,6 +50,7 @@ export function useDisaggregatesStep(props: UseDisaggregatesStepProps) {
                 analysisId: analysis.id,
                 disaggregationsIds: selectedDisagregations,
                 sectionId: sectionId,
+                metadata: metadata,
             })
             .run(
                 result => {

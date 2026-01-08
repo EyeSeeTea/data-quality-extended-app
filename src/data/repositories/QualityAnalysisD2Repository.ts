@@ -23,7 +23,6 @@ import {
     QualityAnalysisStatus,
     qualityAnalysisStatus,
 } from "$/domain/entities/QualityAnalysisStatus";
-import { Module } from "$/domain/entities/Module";
 import {
     QualityAnalysisSection,
     SECTION_PENDING_STATE,
@@ -42,14 +41,12 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
     d2CategoryOption: D2CategoryOption;
     d2OrgUnit: D2OrgUnit;
     d2User: D2User;
-    allowedModules: Module[];
 
-    constructor(private api: D2Api, private metadata: MetadataItem) {
+    constructor(private api: D2Api) {
         this.d2DataElement = new D2DataElement(this.api);
         this.d2CategoryOption = new D2CategoryOption(this.api);
         this.d2OrgUnit = new D2OrgUnit(this.api);
         this.d2User = new D2User(this.api);
-        this.allowedModules = getDefaultModules(this.metadata);
     }
 
     get(options: QualityAnalysisOptions): FutureData<QualityAnalysisPaginated> {
@@ -57,16 +54,16 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
             this.api.tracker.trackedEntities.get({
                 ouMode: "ALL",
                 fields: { orgUnit: true, trackedEntity: true, attributes: true, enrollments: true },
-                program: this.getIdOrThrow(this.metadata.programs.qualityIssues?.id),
+                program: this.getIdOrThrow(options.metadata.programs.qualityIssues?.id),
                 page: options.pagination.page,
                 pageSize: options.pagination.pageSize,
                 // TODO: Update d2-api to support para "trackedEntities" since "trackedEntity"
                 // is deprecated
                 // @ts-ignore
                 trackedEntities: options.filters.ids ? options.filters.ids.join(";") : undefined,
-                filter: this.buildFilters(options.filters)?.join(",") || undefined,
-                // @ts-ignore
-                order: this.buildOrder(options.sorting) || undefined,
+                filter:
+                    this.buildFilters(options.filters, options.metadata)?.join(",") || undefined,
+                order: this.buildOrder(options.sorting, options.metadata) || undefined,
                 totalPages: true,
             })
         ).flatMap(d2Response => {
@@ -79,7 +76,7 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
             return Future.joinObj({
                 sectionInformation: this.getSectionInformation(
                     teiIds,
-                    this.metadata.programs.qualityIssues.programStages
+                    options.metadata.programs.qualityIssues.programStages
                 ),
             }).map(({ sectionInformation }) => {
                 return {
@@ -91,7 +88,9 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
                         total: d2Response.total || 0,
                     },
                     rows: _(instances)
-                        .map(tei => this.buildQualityAnalysis(tei, sectionInformation))
+                        .map(tei =>
+                            this.buildQualityAnalysis(tei, sectionInformation, options.metadata)
+                        )
                         .compact()
                         .value(),
                 };
@@ -99,7 +98,7 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
         });
     }
 
-    getById(id: string): FutureData<QualityAnalysis> {
+    getById(id: string, metadata: MetadataItem): FutureData<QualityAnalysis> {
         return this.get({
             filters: {
                 endDate: undefined,
@@ -117,6 +116,7 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
                 field: "name",
                 order: "desc",
             },
+            metadata: metadata,
         }).flatMap(analysis => {
             const firstAnalysis = analysis.rows[0];
             if (!firstAnalysis)
@@ -125,14 +125,14 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
         });
     }
 
-    save(qualityAnalysis: QualityAnalysis[]): FutureData<void> {
+    save(qualityAnalysis: QualityAnalysis[], metadata: MetadataItem): FutureData<void> {
         const qualityIds = qualityAnalysis.map(record => record.id);
         const $requests = Future.sequential(
             _(qualityIds)
                 .chunk(50)
                 .map(qaIds => {
                     return Future.joinObj({
-                        saveTeis: this.buildTeisRequests(qaIds, qualityAnalysis),
+                        saveTeis: this.buildTeisRequests(qaIds, qualityAnalysis, metadata),
                         saveSections: this.buildSectionsRequests(qaIds, qualityAnalysis),
                     });
                 })
@@ -234,11 +234,15 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
         return Future.sequential($requests);
     }
 
-    private buildTeisRequests(qaIds: string[], qualityAnalysis: QualityAnalysis[]) {
+    private buildTeisRequests(
+        qaIds: string[],
+        qualityAnalysis: QualityAnalysis[],
+        metadata: MetadataItem
+    ) {
         return apiToFuture(
             this.api.tracker.trackedEntities.get({
                 ouMode: "ALL",
-                program: this.metadata.programs.qualityIssues.id,
+                program: metadata.programs.qualityIssues.id,
                 fields: { $all: true },
                 trackedEntity: qaIds.join(";"),
             })
@@ -254,16 +258,21 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
                 const enrollments = this.buildEnrollmentsFromQualityAnalysis(
                     existingTei,
                     qAnalysis,
-                    qAnalysis.id
+                    qAnalysis.id,
+                    metadata
                 );
 
-                const attributes = this.buildAttributesFromQualityAnalysis(existingTei, qAnalysis);
+                const attributes = this.buildAttributesFromQualityAnalysis(
+                    existingTei,
+                    qAnalysis,
+                    metadata
+                );
 
                 return {
                     ...(existingTei || {}),
-                    trackedEntityType: this.metadata.trackedEntityTypes.dataQuality.id,
+                    trackedEntityType: metadata.trackedEntityTypes.dataQuality.id,
                     trackedEntity: qAnalysis.id,
-                    orgUnit: this.metadata.organisationUnits.global.id,
+                    orgUnit: metadata.organisationUnits.global.id,
                     attributes: attributes,
                     enrollments: [enrollments],
                 };
@@ -283,40 +292,41 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
 
     private buildAttributesFromQualityAnalysis(
         existingTei: Maybe<D2TrackerTrackedEntity>,
-        qualityAnalysis: QualityAnalysis
+        qualityAnalysis: QualityAnalysis,
+        metadata: MetadataItem
     ) {
         const existingAttributes = existingTei?.attributes || [];
         const currentAttributes = [
             {
-                attribute: this.metadata.trackedEntityAttributes.sequential.id,
+                attribute: metadata.trackedEntityAttributes.sequential.id,
                 value: qualityAnalysis.sequential.value,
             },
             {
-                attribute: this.metadata.trackedEntityAttributes.countries.id,
+                attribute: metadata.trackedEntityAttributes.countries.id,
                 value: qualityAnalysis.countriesAnalysis.join(","),
             },
             {
-                attribute: this.metadata.trackedEntityAttributes.endDate.id,
+                attribute: metadata.trackedEntityAttributes.endDate.id,
                 value: qualityAnalysis.endDate,
             },
             {
-                attribute: this.metadata.trackedEntityAttributes.module.id,
+                attribute: metadata.trackedEntityAttributes.module.id,
                 value: qualityAnalysis.module.id,
             },
             {
-                attribute: this.metadata.trackedEntityAttributes.startDate.id,
+                attribute: metadata.trackedEntityAttributes.startDate.id,
                 value: qualityAnalysis.startDate,
             },
             {
-                attribute: this.metadata.trackedEntityAttributes.status.id,
+                attribute: metadata.trackedEntityAttributes.status.id,
                 value: qualityAnalysis.status as string,
             },
             {
-                attribute: this.metadata.trackedEntityAttributes.name.id,
+                attribute: metadata.trackedEntityAttributes.name.id,
                 value: qualityAnalysis.name,
             },
             {
-                attribute: this.metadata.trackedEntityAttributes.lastModification.id,
+                attribute: metadata.trackedEntityAttributes.lastModification.id,
                 value: qualityAnalysis.lastModification,
             },
         ];
@@ -329,7 +339,8 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
     private buildEnrollmentsFromQualityAnalysis(
         existingTei: Maybe<D2TrackerTrackedEntity>,
         qualityAnalysis: QualityAnalysis,
-        teiId: Id
+        teiId: Id,
+        metadata: MetadataItem
     ): D2TrackerEnrollment {
         const currentDate = new Date().toISOString();
         const firstEnrollment = _(existingTei?.enrollments || []).first();
@@ -342,9 +353,9 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
             deleted: firstEnrollment?.deleted || false,
             occurredAt: this.getValueOrDefault(firstEnrollment?.occurredAt, currentDate),
             storedBy: firstEnrollment?.storedBy || "",
-            orgUnit: this.metadata.organisationUnits.global.id,
+            orgUnit: metadata.organisationUnits.global.id,
             orgUnitName: this.getValueOrDefault(firstEnrollment?.orgUnitName),
-            program: this.metadata.programs.qualityIssues.id,
+            program: metadata.programs.qualityIssues.id,
             enrollment:
                 firstEnrollment?.enrollment || getUid(`quality-analysis-enrollment_${teiId}`),
             relationships: [],
@@ -362,7 +373,10 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
                     const issue = section.issues.find(issue => issue.id === event.event);
                     if (!issue) return undefined;
 
-                    return { ...event, dataValues: this.getDataValuesFromIssues(event, issue) };
+                    return {
+                        ...event,
+                        dataValues: this.getDataValuesFromIssues(event, issue, metadata),
+                    };
                 })
                 .compact()
                 .value(),
@@ -371,69 +385,70 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
 
     private getDataValuesFromIssues(
         event: D2TrackerEvent,
-        issue: QualityAnalysisIssue
+        issue: QualityAnalysisIssue,
+        metadata: MetadataItem
     ): DataValue[] {
-        const programStageIndex = getProgramStageIndexById(issue.type, this.metadata);
+        const programStageIndex = getProgramStageIndexById(issue.type, metadata);
 
         const currentDataValues = [
             {
-                dataElement: this.metadata.dataElements.correlative.id,
+                dataElement: metadata.dataElements.correlative.id,
                 value: this.getValueOrDefault(issue.correlative),
             },
             {
-                dataElement: this.metadata.dataElements.action.id,
+                dataElement: metadata.dataElements.action.id,
                 value: this.getValueOrDefault(issue.action?.code),
             },
             {
-                dataElement: this.metadata.dataElements.actionDescription.id,
+                dataElement: metadata.dataElements.actionDescription.id,
                 value: this.getValueOrDefault(issue.actionDescription),
             },
             {
-                dataElement: this.metadata.dataElements.azureUrl.id,
+                dataElement: metadata.dataElements.azureUrl.id,
                 value: this.getValueOrDefault(issue.azureUrl),
             },
             {
-                dataElement: this.metadata.dataElements.contactEmails.id,
+                dataElement: metadata.dataElements.contactEmails.id,
                 value: this.getValueOrDefault(issue.contactEmails),
             },
             {
-                dataElement: this.metadata.dataElements.comments.id,
+                dataElement: metadata.dataElements.comments.id,
                 value: this.getValueOrDefault(issue.comments),
             },
             {
-                dataElement: this.metadata.dataElements.categoryOption.id,
+                dataElement: metadata.dataElements.categoryOption.id,
                 value: this.getValueOrDefault(issue.categoryOption?.id),
             },
             {
-                dataElement: this.metadata.dataElements.country.id,
+                dataElement: metadata.dataElements.country.id,
                 value: this.getValueOrDefault(issue.country?.id),
             },
             {
-                dataElement: this.metadata.dataElements.dataElement.id,
+                dataElement: metadata.dataElements.dataElement.id,
                 value: this.getValueOrDefault(issue.dataElement?.id),
             },
             {
-                dataElement: this.metadata.dataElements.description.id,
+                dataElement: metadata.dataElements.description.id,
                 value: this.getValueOrDefault(issue.description),
             },
             {
-                dataElement: this.metadata.dataElements.followUp.id,
+                dataElement: metadata.dataElements.followUp.id,
                 value: issue.followUp ? "true" : "false",
             },
             {
-                dataElement: this.metadata.dataElements.issueNumber.id,
+                dataElement: metadata.dataElements.issueNumber.id,
                 value: this.getValueOrDefault(issue.number),
             },
             {
-                dataElement: this.metadata.dataElements.period.id,
+                dataElement: metadata.dataElements.period.id,
                 value: this.getValueOrDefault(issue.period),
             },
             {
-                dataElement: this.metadata.dataElements.status.id,
+                dataElement: metadata.dataElements.status.id,
                 value: this.getValueOrDefault(issue.status?.code),
             },
             {
-                dataElement: this.metadata.dataElements.sectionNumber.id,
+                dataElement: metadata.dataElements.sectionNumber.id,
                 value: String(programStageIndex + 1),
             },
         ];
@@ -445,25 +460,28 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
         });
     }
 
-    private buildFilters(filters: QualityAnalysisOptions["filters"]): Maybe<string[]> {
+    private buildFilters(
+        filters: QualityAnalysisOptions["filters"],
+        metadata: MetadataItem
+    ): Maybe<string[]> {
         const nameFilter = filters.name
-            ? `${this.metadata.trackedEntityAttributes.name.id}:LIKE:${filters.name}`
+            ? `${metadata.trackedEntityAttributes.name.id}:LIKE:${filters.name}`
             : undefined;
 
         const startDateFilter = filters.startDate
-            ? `${this.metadata.trackedEntityAttributes.startDate.id}:EQ:${filters.startDate}`
+            ? `${metadata.trackedEntityAttributes.startDate.id}:EQ:${filters.startDate}`
             : undefined;
 
         const endDateFilter = filters.endDate
-            ? `${this.metadata.trackedEntityAttributes.endDate.id}:EQ:${filters.endDate}`
+            ? `${metadata.trackedEntityAttributes.endDate.id}:EQ:${filters.endDate}`
             : undefined;
 
         const moduleFilter = filters.module
-            ? `${this.metadata.trackedEntityAttributes.module.id}:EQ:${filters.module}`
+            ? `${metadata.trackedEntityAttributes.module.id}:EQ:${filters.module}`
             : undefined;
 
         const status = filters.status
-            ? `${this.metadata.trackedEntityAttributes.status.id}:EQ:${filters.status}`
+            ? `${metadata.trackedEntityAttributes.status.id}:EQ:${filters.status}`
             : undefined;
 
         const allFilters = _([endDateFilter, moduleFilter, nameFilter, startDateFilter, status])
@@ -473,31 +491,34 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
         return allFilters.length > 0 ? allFilters : undefined;
     }
 
-    private buildOrder(sorting: QualityAnalysisOptions["sorting"]): Maybe<string> {
+    private buildOrder(
+        sorting: QualityAnalysisOptions["sorting"],
+        metadata: MetadataItem
+    ): Maybe<string> {
         switch (sorting.field) {
             case "endDate":
-                return `${this.getIdOrThrow(this.metadata.trackedEntityAttributes.endDate.id)}:${
+                return `${this.getIdOrThrow(metadata.trackedEntityAttributes.endDate.id)}:${
                     sorting.order
                 }`;
             case "startDate":
-                return `${this.getIdOrThrow(this.metadata.trackedEntityAttributes.startDate.id)}:${
+                return `${this.getIdOrThrow(metadata.trackedEntityAttributes.startDate.id)}:${
                     sorting.order
                 }`;
             case "module":
-                return `${this.getIdOrThrow(this.metadata.trackedEntityAttributes.module.id)}:${
+                return `${this.getIdOrThrow(metadata.trackedEntityAttributes.module.id)}:${
                     sorting.order
                 }`;
             case "status":
-                return `${this.getIdOrThrow(this.metadata.trackedEntityAttributes.status.id)}:${
+                return `${this.getIdOrThrow(metadata.trackedEntityAttributes.status.id)}:${
                     sorting.order
                 }`;
             case "name":
-                return `${this.getIdOrThrow(this.metadata.trackedEntityAttributes.name.id)}:${
+                return `${this.getIdOrThrow(metadata.trackedEntityAttributes.name.id)}:${
                     sorting.order
                 }`;
             case "lastModification":
                 return `${this.getIdOrThrow(
-                    this.metadata.trackedEntityAttributes.lastModification.id
+                    metadata.trackedEntityAttributes.lastModification.id
                 )}:${sorting.order}`;
         }
         return undefined;
@@ -505,7 +526,8 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
 
     private buildQualityAnalysis(
         entity: D2TrackerTrackedEntity,
-        sectionStatus: AnalysisSectionStatus[]
+        sectionStatus: AnalysisSectionStatus[],
+        metadata: MetadataItem
     ): Maybe<QualityAnalysis> {
         if (!entity.trackedEntity) return undefined;
         const attributesById = this.buildAttributesById(entity);
@@ -514,53 +536,50 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
         if (!enrollment) return undefined;
 
         const moduleId = this.getValueOrDefault(
-            attributesById.get(this.getIdOrThrow(this.metadata.trackedEntityAttributes.module.id))
+            attributesById.get(this.getIdOrThrow(metadata.trackedEntityAttributes.module.id))
         );
 
-        const module = this.allowedModules.find(module => module.id === moduleId);
+        const allowedModules = getDefaultModules(metadata);
+        const module = allowedModules.find(module => module.id === moduleId);
         if (!module) return undefined;
 
         const statusValue = this.getValueOrDefault(
-            attributesById.get(this.getIdOrThrow(this.metadata.trackedEntityAttributes.status.id))
+            attributesById.get(this.getIdOrThrow(metadata.trackedEntityAttributes.status.id))
         );
         const status = this.buildQualityStatus(statusValue);
 
         const sectionsInfo = sectionStatus.find(section => section.id === entity.trackedEntity);
-        const sections = this.buildSections(sectionsInfo, []);
+        const sections = this.buildSections(sectionsInfo, [], metadata);
 
         const countriesAnalysis = attributesById.get(
-            this.getIdOrThrow(this.metadata.trackedEntityAttributes.countries.id)
+            this.getIdOrThrow(metadata.trackedEntityAttributes.countries.id)
         );
         const countriesIdsAnalysis = countriesAnalysis?.split(",") || [];
 
         return QualityAnalysis.build({
             id: entity.trackedEntity,
             name: this.getValueOrDefault(
-                attributesById.get(this.getIdOrThrow(this.metadata.trackedEntityAttributes.name.id))
+                attributesById.get(this.getIdOrThrow(metadata.trackedEntityAttributes.name.id))
             ),
             endDate: this.getValueOrDefault(
-                attributesById.get(
-                    this.getIdOrThrow(this.metadata.trackedEntityAttributes.endDate.id)
-                )
+                attributesById.get(this.getIdOrThrow(metadata.trackedEntityAttributes.endDate.id))
             ),
             sections: sections,
             module: module,
             startDate: this.getValueOrDefault(
-                attributesById.get(
-                    this.getIdOrThrow(this.metadata.trackedEntityAttributes.startDate.id)
-                )
+                attributesById.get(this.getIdOrThrow(metadata.trackedEntityAttributes.startDate.id))
             ),
             status: status,
             lastModification: this.getValueOrDefault(
                 attributesById.get(
-                    this.getIdOrThrow(this.metadata.trackedEntityAttributes.lastModification.id)
+                    this.getIdOrThrow(metadata.trackedEntityAttributes.lastModification.id)
                 )
             ),
             countriesAnalysis: countriesIdsAnalysis,
             sequential: {
                 value: this.getValueOrDefault(
                     attributesById.get(
-                        this.getIdOrThrow(this.metadata.trackedEntityAttributes.sequential.id)
+                        this.getIdOrThrow(metadata.trackedEntityAttributes.sequential.id)
                     )
                 ),
             },
@@ -569,9 +588,10 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
 
     private buildSections(
         sectionsInfo: Maybe<AnalysisSectionStatus>,
-        qaIssues: QualityAnalysisIssue[]
+        qaIssues: QualityAnalysisIssue[],
+        metadata: MetadataItem
     ): QualityAnalysisSection[] {
-        return this.metadata.programs.qualityIssues.programStages.map((programStage, index) => {
+        return metadata.programs.qualityIssues.programStages.map((programStage, index) => {
             const sectionData = sectionsInfo?.extraInfo?.find(
                 section => section.id === programStage.id
             );

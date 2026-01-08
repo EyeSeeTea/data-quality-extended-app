@@ -11,12 +11,10 @@ import i18n from "$/utils/i18n";
 import { MetadataItem } from "$/domain/entities/MetadataItem";
 
 export class IssueSpreadSheetRepository implements IssueExportRepository {
-    constructor(private metadata: MetadataItem) {}
-
-    export(issues: QualityAnalysisIssue[]): FutureData<void> {
+    export(issues: QualityAnalysisIssue[], metadata: MetadataItem): FutureData<void> {
         const issuesByGroup = _(issues).groupBy("type").value();
 
-        const sheets = _(this.metadata.programs.qualityIssues.programStages)
+        const sheets = _(metadata.programs.qualityIssues.programStages)
             .map(programStage => {
                 const issuesInStep = issuesByGroup[programStage.id];
                 if (!issuesInStep) return undefined;

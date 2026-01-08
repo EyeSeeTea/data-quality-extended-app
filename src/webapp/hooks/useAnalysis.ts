@@ -7,14 +7,14 @@ import { Maybe } from "$/utils/ts-utils";
 
 export function useAnalysisById(props: UseAnalysisByIdProps) {
     const { id } = props;
-    const { compositionRoot } = useAppContext();
+    const { compositionRoot, metadata } = useAppContext();
     const [isLoading, setLoading] = React.useState<boolean>(false);
     const [analysis, setAnalysis] = React.useState<QualityAnalysis>();
     const [error, setError] = React.useState<Maybe<string>>(undefined);
 
     React.useEffect(() => {
         setLoading(true);
-        compositionRoot.qualityAnalysis.getById.execute(id).run(
+        compositionRoot.qualityAnalysis.getById.execute(id, metadata).run(
             analysis => {
                 setAnalysis(analysis);
                 setLoading(false);
@@ -24,7 +24,7 @@ export function useAnalysisById(props: UseAnalysisByIdProps) {
                 setError(err.message);
             }
         );
-    }, [compositionRoot.qualityAnalysis.getById, id]);
+    }, [compositionRoot.qualityAnalysis.getById, id, metadata]);
 
     return { analysis, setAnalysis, isLoading, error };
 }
