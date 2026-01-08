@@ -87,7 +87,7 @@ type Repositories = {
     issueExportRepository: IssueExportRepository;
 };
 
-function getCompositionRoot(repositories: Repositories, metadata: MetadataItem) {
+function getCompositionRoot(repositories: Repositories) {
     return {
         countries: {
             getByIds: new GetCountriesByIdsUseCase(repositories.countryRepository),
@@ -149,8 +149,7 @@ function getCompositionRoot(repositories: Repositories, metadata: MetadataItem) 
             save: new SaveIssueUseCase(
                 repositories.qualityAnalysisRepository,
                 repositories.issueRepository,
-                repositories.usersRepository,
-                metadata
+                repositories.usersRepository
             ),
             copyEmails: new CopyContactEmailsUseCase(
                 repositories.qualityAnalysisRepository,
@@ -188,8 +187,7 @@ function getCompositionRoot(repositories: Repositories, metadata: MetadataItem) 
                 repositories.issueRepository,
                 repositories.validationRuleAnalysisRepository,
                 repositories.validationRuleGroupRepository,
-                repositories.countryRepository,
-                metadata
+                repositories.countryRepository
             ),
         },
     };
@@ -213,7 +211,7 @@ export function getWebappCompositionRoot(api: D2Api, metadata: MetadataItem) {
         issueExportRepository: new IssueSpreadSheetRepository(metadata),
     };
 
-    return getCompositionRoot(repositories, metadata);
+    return getCompositionRoot(repositories);
 }
 
 export function getTestCompositionRoot() {
@@ -234,5 +232,5 @@ export function getTestCompositionRoot() {
         issueExportRepository: new IssueSpreadSheetTestRepository(),
     };
 
-    return getCompositionRoot(repositories, {} as MetadataItem);
+    return getCompositionRoot(repositories);
 }

@@ -24,8 +24,7 @@ export class RunValidationsUseCase {
         private issueRepository: IssueRepository,
         private validationRuleAnalysisRepository: ValidationRuleAnalysisRepository,
         private validationRuleGroupRepository: ValidationRuleGroupRepository,
-        private countryRepository: CountryRepository,
-        private metadata: MetadataItem
+        private countryRepository: CountryRepository
     ) {
         this.analysisUseCase = new UCAnalysis(this.analysisRepository);
         this.issueUseCase = new UCIssue(this.issueRepository);
@@ -42,7 +41,10 @@ export class RunValidationsUseCase {
         }).flatMap(({ analysis, validationRuleGroup }) => {
             if (analysis.countriesAnalysis.length === 0)
                 return Future.error(new Error(i18n.t("Select at least one organisation unit")));
-            const checkAllCountries = this.isGlobalInCountries(analysis.countriesAnalysis);
+            const checkAllCountries = this.isGlobalInCountries(
+                analysis.countriesAnalysis,
+                options.metadata
+            );
             return this.getAllCountries(checkAllCountries, analysis).flatMap(countriesIds => {
                 return this.getValidationRuleAnalysis(analysis, countriesIds, options).flatMap(
                     rules => {
@@ -85,8 +87,8 @@ export class RunValidationsUseCase {
             : Future.success(analysis.countriesAnalysis.map(countryId => countryId));
     }
 
-    private isGlobalInCountries(countriesIds: Id[]): boolean {
-        return countriesIds.includes(this.metadata.organisationUnits.global.id);
+    private isGlobalInCountries(countriesIds: Id[], metadata: MetadataItem): boolean {
+        return countriesIds.includes(metadata.organisationUnits.global.id);
     }
 
     private getValidationRuleAnalysis(
@@ -169,4 +171,5 @@ type RunValidationsUseCaseOptions = {
     qualityAnalysisId: Id;
     validationRuleGroupId: Id;
     sectionId: Id;
+    metadata: MetadataItem;
 };

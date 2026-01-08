@@ -34,7 +34,7 @@ function getContactEmailNotification(
 
 export function useUpdateIssueProperty(props: UpdateIssuePropertyProps) {
     const { analysisId, field, issue, setRefresh } = props;
-    const { compositionRoot } = useAppContext();
+    const { compositionRoot, metadata } = useAppContext();
     const loading = useLoading();
     const snackbar = useSnackbar();
 
@@ -47,6 +47,7 @@ export function useUpdateIssueProperty(props: UpdateIssuePropertyProps) {
                     issue: issue,
                     propertyToUpdate: field,
                     valueToUpdate: value,
+                    metadata: metadata,
                 })
                 .run(
                     result => {
@@ -67,7 +68,16 @@ export function useUpdateIssueProperty(props: UpdateIssuePropertyProps) {
                     }
                 );
         },
-        [compositionRoot.issues.save, loading, snackbar, issue, analysisId, field, setRefresh]
+        [
+            compositionRoot.issues.save,
+            loading,
+            snackbar,
+            issue,
+            analysisId,
+            field,
+            setRefresh,
+            metadata,
+        ]
     );
 
     return { updateIssue };

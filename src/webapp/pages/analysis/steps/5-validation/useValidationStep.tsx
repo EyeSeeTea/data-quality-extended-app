@@ -7,7 +7,7 @@ import { Maybe } from "$/utils/ts-utils";
 
 export function useValidationStep(props: UseValidationStepProps) {
     const { analysis, section, updateAnalysis } = props;
-    const { compositionRoot, validationRuleGroups } = useAppContext();
+    const { compositionRoot, validationRuleGroups, metadata } = useAppContext();
 
     const [isLoading, setLoading] = React.useState<boolean>(false);
     const [error, setError] = React.useState<Maybe<string>>(undefined);
@@ -26,6 +26,7 @@ export function useValidationStep(props: UseValidationStepProps) {
                 qualityAnalysisId: analysis.id,
                 validationRuleGroupId: selectedValidationRule || "",
                 sectionId: section.id,
+                metadata: metadata,
             })
             .run(
                 analysis => {
@@ -45,6 +46,7 @@ export function useValidationStep(props: UseValidationStepProps) {
         section.id,
         reload,
         updateAnalysis,
+        metadata,
     ]);
 
     const validationRulesOptions = React.useMemo(() => {
