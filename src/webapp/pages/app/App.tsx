@@ -14,17 +14,16 @@ import { Router } from "$/webapp/pages/Router";
 import "./App.css";
 import muiThemeLegacy from "./themes/dhis2-legacy.theme";
 import { muiTheme } from "./themes/dhis2.theme";
-import { MetadataItem } from "$/domain/entities/MetadataItem";
 import { D2Api } from "$/types/d2-api";
+import { setupLogger } from "$/utils/logger";
 
 export interface AppProps {
     compositionRoot: CompositionRoot;
-    metadata: MetadataItem;
     api: D2Api;
 }
 
 function App(props: AppProps) {
-    const { api, compositionRoot, metadata } = props;
+    const { api, compositionRoot } = props;
     const [showShareButton, setShowShareButton] = useState(false);
     const [loading, setLoading] = useState(true);
     const [appContext, setAppContext] = useState<AppContextState | null>(null);
@@ -36,6 +35,13 @@ function App(props: AppProps) {
             const validationRuleGroups = await compositionRoot.validationRules.get
                 .execute()
                 .toPromise();
+            const dataQualityIssuesPrograms = await compositionRoot.dataQualityIssuesProgram.getAll
+                .execute()
+                .toPromise();
+            const metadata = await compositionRoot.metadataItem.get.execute().toPromise();
+
+            await setupLogger(api.baseUrl, metadata.programs.qualityIssues.id);
+
             if (!currentUser) throw new Error("User not logged in");
 
             setAppContext({ api, currentUser, compositionRoot, metadata, validationRuleGroups });
@@ -43,7 +49,7 @@ function App(props: AppProps) {
             setLoading(false);
         }
         setup();
-    }, [api, compositionRoot, metadata]);
+    }, [api, compositionRoot]);
 
     if (loading) return null;
 
