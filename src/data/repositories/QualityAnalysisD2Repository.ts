@@ -33,9 +33,9 @@ import { D2CategoryOption } from "$/data/common/D2CategoryOption";
 import { D2DataElement } from "$/data/common/D2DataElement";
 import { D2OrgUnit } from "$/data/common/D2Country";
 import { getUid } from "$/utils/uid";
-import { DATA_QUALITY_NAMESPACE } from "$/domain/entities/Settings";
 import { getDefaultModules } from "$/data/common/D2Module";
 import { buildTrackerResponse, getProgramStageIndexById } from "$/data/common/utils";
+import { DATA_QUALITY_NAMESPACE } from "$/data/common/DataStoreConfig";
 
 export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
     d2DataElement: D2DataElement;

@@ -90,7 +90,7 @@ type Repositories = {
 function getCompositionRoot(repositories: Repositories, metadata: MetadataItem) {
     return {
         countries: {
-            getByIds: new GetCountriesByIdsUseCase(repositories.countryRepository, metadata),
+            getByIds: new GetCountriesByIdsUseCase(repositories.countryRepository),
         },
         users: { getCurrent: new GetCurrentUserUseCase(repositories.usersRepository) },
         modules: {

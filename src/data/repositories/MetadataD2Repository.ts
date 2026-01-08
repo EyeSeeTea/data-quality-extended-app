@@ -1,75 +1,28 @@
 import _ from "lodash";
 
-import { D2Api, MetadataPick } from "$/types/d2-api";
+import { D2Api } from "$/types/d2-api";
 import { FutureData, apiToFuture } from "$/data/api-futures";
 import { MetadataRepository } from "$/domain/repositories/MetadataRepository";
 import { MetadataItem } from "$/domain/entities/MetadataItem";
-import rec from "$/domain/entities/generic/Rec";
 import { Future } from "$/domain/entities/generic/Future";
+import { NamedCodeRef } from "$/domain/entities/Ref";
+import { DATA_QUALITY_NAMESPACE } from "$/data/common/DataStoreConfig";
 
-const metadataCodes = {
-    organisationUnits: { global: "WHO-HQ" },
-    optionSets: { nhwaAction: "NHWA_DQI_Action", nhwaStatus: "NHWA_DQI_Status" },
-    programs: { qualityIssues: "NHWA_DQI_001" },
-    trackedEntityTypes: { dataQuality: "NHWA_DQI - Data Quality Analysis" },
-    trackedEntityAttributes: {
-        endDate: "NHWA_DQI_TEA_End_Date",
-        module: "NHWA_DQI_TEA_Dataset",
-        name: "NHWA_DQI_TEA_Name",
-        startDate: "NHWA_DQI_TEA_Start_Date",
-        status: "NHWA_DQI_TEA_Status",
-        lastModification: "NHWA_DQI_TEA_Last_Modification",
-        countries: "NHWA_DQI_TEA_Countries_Analysis",
-        sequential: "NHWA_DQI_TEA_Sequential",
-    },
-    dataElements: {
-        issueNumber: "NHWA_DQI_Issue_Number",
-        azureUrl: "NHWA_DQI_Azure_URL",
-        period: "NHWA_DQI_Period",
-        country: "NHWA_DQI_Country",
-        dataElement: "NHWA_DQI_DataElement",
-        categoryOption: "NHWA_DQI_Category_Option",
-        description: "NHWA_DQI_Description",
-        followUp: "NHWA_DQI_Follow-Up",
-        status: "NHWA_DQI_Status",
-        action: "NHWA_DQI_Action",
-        actionDescription: "NHWA_DQI_Action_Description",
-        contactEmails: "NHWA_DQI_Contact_Emails",
-        comments: "NHWA_DQI_Comments",
-        correlative: "NHWA_DQI_Issue_Correlative_Number",
-        sectionNumber: "NHWA_DQI_Section_Number",
-    },
-    dataSets: { module1: "NHWA-M1-2023", module2: "NHWA-M2-2023" },
-    userGroups: {
-        dataCaptureModule1: "NHWA _DATA Capture Module 1",
-        dataCaptureModule2And4: "NHWA _DATA Capture Module 2-4",
-    },
-};
-
-const metadataFields = {
+const METADATA_FIELDS = {
     trackedEntityTypes: {
         fields: { id: true, name: true, code: true },
-        filter: { name: { in: rec(metadataCodes.trackedEntityTypes).values() } },
-    },
-    organisationUnits: {
-        fields: { id: true, name: true, code: true },
-        filter: { code: { in: rec(metadataCodes.organisationUnits).values() } },
     },
     dataSets: {
         fields: { id: true, name: true, code: true },
-        filter: { code: { in: rec(metadataCodes.dataSets).values() } },
     },
     trackedEntityAttributes: {
         fields: { id: true, name: true, code: true },
-        filter: { code: { in: rec(metadataCodes.trackedEntityAttributes).values() } },
     },
     optionSets: {
         fields: { id: true, name: true, code: true, options: { id: true, name: true, code: true } },
-        filter: { code: { in: rec(metadataCodes.optionSets).values() } },
     },
     dataElements: {
         fields: { id: true, name: true, code: true },
-        filter: { code: { in: rec(metadataCodes.dataElements).values() } },
     },
     programs: {
         fields: {
@@ -78,47 +31,174 @@ const metadataFields = {
             code: true,
             programStages: { id: true, code: true, name: true, description: true, sortOrder: true },
         },
-        filter: { code: { in: rec(metadataCodes.programs).values() } },
         order: "sortOrder:asc",
     },
     userGroups: {
         fields: { id: true, name: true, code: true, users: true },
-        filter: { name: { in: rec(metadataCodes.userGroups).values() } },
     },
-};
+} as const;
+
+const NHWA_QUALITY_ISSUES_PROGRAM_CODE = "NHWA_DQI_001";
 
 export class MetadataD2Repository implements MetadataRepository {
     constructor(private api: D2Api) {}
 
     get(): FutureData<MetadataItem> {
-        return this.getIndexedMetadata().flatMap(metadata => {
-            return Future.success(metadata);
+        return this.getMetadataCodes().flatMap(metadataCodes => {
+            return this.getGlobalOrgUnit().flatMap((globalOrgUnit: NamedCodeRef) => {
+                return this.getIndexedMetadata(metadataCodes).map(
+                    (metadata: MetadataItemWithoutOrgUnits) => {
+                        const metadataItem: MetadataItem = {
+                            ...metadata,
+                            organisationUnits: { global: globalOrgUnit },
+                        };
+                        return metadataItem;
+                    }
+                );
+            });
         });
     }
 
-    private getIndexedMetadata(): FutureData<MetadataIndexed> {
-        const d2Response = this.api.metadata.get(metadataFields);
-        return apiToFuture(d2Response).flatMap(metadata => {
-            const metadataIndexed = _.mapValues(metadata, (objs, key: keyof typeof metadata) => {
-                const objsByCode = _.keyBy(objs, obj => obj.code);
-                const objsByName = _.keyBy(objs, obj => obj.name);
-                const dictionary = metadataCodes[key];
-                return _.mapValues(dictionary, value => {
-                    const obj = objsByCode[value] || objsByName[value];
-                    if (!obj) throw Error(`Metadata object not found: ${key}.code/name="${value}"`);
-                    return obj;
-                });
+    private getIndexedMetadata(
+        metadataCodes: MetadataCodes
+    ): FutureData<MetadataItemWithoutOrgUnits> {
+        const codeValues = <T extends Record<string, string>>(obj: T): string[] =>
+            Object.values(obj);
+
+        const metadata = {
+            ...METADATA_FIELDS,
+
+            trackedEntityTypes: {
+                ...METADATA_FIELDS.trackedEntityTypes,
+                filter: { name: { in: codeValues(metadataCodes.trackedEntityTypes) } },
+            },
+
+            dataSets: {
+                ...METADATA_FIELDS.dataSets,
+                filter: { code: { in: codeValues(metadataCodes.dataSets) } },
+            },
+
+            trackedEntityAttributes: {
+                ...METADATA_FIELDS.trackedEntityAttributes,
+                filter: { code: { in: codeValues(metadataCodes.trackedEntityAttributes) } },
+            },
+
+            optionSets: {
+                ...METADATA_FIELDS.optionSets,
+                filter: { code: { in: codeValues(metadataCodes.optionSets) } },
+            },
+
+            dataElements: {
+                ...METADATA_FIELDS.dataElements,
+                filter: { code: { in: codeValues(metadataCodes.dataElements) } },
+            },
+
+            programs: {
+                ...METADATA_FIELDS.programs,
+                filter: { code: { in: codeValues(metadataCodes.programs) } },
+            },
+
+            userGroups: {
+                ...METADATA_FIELDS.userGroups,
+                filter: { name: { in: codeValues(metadataCodes.userGroups) } },
+            },
+        };
+
+        const d2Response = this.api.metadata.get(metadata);
+
+        return apiToFuture(d2Response).flatMap(metadataRequest => {
+            const metadataIndexed = _.mapValues(
+                metadataRequest,
+                (objs, key: keyof typeof metadata) => {
+                    const objsByCode = _.keyBy(objs, obj => obj.code);
+                    const objsByName = _.keyBy(objs, obj => obj.name);
+                    const dictionary = metadataCodes[key];
+                    return _.mapValues(dictionary, value => {
+                        const obj = objsByCode[value] || objsByName[value];
+                        if (!obj)
+                            throw Error(`Metadata object not found: ${key}.code/name="${value}"`);
+                        return obj;
+                    });
+                }
+            );
+            return Future.success(metadataIndexed as unknown as MetadataItemWithoutOrgUnits);
+        });
+    }
+
+    private getMetadataCodes(): FutureData<MetadataCodes> {
+        const dataStore = this.api.dataStore(DATA_QUALITY_NAMESPACE);
+        return apiToFuture(
+            dataStore.get<MetadataCodes>(`programs-${NHWA_QUALITY_ISSUES_PROGRAM_CODE}`)
+        ).flatMap(metadataItemCodes => {
+            if (!metadataItemCodes)
+                return Future.error(
+                    new Error(
+                        `Cannot found ${DATA_QUALITY_NAMESPACE}/programs-${NHWA_QUALITY_ISSUES_PROGRAM_CODE} in datastore`
+                    )
+                );
+
+            return Future.success(metadataItemCodes);
+        });
+    }
+
+    private getGlobalOrgUnit(): FutureData<NamedCodeRef> {
+        return apiToFuture(
+            this.api.models.organisationUnits.get({
+                fields: { id: true, name: true, code: true },
+                filter: { level: { eq: "1" } },
+            })
+        ).flatMap(d2Response => {
+            const d2OrgUnit = d2Response.objects[0];
+            if (!d2OrgUnit) return Future.error(new Error(`Global organisation unit not found`));
+
+            return Future.success({
+                id: d2OrgUnit.id,
+                name: d2OrgUnit.name,
+                code: d2OrgUnit.code,
             });
-            return Future.success(metadataIndexed as unknown as MetadataIndexed);
         });
     }
 }
 
-type Codes = typeof metadataCodes;
-type MetadataRequest = typeof metadataFields;
-type MetadataResponse = MetadataPick<MetadataRequest>;
-type MetadataIndexed = {
-    [K in keyof Codes]: { [K2 in keyof Codes[K]]: MetadataResponse[K][number] };
+type MetadataItemWithoutOrgUnits = Omit<MetadataItem, "organisationUnits">;
+
+type Code = string;
+type MetadataCodes = {
+    trackedEntityTypes: { dataQuality: Code };
+    dataSets: { module1: Code; module2: Code };
+    optionSets: { nhwaAction: Code; nhwaStatus: Code };
+    trackedEntityAttributes: {
+        endDate: Code;
+        module: Code;
+        name: Code;
+        startDate: Code;
+        status: Code;
+        lastModification: Code;
+        countries: Code;
+        sequential: Code;
+    };
+    dataElements: {
+        issueNumber: Code;
+        azureUrl: Code;
+        period: Code;
+        country: Code;
+        dataElement: Code;
+        categoryOption: Code;
+        description: Code;
+        followUp: Code;
+        status: Code;
+        action: Code;
+        actionDescription: Code;
+        contactEmails: Code;
+        comments: Code;
+        correlative: Code;
+        sectionNumber: Code;
+    };
+    programs: { qualityIssues: Code };
+    userGroups: {
+        dataCaptureModule1: Code;
+        dataCaptureModule2And4: Code;
+    };
 };
 
 export const MODULE_2_CODE = "NHWA-M2-2023";

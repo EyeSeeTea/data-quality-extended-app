@@ -57,6 +57,3 @@ export class Settings extends Struct<SettingsAttrs>() {
         }
     }
 }
-
-export const DATA_QUALITY_NAMESPACE = "data-quality";
-export const DATA_QUALITY_SETTINGS_KEY = "settings";

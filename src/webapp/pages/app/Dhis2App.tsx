@@ -7,6 +7,7 @@ import App from "./App";
 import { CompositionRoot, getWebappCompositionRoot } from "$/CompositionRoot";
 import { MetadataD2Repository } from "$/data/repositories/MetadataD2Repository";
 import { MetadataItem } from "$/domain/entities/MetadataItem";
+import { DataQualityIssuesProgramD2Repository } from "$/data/repositories/DataQualityIssuesProgramD2Repository";
 
 export function Dhis2App(_props: {}) {
     const [compositionRootRes, setCompositionRootRes] = React.useState<CompositionRootResult>({
@@ -60,13 +61,26 @@ async function getData(): Promise<CompositionRootResult> {
         : new D2Api({ baseUrl: baseUrl });
 
     try {
+        const dataQualityIssuesPrograms = await new DataQualityIssuesProgramD2Repository(api)
+            .getAll()
+            .toPromise();
+
         const metadata = await new MetadataD2Repository(api).get().toPromise();
+
         const compositionRoot = getWebappCompositionRoot(api, metadata);
 
         const userSettings = await api.get<{ keyUiLocale: string }>("/userSettings").getData();
         configI18n(userSettings);
         await setupLogger(api.baseUrl, metadata.programs.qualityIssues.id);
-        return { type: "loaded", data: { baseUrl, compositionRoot, metadata: metadata, api: api } };
+        return {
+            type: "loaded",
+            data: {
+                baseUrl,
+                compositionRoot,
+                metadata: metadata,
+                api: api,
+            },
+        };
     } catch (err) {
         return { type: "error", error: { baseUrl, error: err as Error } };
     }
