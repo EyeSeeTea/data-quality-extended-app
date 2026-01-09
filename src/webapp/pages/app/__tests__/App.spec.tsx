@@ -9,7 +9,7 @@ describe("App", () => {
     it("renders the feedback component", async () => {
         const view = getView();
 
-        expect(await view.findByText("Data Quality Analysis")).toBeInTheDocument();
+        expect(await view.findByText("Send feedback")).toBeInTheDocument();
     });
 });
 
