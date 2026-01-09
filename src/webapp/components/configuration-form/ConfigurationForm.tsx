@@ -14,6 +14,7 @@ import styled from "styled-components";
 import { getDefaultModules } from "$/data/common/D2Module";
 import { Alert } from "@material-ui/lab";
 import { ORG_UNIT_LEVELS, ORG_UNIT_SELECTABLE_LEVELS } from "$/webapp/utils/form";
+import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
 
 export function getIdFromCountriesPaths(paths: string[]): string[] {
     return _(paths)
@@ -47,7 +48,8 @@ export function useCountries(props: UseCountriesProps) {
 
 export const ConfigurationForm: React.FC<ConfigurationFormProps> = React.memo(props => {
     const { initialData, onSave, updateCountry } = props;
-    const { api, currentUser, metadata } = useAppContext();
+    const { api, currentUser } = useAppContext();
+    const { metadataItem } = useMetadataItemContext();
     const { countries } = useCountries({ ids: initialData.countriesAnalysis });
     const [formData, setFormData] = React.useState<QualityAnalysis>(() => {
         return initialData;
@@ -61,7 +63,7 @@ export const ConfigurationForm: React.FC<ConfigurationFormProps> = React.memo(pr
         }
     }, [countries]);
 
-    const modules = getDefaultModules(metadata);
+    const modules = getDefaultModules(metadataItem);
     const moduleItems = modules.map(module => ({ value: module.id, text: module.name }));
 
     const onFormSubmit = React.useCallback(

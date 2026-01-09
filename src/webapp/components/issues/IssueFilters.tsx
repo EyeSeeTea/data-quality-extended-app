@@ -13,6 +13,7 @@ import { Button, Dialog, DialogActions, TextField } from "@material-ui/core";
 import { CountrySelector } from "$/webapp/components/country-selector/CountrySelector";
 import { getIdFromCountriesPaths } from "$/webapp/components/configuration-form/ConfigurationForm";
 import { Country } from "$/domain/entities/Country";
+import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
 
 const followUpItems = [
     {
@@ -45,7 +46,8 @@ function extractCountriesNames(countries: Country[], totalCountriesSelected: num
 }
 
 export const IssueFilters: React.FC<IssueFiltersProps> = props => {
-    const { api, compositionRoot, currentUser, metadata } = useAppContext();
+    const { api, compositionRoot, currentUser } = useAppContext();
+    const { metadataItem } = useMetadataItemContext();
 
     const snackbar = useSnackbar();
     const { initialFilters, onChange, showStepFilter } = props;
@@ -62,15 +64,15 @@ export const IssueFilters: React.FC<IssueFiltersProps> = props => {
         [onChange]
     );
 
-    const actions = metadata.optionSets.nhwaAction.options.map(option => {
+    const actions = metadataItem.optionSets.nhwaAction.options.map(option => {
         return { value: option.code, text: option.name };
     });
 
-    const status = metadata.optionSets.nhwaStatus.options.map(option => {
+    const status = metadataItem.optionSets.nhwaStatus.options.map(option => {
         return { value: option.code, text: option.name };
     });
 
-    const step = metadata.programs.qualityIssues.programStages.map((option, index) => {
+    const step = metadataItem.programs.qualityIssues.programStages.map((option, index) => {
         return { value: String(index + 1), text: option.name };
     });
 

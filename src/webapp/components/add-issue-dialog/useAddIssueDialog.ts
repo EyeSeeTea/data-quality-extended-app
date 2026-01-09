@@ -10,6 +10,7 @@ import { Maybe } from "$/utils/ts-utils";
 import { IssueTemplate } from "$/domain/usecases/CreateIssueUseCase";
 import { getIdFromCountriesPaths } from "$/webapp/components/configuration-form/ConfigurationForm";
 import { generatePeriodYearOptions } from "$/webapp/utils/form";
+import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
 
 type UseAddIssueDialogProps = {
     analysis: QualityAnalysis;
@@ -18,7 +19,8 @@ type UseAddIssueDialogProps = {
 
 export function useAddIssueDialog(props: UseAddIssueDialogProps) {
     const { analysis, onAddIssue } = props;
-    const { compositionRoot, metadata } = useAppContext();
+    const { compositionRoot } = useAppContext();
+    const { metadataItem } = useMetadataItemContext();
     const snackBar = useSnackbar();
 
     const [addIssueForm, updateAddIssueForm] = React.useState<AddIssueForm>({
@@ -89,18 +91,20 @@ export function useAddIssueDialog(props: UseAddIssueDialogProps) {
     );
 
     React.useEffect(() => {
-        compositionRoot.modules.get.execute({ ids: [analysis.module.id], metadata: metadata }).run(
-            modules => {
-                const module = modules[0];
-                if (module) {
-                    setDataElements(module.dataElements);
+        compositionRoot.modules.get
+            .execute({ ids: [analysis.module.id], metadata: metadataItem })
+            .run(
+                modules => {
+                    const module = modules[0];
+                    if (module) {
+                        setDataElements(module.dataElements);
+                    }
+                },
+                err => {
+                    snackBar.error(err.message);
                 }
-            },
-            err => {
-                snackBar.error(err.message);
-            }
-        );
-    }, [compositionRoot, analysis, snackBar, metadata]);
+            );
+    }, [compositionRoot, analysis, snackBar, metadataItem]);
 
     return {
         addIssueForm,

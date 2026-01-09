@@ -4,6 +4,7 @@ import { useAppContext } from "$/webapp/contexts/app-context";
 import { QualityAnalysis } from "$/domain/entities/QualityAnalysis";
 import { Id } from "$/domain/entities/Ref";
 import { Maybe } from "$/utils/ts-utils";
+import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
 
 export const thresholdList = [
     { value: "1", text: "1.0" },
@@ -25,7 +26,9 @@ export const algorithmList = [
 
 export function useAnalysisOutlier(props: UseRunAnalysisProps) {
     const { onSucess } = props;
-    const { compositionRoot, metadata } = useAppContext();
+    const { compositionRoot } = useAppContext();
+    const { metadataItem } = useMetadataItemContext();
+
     const [isLoading, setLoading] = React.useState<boolean>(false);
     const [error, setError] = React.useState<Maybe<string>>(undefined);
 
@@ -39,7 +42,7 @@ export function useAnalysisOutlier(props: UseRunAnalysisProps) {
                     algorithm: algorithm,
                     qualityAnalysisId: analysisId,
                     threshold: threshold,
-                    metadata: metadata,
+                    metadata: metadataItem,
                 })
                 .run(
                     qualityAnalysis => {
@@ -52,7 +55,7 @@ export function useAnalysisOutlier(props: UseRunAnalysisProps) {
                     }
                 );
         },
-        [compositionRoot.outlier.run, onSucess, metadata]
+        [compositionRoot.outlier.run, onSucess, metadataItem]
     );
 
     return {

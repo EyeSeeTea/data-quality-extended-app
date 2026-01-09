@@ -18,10 +18,13 @@ import { Maybe } from "$/utils/ts-utils";
 import CloudDownload from "@material-ui/icons/CloudDownload";
 import { useTableUtils } from "$/webapp/hooks/useTable";
 import { useIssueColumns } from "./IssueColumns";
+import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
 
 export function useCopyContactEmails(props: UseCopyContactEmailsProps) {
     const { onSuccess } = props;
-    const { compositionRoot, metadata } = useAppContext();
+    const { compositionRoot } = useAppContext();
+    const { metadataItem } = useMetadataItemContext();
+
     const loading = useLoading();
     const snackbar = useSnackbar();
 
@@ -39,7 +42,7 @@ export function useCopyContactEmails(props: UseCopyContactEmailsProps) {
                     sectionId: sectionId,
                     issueId: issueId,
                     filters,
-                    metadata: metadata,
+                    metadata: metadataItem,
                 })
                 .run(
                     () => {
@@ -53,14 +56,16 @@ export function useCopyContactEmails(props: UseCopyContactEmailsProps) {
                     }
                 );
         },
-        [compositionRoot.issues.copyEmails, loading, snackbar, onSuccess, metadata]
+        [compositionRoot.issues.copyEmails, loading, snackbar, onSuccess, metadataItem]
     );
 
     return copyContactEmails;
 }
 
 export function useExportIssues() {
-    const { compositionRoot, metadata } = useAppContext();
+    const { compositionRoot } = useAppContext();
+    const { metadataItem } = useMetadataItemContext();
+
     const loading = useLoading();
     const snackbar = useSnackbar();
 
@@ -68,7 +73,7 @@ export function useExportIssues() {
         (analysisId: Id, filters: GetIssuesOptions["filters"]) => {
             loading.show(true, i18n.t("Exporting Issues..."));
             compositionRoot.issues.export
-                .execute({ analysisId: analysisId, filters, metadata: metadata })
+                .execute({ analysisId: analysisId, filters, metadata: metadataItem })
                 .run(
                     () => {
                         snackbar.success(i18n.t("Issues exported"));
@@ -80,7 +85,7 @@ export function useExportIssues() {
                     }
                 );
         },
-        [compositionRoot.issues.export, loading, snackbar, metadata]
+        [compositionRoot.issues.export, loading, snackbar, metadataItem]
     );
 
     return exportIssues;
@@ -159,7 +164,9 @@ export function useGetRows(
     sectionId: Maybe<Id>,
     refreshIssue: number
 ) {
-    const { compositionRoot, metadata } = useAppContext();
+    const { compositionRoot } = useAppContext();
+    const { metadataItem } = useMetadataItemContext();
+
     const [loading, setLoading] = React.useState(false);
     const getRows = React.useCallback<GetRows<QualityAnalysisIssue>>(
         (_search, pagination, sorting) => {
@@ -188,7 +195,7 @@ export function useGetRows(
                             step: filters.step,
                             search: filters.search,
                         },
-                        metadata: metadata,
+                        metadata: metadataItem,
                     })
                     .run(
                         response => {
@@ -215,7 +222,7 @@ export function useGetRows(
             filters.search,
             analysisId,
             sectionId,
-            metadata,
+            metadataItem,
         ]
     );
 

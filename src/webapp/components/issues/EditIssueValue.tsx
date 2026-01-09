@@ -9,6 +9,7 @@ import { SnackbarState, useLoading, useSnackbar } from "@eyeseetea/d2-ui-compone
 import { Code, Id } from "$/domain/entities/Ref";
 import i18n from "$/utils/i18n";
 import { useParams } from "react-router-dom";
+import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
 
 type UpdateIssuePropertyProps = {
     analysisId: Id;
@@ -34,7 +35,8 @@ function getContactEmailNotification(
 
 export function useUpdateIssueProperty(props: UpdateIssuePropertyProps) {
     const { analysisId, field, issue, setRefresh } = props;
-    const { compositionRoot, metadata } = useAppContext();
+    const { compositionRoot } = useAppContext();
+    const { metadataItem } = useMetadataItemContext();
     const loading = useLoading();
     const snackbar = useSnackbar();
 
@@ -47,7 +49,7 @@ export function useUpdateIssueProperty(props: UpdateIssuePropertyProps) {
                     issue: issue,
                     propertyToUpdate: field,
                     valueToUpdate: value,
-                    metadata: metadata,
+                    metadata: metadataItem,
                 })
                 .run(
                     result => {
@@ -76,7 +78,7 @@ export function useUpdateIssueProperty(props: UpdateIssuePropertyProps) {
             analysisId,
             field,
             setRefresh,
-            metadata,
+            metadataItem,
         ]
     );
 
@@ -88,8 +90,7 @@ export const EditIssueValue: React.FC<EditIssueValueProps> = React.memo(props =>
         id: string;
         qualityIssuesProgramCode: Code;
     }>();
-
-    const { metadata } = useAppContext();
+    const { metadataItem } = useMetadataItemContext();
     const { issue, field, setRefresh } = props;
     const { updateIssue } = useUpdateIssueProperty({
         analysisId: id,
@@ -137,7 +138,7 @@ export const EditIssueValue: React.FC<EditIssueValueProps> = React.memo(props =>
         case "status":
             return (
                 <SelectorInline
-                    items={metadata.optionSets.nhwaStatus.options.map(option => {
+                    items={metadataItem.optionSets.nhwaStatus.options.map(option => {
                         return { id: option.code, label: option.name };
                     })}
                     value={issue.status?.name || ""}
@@ -147,7 +148,7 @@ export const EditIssueValue: React.FC<EditIssueValueProps> = React.memo(props =>
         case "action":
             return (
                 <SelectorInline
-                    items={metadata.optionSets.nhwaAction.options.map(option => {
+                    items={metadataItem.optionSets.nhwaAction.options.map(option => {
                         return { id: option.code, label: option.name };
                     })}
                     value={issue.action?.name || ""}

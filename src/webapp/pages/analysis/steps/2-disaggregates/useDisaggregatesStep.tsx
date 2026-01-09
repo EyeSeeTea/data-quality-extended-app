@@ -7,10 +7,12 @@ import _ from "$/domain/entities/generic/Collection";
 import { UpdateAnalysisState } from "$/webapp/pages/analysis/AnalysisPage";
 import { QualityAnalysis } from "$/domain/entities/QualityAnalysis";
 import { Maybe } from "$/utils/ts-utils";
+import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
 
 export function useDisaggregatesStep(props: UseDisaggregatesStepProps) {
     const { analysis, sectionId, updateAnalysis } = props;
-    const { compositionRoot, metadata } = useAppContext();
+    const { compositionRoot } = useAppContext();
+    const { metadataItem } = useMetadataItemContext();
     const snackbar = useSnackbar();
 
     const [reload, refreshReload] = React.useState(0);
@@ -50,7 +52,7 @@ export function useDisaggregatesStep(props: UseDisaggregatesStepProps) {
                 analysisId: analysis.id,
                 disaggregationsIds: selectedDisagregations,
                 sectionId: sectionId,
-                metadata: metadata,
+                metadata: metadataItem,
             })
             .run(
                 result => {

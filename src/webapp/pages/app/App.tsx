@@ -35,13 +35,9 @@ function App(props: AppProps) {
                 .execute()
                 .toPromise();
 
-            const metadata = await compositionRoot.metadataItem.get
-                .execute("NHWA_DQI_001")
-                .toPromise();
-
             if (!currentUser) throw new Error("User not logged in");
 
-            setAppContext({ api, currentUser, compositionRoot, metadata, validationRuleGroups });
+            setAppContext({ api, currentUser, compositionRoot, validationRuleGroups });
             setShowShareButton(isShareButtonVisible);
             setLoading(false);
         }

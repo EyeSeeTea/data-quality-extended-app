@@ -6,6 +6,7 @@ import { useSnackbar } from "@eyeseetea/d2-ui-components";
 import React from "react";
 import { UpdateAnalysisState } from "$/webapp/pages/analysis/AnalysisPage";
 import { Maybe } from "$/utils/ts-utils";
+import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
 
 const doubleCountsList = [
     {
@@ -36,7 +37,9 @@ const doubleCountsList = [
 
 export function useGeneralPractitionersStep(props: UseGeneralPractitionersStepProps) {
     const { analysis, section, updateAnalysis } = props;
-    const { compositionRoot, metadata } = useAppContext();
+    const { compositionRoot } = useAppContext();
+    const { metadataItem } = useMetadataItemContext();
+
     const snackbar = useSnackbar();
 
     const [reload, refreshReload] = React.useState(0);
@@ -81,7 +84,7 @@ export function useGeneralPractitionersStep(props: UseGeneralPractitionersStepPr
                 threshold: Number(threshold),
                 dissagregationsIds: selectedDisaggregations,
                 sectionId: section.id,
-                metadata: metadata,
+                metadata: metadataItem,
             })
             .run(
                 analysis => {
@@ -102,7 +105,7 @@ export function useGeneralPractitionersStep(props: UseGeneralPractitionersStepPr
         updateAnalysis,
         threshold,
         selectedDisaggregations,
-        metadata,
+        metadataItem,
     ]);
 
     return {
