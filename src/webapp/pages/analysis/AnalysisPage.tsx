@@ -20,6 +20,7 @@ import { QualityAnalysisSection } from "$/domain/entities/QualityAnalysisSection
 import { Maybe } from "$/utils/ts-utils";
 import { SummaryStep } from "./SummaryStep";
 import { getErrors } from "$/domain/entities/generic/Errors";
+import { Code } from "$/domain/entities/Ref";
 
 const defaultOutlierParams = { algorithm: "Z_SCORE", threshold: "3" };
 
@@ -150,7 +151,11 @@ function buildStepsFromSections(
 }
 
 export const AnalysisPage: React.FC<PageProps> = React.memo(() => {
-    const id = useParams<{ id: string }>();
+    const { id, qualityIssuesProgramCode } = useParams<{
+        id: string;
+        qualityIssuesProgramCode: Code;
+    }>();
+
     const [currentSection, setSection] = React.useState<string>("outliers");
     const history = useHistory();
     const loading = useLoading();
@@ -166,11 +171,11 @@ export const AnalysisPage: React.FC<PageProps> = React.memo(() => {
         },
         [setQualityFilters]
     );
-    const onBack = () => {
-        history.push("/");
+    const onBackToDashboard = () => {
+        history.push(`/${qualityIssuesProgramCode}/dashboard`);
     };
 
-    const { analysis, setAnalysis, isLoading, error } = useAnalysisById(id);
+    const { analysis, setAnalysis, isLoading, error } = useAnalysisById({ id: id });
     const [countrySelected, setCountrySelected] = React.useState(false);
 
     useEffect(() => {
@@ -232,7 +237,10 @@ export const AnalysisPage: React.FC<PageProps> = React.memo(() => {
 
     return (
         <PageContainer>
-            <PageHeader title={`${analysis.name} - ${currentSection}`} onBackClick={onBack} />
+            <PageHeader
+                title={`${analysis.name} - ${currentSection}`}
+                onBackClick={onBackToDashboard}
+            />
             <Stepper
                 lastClickableStepIndex={analysisSteps.length}
                 initialStepKey="configuration"

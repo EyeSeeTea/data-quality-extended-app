@@ -6,7 +6,7 @@ import { CheckboxInline } from "./CheckboxInline";
 import { SelectorInline } from "./SelectorInline";
 import { useAppContext } from "$/webapp/contexts/app-context";
 import { SnackbarState, useLoading, useSnackbar } from "@eyeseetea/d2-ui-components";
-import { Id } from "$/domain/entities/Ref";
+import { Code, Id } from "$/domain/entities/Ref";
 import i18n from "$/utils/i18n";
 import { useParams } from "react-router-dom";
 
@@ -84,7 +84,11 @@ export function useUpdateIssueProperty(props: UpdateIssuePropertyProps) {
 }
 
 export const EditIssueValue: React.FC<EditIssueValueProps> = React.memo(props => {
-    const { id } = useParams<{ id: string }>();
+    const { id } = useParams<{
+        id: string;
+        qualityIssuesProgramCode: Code;
+    }>();
+
     const { metadata } = useAppContext();
     const { issue, field, setRefresh } = props;
     const { updateIssue } = useUpdateIssueProperty({

@@ -15,7 +15,6 @@ import "./App.css";
 import muiThemeLegacy from "./themes/dhis2-legacy.theme";
 import { muiTheme } from "./themes/dhis2.theme";
 import { D2Api } from "$/types/d2-api";
-import { setupLogger } from "$/utils/logger";
 
 export interface AppProps {
     compositionRoot: CompositionRoot;
@@ -35,12 +34,10 @@ function App(props: AppProps) {
             const validationRuleGroups = await compositionRoot.validationRules.get
                 .execute()
                 .toPromise();
-            const dataQualityIssuesPrograms = await compositionRoot.dataQualityIssuesProgram.getAll
-                .execute()
-                .toPromise();
-            const metadata = await compositionRoot.metadataItem.get.execute().toPromise();
 
-            await setupLogger(api.baseUrl, metadata.programs.qualityIssues.id);
+            const metadata = await compositionRoot.metadataItem.get
+                .execute("NHWA_DQI_001")
+                .toPromise();
 
             if (!currentUser) throw new Error("User not logged in");
 

@@ -5,7 +5,7 @@ import { FutureData, apiToFuture } from "$/data/api-futures";
 import { MetadataRepository } from "$/domain/repositories/MetadataRepository";
 import { MetadataItem } from "$/domain/entities/MetadataItem";
 import { Future } from "$/domain/entities/generic/Future";
-import { NamedCodeRef } from "$/domain/entities/Ref";
+import { Code, NamedCodeRef } from "$/domain/entities/Ref";
 import { DATA_QUALITY_NAMESPACE } from "$/data/common/DataStoreConfig";
 
 const METADATA_FIELDS = {
@@ -38,13 +38,11 @@ const METADATA_FIELDS = {
     },
 } as const;
 
-const NHWA_QUALITY_ISSUES_PROGRAM_CODE = "NHWA_DQI_001";
-
 export class MetadataD2Repository implements MetadataRepository {
     constructor(private api: D2Api) {}
 
-    get(): FutureData<MetadataItem> {
-        return this.getMetadataCodes().flatMap(metadataCodes => {
+    get(selectedQualityIssuesProgramCode: Code): FutureData<MetadataItem> {
+        return this.getMetadataCodes(selectedQualityIssuesProgramCode).flatMap(metadataCodes => {
             return this.getGlobalOrgUnit().flatMap((globalOrgUnit: NamedCodeRef) => {
                 return this.getIndexedMetadata(metadataCodes).map(
                     (metadata: MetadataItemWithoutOrgUnits) => {
@@ -125,15 +123,15 @@ export class MetadataD2Repository implements MetadataRepository {
         });
     }
 
-    private getMetadataCodes(): FutureData<MetadataCodes> {
+    private getMetadataCodes(selectedQualityIssuesProgramCode: Code): FutureData<MetadataCodes> {
         const dataStore = this.api.dataStore(DATA_QUALITY_NAMESPACE);
         return apiToFuture(
-            dataStore.get<MetadataCodes>(`programs-${NHWA_QUALITY_ISSUES_PROGRAM_CODE}`)
+            dataStore.get<MetadataCodes>(`programs-${selectedQualityIssuesProgramCode}`)
         ).flatMap(metadataItemCodes => {
             if (!metadataItemCodes)
                 return Future.error(
                     new Error(
-                        `Cannot found ${DATA_QUALITY_NAMESPACE}/programs-${NHWA_QUALITY_ISSUES_PROGRAM_CODE} in datastore`
+                        `Cannot found ${DATA_QUALITY_NAMESPACE}/programs-${selectedQualityIssuesProgramCode} in datastore`
                     )
                 );
 
@@ -162,7 +160,6 @@ export class MetadataD2Repository implements MetadataRepository {
 
 type MetadataItemWithoutOrgUnits = Omit<MetadataItem, "organisationUnits">;
 
-type Code = string;
 type MetadataCodes = {
     trackedEntityTypes: { dataQuality: Code };
     dataSets: { module1: Code; module2: Code };

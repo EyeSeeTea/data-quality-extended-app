@@ -16,15 +16,19 @@ import {
 } from "$/webapp/hooks/useQualityAnalysisTable";
 import { useModules } from "$/webapp/hooks/useModule";
 import { Module } from "$/domain/entities/Module";
-import { Id } from "$/domain/entities/Ref";
+import { Code, Id } from "$/domain/entities/Ref";
 import { ActionType } from "$/webapp/components/analysis-actions/AnalysisActions";
-import { useHistory } from "react-router-dom";
+import { useHistory, useParams } from "react-router-dom";
 import { PageContainer } from "$/webapp/components/page-container/PageContainer";
 
 type Props = { name: string };
 
 export const DashboardPage: React.FC<Props> = React.memo(props => {
     const { name } = props;
+    const { qualityIssuesProgramCode } = useParams<{
+        qualityIssuesProgramCode: Code;
+    }>();
+
     const [reload, refreshReload] = React.useState(0);
     const [selectedIds, setSelectedIds] = React.useState<{ action: ActionType; ids: Id[] }>();
     const [filters, setFilters] = React.useState<AnalysisFilterState>(initialFilters);
@@ -32,7 +36,7 @@ export const DashboardPage: React.FC<Props> = React.memo(props => {
     const { createQualityAnalysis, removeQualityAnalysis, updateStatusQualityAnalysis } =
         useAnalysisMethods({
             onSuccess: id => {
-                history.push(`/analysis/${id}`);
+                history.push(`/${qualityIssuesProgramCode}/analysis/${id}`);
             },
             onRemove: () => {
                 setSelectedIds(undefined);
@@ -43,12 +47,12 @@ export const DashboardPage: React.FC<Props> = React.memo(props => {
         onRemoveQualityAnalysis: React.useCallback(
             (ids, action) => {
                 if (action === "open" && ids[0]) {
-                    history.push(`/analysis/${ids[0]}`);
+                    history.push(`/${qualityIssuesProgramCode}/analysis/${ids[0]}`);
                 } else {
                     setSelectedIds({ action, ids });
                 }
             },
-            [history]
+            [history, qualityIssuesProgramCode]
         ),
     });
     const { getRows, loading } = useGetRows(filters, reload);
@@ -82,9 +86,12 @@ export const DashboardPage: React.FC<Props> = React.memo(props => {
         );
     }, [filters, modules, onCreateAnalysis]);
 
+    const onBackHomePage = React.useCallback(() => history.push("/"), [history]);
+
     return (
         <PageContainer>
-            <PageHeader title={i18n.t(name)} />
+            <PageHeader title={i18n.t(name)} onBackClick={onBackHomePage} />
+
             <ObjectsTable
                 loading={loading}
                 {...config}
