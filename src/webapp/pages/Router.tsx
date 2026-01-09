@@ -10,19 +10,22 @@ export function Router() {
         <HashRouter>
             <Switch>
                 <Route
-                    path="/:qualityIssuesProgramCode/analysis/:id"
+                    path="/:qualityIssuesProgramCode"
                     render={() => (
                         <MetadataItemContextProvider>
-                            <AnalysisPage name={i18n.t("Analysis")} />
-                        </MetadataItemContextProvider>
-                    )}
-                />
-
-                <Route
-                    path="/:qualityIssuesProgramCode/dashboard"
-                    render={() => (
-                        <MetadataItemContextProvider>
-                            <DashboardPage name={i18n.t("Data Quality Analysis")} />
+                            <Switch>
+                                <Route
+                                    exact
+                                    path="/:qualityIssuesProgramCode/dashboard"
+                                    render={() => (
+                                        <DashboardPage name={i18n.t("Data Quality Analysis")} />
+                                    )}
+                                />
+                                <Route
+                                    path="/:qualityIssuesProgramCode/analysis/:id"
+                                    render={() => <AnalysisPage name={i18n.t("Analysis")} />}
+                                />
+                            </Switch>
                         </MetadataItemContextProvider>
                     )}
                 />
