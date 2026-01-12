@@ -175,7 +175,7 @@ export class SaveIssueUseCase {
                 return this.setNewValue(issue, options);
             }
             case "status": {
-                const actionSelected = metadata.optionSets.nhwaStatus.options.find(
+                const actionSelected = metadata.optionSets.status.options.find(
                     option => option.code === options.valueToUpdate
                 );
                 if (!actionSelected) return issue;
@@ -186,7 +186,7 @@ export class SaveIssueUseCase {
                 });
             }
             case "action": {
-                const actionSelected = metadata.optionSets.nhwaAction.options.find(
+                const actionSelected = metadata.optionSets.action.options.find(
                     option => option.code === options.valueToUpdate
                 );
                 if (!actionSelected) return options.issue;

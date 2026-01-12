@@ -64,11 +64,11 @@ export const IssueFilters: React.FC<IssueFiltersProps> = props => {
         [onChange]
     );
 
-    const actions = metadataItem.optionSets.nhwaAction.options.map(option => {
+    const actions = metadataItem.optionSets.action.options.map(option => {
         return { value: option.code, text: option.name };
     });
 
-    const status = metadataItem.optionSets.nhwaStatus.options.map(option => {
+    const status = metadataItem.optionSets.status.options.map(option => {
         return { value: option.code, text: option.name };
     });
 

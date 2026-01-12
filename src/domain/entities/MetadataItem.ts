@@ -14,7 +14,7 @@ export interface MetadataItem {
     trackedEntityTypes: { dataQuality: NamedCodeRef };
     organisationUnits: { global: NamedCodeRef };
     dataSets: { module1: NamedCodeRef; module2: NamedCodeRef };
-    optionSets: { nhwaAction: OptionSet; nhwaStatus: OptionSet };
+    optionSets: { action: OptionSet; status: OptionSet };
     trackedEntityAttributes: {
         endDate: NamedCodeRef;
         module: NamedCodeRef;

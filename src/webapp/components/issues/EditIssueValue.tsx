@@ -138,7 +138,7 @@ export const EditIssueValue: React.FC<EditIssueValueProps> = React.memo(props =>
         case "status":
             return (
                 <SelectorInline
-                    items={metadataItem.optionSets.nhwaStatus.options.map(option => {
+                    items={metadataItem.optionSets.status.options.map(option => {
                         return { id: option.code, label: option.name };
                     })}
                     value={issue.status?.name || ""}
@@ -148,7 +148,7 @@ export const EditIssueValue: React.FC<EditIssueValueProps> = React.memo(props =>
         case "action":
             return (
                 <SelectorInline
-                    items={metadataItem.optionSets.nhwaAction.options.map(option => {
+                    items={metadataItem.optionSets.action.options.map(option => {
                         return { id: option.code, label: option.name };
                     })}
                     value={issue.action?.name || ""}

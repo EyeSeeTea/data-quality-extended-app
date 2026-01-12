@@ -1,4 +1,3 @@
-import { MODULE_2_CODE } from "$/data/repositories/MetadataD2Repository";
 import { Either } from "./generic/Either";
 import { ValidationError } from "./generic/Errors";
 import { Struct } from "./generic/Struct";
@@ -101,9 +100,5 @@ export class QualityAnalysis extends Struct<QualityAnalysisAttrs>() {
         const date = new Date();
         const formattedDate = date.toISOString().replace(/[-:T.]/g, "_");
         return `${prefix} - ${formattedDate}`;
-    }
-
-    static isModuleTwo(qualityAnalysis: QualityAnalysis): boolean {
-        return qualityAnalysis.module.code === MODULE_2_CODE;
     }
 }

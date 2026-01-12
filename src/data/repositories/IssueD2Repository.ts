@@ -265,13 +265,13 @@ export class IssueD2Repository implements IssueRepository {
                 const issueAction = this.getValueFromOptionSet(
                     dataValuesById,
                     this.getDataElementIdOrThrow("action", metadata),
-                    "nhwaAction",
+                    "action",
                     metadata
                 );
                 const issueStatus = this.getValueFromOptionSet(
                     dataValuesById,
                     this.getDataElementIdOrThrow("status", metadata),
-                    "nhwaStatus",
+                    "status",
                     metadata
                 );
 

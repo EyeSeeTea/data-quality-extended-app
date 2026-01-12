@@ -163,7 +163,7 @@ type MetadataItemWithoutOrgUnits = Omit<MetadataItem, "organisationUnits">;
 type MetadataCodes = {
     trackedEntityTypes: { dataQuality: Code };
     dataSets: { module1: Code; module2: Code };
-    optionSets: { nhwaAction: Code; nhwaStatus: Code };
+    optionSets: { action: Code; status: Code };
     trackedEntityAttributes: {
         endDate: Code;
         module: Code;
@@ -197,5 +197,3 @@ type MetadataCodes = {
         dataCaptureModule2And4: Code;
     };
 };
-
-export const MODULE_2_CODE = "NHWA-M2-2023";
