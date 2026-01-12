@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Code } from "$/domain/entities/Ref";
 import { useHistory } from "react-router-dom";
-import { DataQualityIssuesProgram } from "$/domain/entities/DataQualityIssuesProgram";
+import { QualityIssuesProgram } from "$/domain/entities/QualityIssuesProgram";
 import { useSnackbar } from "@eyeseetea/d2-ui-components/snackbar";
 import { useLoading } from "@eyeseetea/d2-ui-components/loading";
 import { useAppContext } from "$/webapp/contexts/app-context";
@@ -19,15 +19,15 @@ export function useQualityIssuesProgram(): State {
     const history = useHistory();
 
     const [selectedProgramCode, setSelectedProgramCode] = useState<Code | undefined>(undefined);
-    const [dataQualityIssuesPrograms, setDataQualityIssuesPrograms] = useState<
-        DataQualityIssuesProgram[] | undefined
+    const [qualityIssuesPrograms, setQualityIssuesPrograms] = useState<
+        QualityIssuesProgram[] | undefined
     >(undefined);
 
     useEffect(() => {
         loading.show(true, "Loading...");
-        compositionRoot.dataQualityIssuesProgram.getAll.execute().run(
+        compositionRoot.qualityIssuesProgram.getAll.execute().run(
             programs => {
-                setDataQualityIssuesPrograms(programs);
+                setQualityIssuesPrograms(programs);
                 loading.hide();
             },
             err => {
@@ -35,16 +35,16 @@ export function useQualityIssuesProgram(): State {
                 snackBar.error(`Error loading Data Quality Issues Programs: ${err.message}`);
             }
         );
-    }, [compositionRoot.dataQualityIssuesProgram.getAll, loading, snackBar]);
+    }, [compositionRoot.qualityIssuesProgram.getAll, loading, snackBar]);
 
     const qualityProgramIssuesOptions = useMemo(() => {
         return (
-            dataQualityIssuesPrograms?.map(program => ({
+            qualityIssuesPrograms?.map(program => ({
                 text: program.name,
                 value: program.code,
             })) || []
         );
-    }, [dataQualityIssuesPrograms]);
+    }, [qualityIssuesPrograms]);
 
     const onSelectQualityProgramIssues = useCallback(
         (value: Code | undefined) => {

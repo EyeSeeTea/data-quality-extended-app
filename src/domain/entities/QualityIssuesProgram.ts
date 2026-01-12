@@ -1,13 +1,13 @@
 import { Id } from "$/domain/entities/Ref";
 
-export type DataQualityIssuesProgram = {
+export type QualityIssuesProgram = {
     id: string;
     name: string;
     code: string;
-    userGroups: DataQualityIssuesUserGroups;
+    userGroups: QualityIssuesUserGroups;
 };
 
-type DataQualityIssuesUserGroups = {
+type QualityIssuesUserGroups = {
     adminAccess: Id[];
     captureAccess: Id[];
     readAccess: Id[];
