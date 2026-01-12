@@ -35,6 +35,9 @@ export function useCopyContactEmails(props: UseCopyContactEmailsProps) {
             sectionId: Maybe<Id>,
             filters: GetIssuesOptions["filters"]
         ) => {
+            if (!metadataItem.userGroups || Object.keys(metadataItem.userGroups).length === 0)
+                return;
+
             loading.show(true, i18n.t("Copying Contact Emails and marking for Follow-Up"));
             compositionRoot.issues.copyEmails
                 .execute({
@@ -94,6 +97,7 @@ export function useExportIssues() {
 export function useTableConfig(props: UseTableConfigProps) {
     const { analysisId, filters, sectionId, showExport } = props;
     const { issueColumns, refresh, setRefresh } = useIssueColumns();
+    const { metadataItem } = useMetadataItemContext();
 
     const { saveColumns, columnsToShow } = useTableUtils<QualityAnalysisIssue>({
         storageId: "issues",
@@ -122,18 +126,21 @@ export function useTableConfig(props: UseTableConfigProps) {
                   ]
                 : undefined,
             stickyHeader: true,
-            actions: [
-                {
-                    name: "Extend Contact Emails",
-                    text: i18n.t("Extend Follow-Up + Contact Emails"),
-                    primary: false,
-                    onClick(selectedIds) {
-                        const issueId = selectedIds[0];
-                        if (!issueId) return false;
-                        copyContactEmails(issueId, analysisId, sectionId, filters);
-                    },
-                },
-            ],
+            actions:
+                metadataItem.userGroups && Object.keys(metadataItem.userGroups).length
+                    ? [
+                          {
+                              name: "Extend Contact Emails",
+                              text: i18n.t("Extend Follow-Up + Contact Emails"),
+                              primary: false,
+                              onClick(selectedIds) {
+                                  const issueId = selectedIds[0];
+                                  if (!issueId) return false;
+                                  copyContactEmails(issueId, analysisId, sectionId, filters);
+                              },
+                          },
+                      ]
+                    : [],
             columns: columnsToShow,
             initialSorting: { field: "number", order: "asc" },
             paginationOptions: {
@@ -144,14 +151,15 @@ export function useTableConfig(props: UseTableConfigProps) {
             onReorderColumns: saveColumns,
         };
     }, [
-        columnsToShow,
-        filters,
-        analysisId,
-        sectionId,
-        copyContactEmails,
-        exportIssues,
         showExport,
+        metadataItem.userGroups,
+        columnsToShow,
         saveColumns,
+        exportIssues,
+        analysisId,
+        filters,
+        copyContactEmails,
+        sectionId,
     ]);
 
     return { tableConfig, refresh };

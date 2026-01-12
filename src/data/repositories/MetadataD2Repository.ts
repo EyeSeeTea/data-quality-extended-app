@@ -96,10 +96,14 @@ export class MetadataD2Repository implements MetadataRepository {
                 filter: { code: { in: codeValues(metadataCodes.programs) } },
             },
 
-            userGroups: {
-                ...METADATA_FIELDS.userGroups,
-                filter: { name: { in: codeValues(metadataCodes.userGroups) } },
-            },
+            ...(metadataCodes.userGroups
+                ? {
+                      userGroups: {
+                          ...METADATA_FIELDS.userGroups,
+                          filter: { name: { in: codeValues(metadataCodes.userGroups) } },
+                      },
+                  }
+                : {}),
         };
 
         const d2Response = this.api.metadata.get(metadata);
@@ -192,7 +196,7 @@ type MetadataCodes = {
         sectionNumber: Code;
     };
     programs: { qualityIssues: Code };
-    userGroups: {
+    userGroups?: {
         dataCaptureModule1: Code;
         dataCaptureModule2And4: Code;
     };

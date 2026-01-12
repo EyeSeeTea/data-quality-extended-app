@@ -22,6 +22,9 @@ export class CopyContactEmailsUseCase {
     }
 
     execute(options: CopyContactEmailsOptions): FutureData<void> {
+        if (!options.metadata.userGroups || Object.keys(options.metadata.userGroups).length === 0)
+            return Future.error(new Error("User groups are not available"));
+
         return this.getIssueById(options.issueId, options.metadata).flatMap(issue => {
             if (!issue.contactEmails) return Future.error(new Error("No contact emails to copy"));
             return this.extendContactEmailsToOthersIssues(options, issue);

@@ -2,7 +2,7 @@ import { FutureData } from "$/data/api-futures";
 import { User } from "$/domain/entities/User";
 import { IssueAction } from "$/domain/entities/IssueAction";
 import { IssueStatus } from "$/domain/entities/IssueStatus";
-import { MetadataItem } from "$/domain/entities/MetadataItem";
+import { MetadataItem, NHWAUserGroups } from "$/domain/entities/MetadataItem";
 import { QualityAnalysis } from "$/domain/entities/QualityAnalysis";
 import { IssuePropertyName, QualityAnalysisIssue } from "$/domain/entities/QualityAnalysisIssue";
 import { QualityAnalysisSection } from "$/domain/entities/QualityAnalysisSection";
@@ -66,7 +66,11 @@ export class SaveIssueUseCase {
         metadata: MetadataItem
     ): FutureData<Maybe<ContactEmailsUsers>> {
         if (options.propertyToUpdate === "followUp" && options.valueToUpdate === true) {
-            const usersIds = this.getUsersIdsFromGroup(analysis, metadata);
+            const userGroups = metadata.userGroups;
+            if (!userGroups || Object.keys(userGroups).length === 0)
+                return Future.success(undefined);
+
+            const usersIds = this.getUsersIdsFromGroup(analysis, userGroups);
             if (usersIds.length === 0) return Future.success(undefined);
 
             return this.getUsersByIds(usersIds, issue).flatMap(users => {
@@ -140,11 +144,11 @@ export class SaveIssueUseCase {
             .value();
     }
 
-    private getUsersIdsFromGroup(analysis: QualityAnalysis, metadata: MetadataItem): Id[] {
+    private getUsersIdsFromGroup(analysis: QualityAnalysis, userGroups: NHWAUserGroups): Id[] {
         if (analysis.module.name.toLocaleLowerCase().includes("module 1")) {
-            return metadata.userGroups.dataCaptureModule1.users.map(user => user.id);
+            return userGroups.dataCaptureModule1.users.map(user => user.id);
         } else if (analysis.module.name.toLocaleLowerCase().includes("module 2")) {
-            return metadata.userGroups.dataCaptureModule2And4.users.map(user => user.id);
+            return userGroups.dataCaptureModule2And4.users.map(user => user.id);
         } else {
             return [];
         }

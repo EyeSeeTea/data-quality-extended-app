@@ -1,3 +1,4 @@
+import { Maybe } from "$/utils/ts-utils";
 import { Id, NamedCodeRef, NamedRef, Ref } from "./Ref";
 
 export interface OptionSet extends NamedCodeRef {
@@ -43,8 +44,10 @@ export interface MetadataItem {
         sectionNumber: NamedCodeRef;
     };
     programs: { qualityIssues: NamedRef & { programStages: ProgramStage[] } };
-    userGroups: {
-        dataCaptureModule1: NamedCodeRef & { users: Ref[] };
-        dataCaptureModule2And4: NamedCodeRef & { users: Ref[] };
-    };
+    userGroups: Maybe<NHWAUserGroups>;
 }
+
+export type NHWAUserGroups = {
+    dataCaptureModule1: NamedCodeRef & { users: Ref[] };
+    dataCaptureModule2And4: NamedCodeRef & { users: Ref[] };
+};
