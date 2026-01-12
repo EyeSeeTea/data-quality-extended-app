@@ -17,7 +17,7 @@ export function getAnalysisAndDefaultSettings(
 ) {
     return Future.joinObj({
         analysis: getQualityAnalysis(qualityAnalysisRepository, id, metadata),
-        defaultSettings: settingsRepository.get(),
+        defaultSettings: settingsRepository.get(metadata.programs.qualityIssues.code),
     });
 }
 

@@ -46,17 +46,21 @@ export class ValidateMidwiferyAndPersonnelUseCase {
     private getSettingsSections(
         options: ValidateMidwiferyAndPersonnelOptions
     ): FutureData<SectionDisaggregation[]> {
-        return this.settingsRepository.get().flatMap(settings => {
-            const section = settings.sections.find(section => section.id === options.sectionId);
-            if (!section)
-                return Future.error(
-                    new Error(`Cannot found section settings: ${options.sectionId}`)
+        return this.settingsRepository
+            .get(options.metadata.programs.qualityIssues.code)
+            .flatMap(settings => {
+                const section = settings.sections?.find(
+                    section => section.id === options.sectionId
                 );
-            const onlySelectedDisaggregations = section.disaggregations.filter(disaggregation =>
-                options.disaggregationsIds.includes(disaggregation.id)
-            );
-            return Future.success(onlySelectedDisaggregations);
-        });
+                if (!section)
+                    return Future.error(
+                        new Error(`Cannot found section settings: ${options.sectionId}`)
+                    );
+                const onlySelectedDisaggregations = section.disaggregations.filter(disaggregation =>
+                    options.disaggregationsIds.includes(disaggregation.id)
+                );
+                return Future.success(onlySelectedDisaggregations);
+            });
     }
 
     private validateMidwiferyAndPersonnel(

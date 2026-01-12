@@ -11,7 +11,7 @@ export interface SettingsAttrs {
     module: Module;
     startDate: string;
     countryIds: Id[];
-    sections: SectionSetting[];
+    sections: Maybe<SectionSetting[]>;
 }
 
 export type SectionSetting = {

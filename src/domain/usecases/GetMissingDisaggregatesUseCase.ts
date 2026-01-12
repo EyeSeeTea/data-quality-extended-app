@@ -41,7 +41,7 @@ export class GetMissingDisaggregatesUseCase {
     execute(options: GetMissingDisaggregatesOptions): FutureData<QualityAnalysis> {
         return Future.joinObj({
             analysis: this.analysisUseCase.getById(options.analysisId, options.metadata),
-            settings: this.settingsRepository.get(),
+            settings: this.settingsRepository.get(options.metadata.programs.qualityIssues.code),
         }).flatMap(({ analysis, settings }) => {
             return this.getDisaggregatesValues(analysis, settings, options);
         });
@@ -462,7 +462,7 @@ export class GetMissingDisaggregatesUseCase {
         settings: Settings,
         options: GetMissingDisaggregatesOptions
     ): SectionSetting {
-        const sectionSetting = settings.sections.find(section => section.id === options.sectionId);
+        const sectionSetting = settings.sections?.find(section => section.id === options.sectionId);
         if (!sectionSetting) throw Error(`Cannot found section in settings: ${options.sectionId}`);
         return sectionSetting;
     }

@@ -1,5 +1,5 @@
 import React from "react";
-import { Id } from "$/domain/entities/Ref";
+import { Code, Id } from "$/domain/entities/Ref";
 import { useAppContext } from "$/webapp/contexts/app-context";
 import { QualityAnalysis } from "$/domain/entities/QualityAnalysis";
 import { QualityAnalysisSection } from "$/domain/entities/QualityAnalysisSection";
@@ -7,9 +7,13 @@ import { UpdateAnalysisState } from "$/webapp/pages/analysis/AnalysisPage";
 import { Maybe } from "$/utils/ts-utils";
 import _ from "$/domain/entities/generic/Collection";
 import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
+import { useParams } from "react-router-dom";
 
 export function useNursingMidwiferyStep(props: UseNursingMidwiferyStepProps) {
     const { analysis, section, updateAnalysis } = props;
+    const { qualityIssuesProgramCode } = useParams<{
+        qualityIssuesProgramCode: Code;
+    }>();
     const { compositionRoot } = useAppContext();
     const { metadataItem } = useMetadataItemContext();
 
@@ -20,20 +24,22 @@ export function useNursingMidwiferyStep(props: UseNursingMidwiferyStepProps) {
     const [selectedDisaggregations, setSelectedDissagregations] = React.useState<string[]>([]);
 
     React.useEffect(() => {
-        compositionRoot.nursingMidwifery.getDisaggregations.execute(section.id).run(
-            result => {
-                const selectedDisaggregations = result.map(item => ({
-                    value: item.id,
-                    text: item.name,
-                }));
-                setDisaggregations(selectedDisaggregations);
-                setSelectedDissagregations(selectedDisaggregations.map(item => item.value));
-            },
-            error => {
-                setError(error.message);
-            }
-        );
-    }, [section.id, compositionRoot.nursingMidwifery.getDisaggregations]);
+        compositionRoot.nursingMidwifery.getDisaggregations
+            .execute(section.id, qualityIssuesProgramCode)
+            .run(
+                result => {
+                    const selectedDisaggregations = result.map(item => ({
+                        value: item.id,
+                        text: item.name,
+                    }));
+                    setDisaggregations(selectedDisaggregations);
+                    setSelectedDissagregations(selectedDisaggregations.map(item => item.value));
+                },
+                error => {
+                    setError(error.message);
+                }
+            );
+    }, [section.id, compositionRoot.nursingMidwifery.getDisaggregations, qualityIssuesProgramCode]);
 
     const handleChange = (values: string[]) => {
         setSelectedDissagregations(values);

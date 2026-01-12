@@ -1,5 +1,5 @@
 import { Maybe } from "$/utils/ts-utils";
-import { Id, NamedCodeRef, NamedRef, Ref } from "./Ref";
+import { Id, NamedCodeRef, Ref } from "./Ref";
 
 export interface OptionSet extends NamedCodeRef {
     options: Array<{ id: Id; name: string; code: string }>;
@@ -43,7 +43,7 @@ export interface MetadataItem {
         correlative: NamedCodeRef;
         sectionNumber: NamedCodeRef;
     };
-    programs: { qualityIssues: NamedRef & { programStages: ProgramStage[] } };
+    programs: { qualityIssues: NamedCodeRef & { programStages: ProgramStage[] } };
     userGroups: Maybe<NHWAUserGroups>;
 }
 

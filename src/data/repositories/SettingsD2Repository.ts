@@ -3,31 +3,31 @@ import { D2Api } from "$/types/d2-api";
 import { SectionSetting, Settings } from "$/domain/entities/Settings";
 import { SettingsRepository } from "$/domain/repositories/SettingsRepository";
 import { FutureData, apiToFuture } from "$/data/api-futures";
-import { Id, NamedCodeRef } from "$/domain/entities/Ref";
-import { DATA_QUALITY_NAMESPACE, dataStoreKeys } from "$/data/common/DataStoreConfig";
+import { Code, Id, NamedCodeRef } from "$/domain/entities/Ref";
+import { DATA_QUALITY_NAMESPACE } from "$/data/common/DataStoreConfig";
 
 export class SettingsD2Repository implements SettingsRepository {
     constructor(private api: D2Api) {}
 
-    get(): FutureData<Settings> {
+    get(selectedQualityIssuesProgramCode: Code): FutureData<Settings> {
         const dataStore = this.api.dataStore(DATA_QUALITY_NAMESPACE);
-        return apiToFuture(dataStore.get<D2DataStore>(dataStoreKeys.SETTINGS)).flatMap(
-            d2Response => {
-                if (!d2Response)
-                    throw Error(
-                        `Cannot found ${DATA_QUALITY_NAMESPACE}/${dataStoreKeys.SETTINGS} in datastore`
-                    );
-                return this.getDataSet(d2Response.defaultConfig.dataSet).map(dataSet => {
-                    return Settings.build({
-                        endDate: d2Response.defaultConfig.endDate,
-                        module: { ...dataSet, dataElements: [], disaggregations: [] },
-                        countryIds: d2Response.defaultConfig.orgUnits,
-                        startDate: d2Response.defaultConfig.startDate,
-                        sections: d2Response.sections,
-                    }).get();
-                });
-            }
-        );
+        return apiToFuture(
+            dataStore.get<D2DataStore>(`settings-${selectedQualityIssuesProgramCode}`)
+        ).flatMap(d2Response => {
+            if (!d2Response)
+                throw Error(
+                    `Cannot found ${DATA_QUALITY_NAMESPACE}/${`settings-${selectedQualityIssuesProgramCode}`} in datastore`
+                );
+            return this.getDataSet(d2Response.defaultConfig.dataSet).map(dataSet => {
+                return Settings.build({
+                    endDate: d2Response.defaultConfig.endDate,
+                    module: { ...dataSet, dataElements: [], disaggregations: [] },
+                    countryIds: d2Response.defaultConfig.orgUnits,
+                    startDate: d2Response.defaultConfig.startDate,
+                    sections: d2Response.sections,
+                }).get();
+            });
+        });
     }
 
     private getDataSet(dataSetCode: string): FutureData<NamedCodeRef> {

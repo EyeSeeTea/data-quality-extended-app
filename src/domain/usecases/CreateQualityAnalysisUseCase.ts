@@ -26,7 +26,9 @@ export class CreateQualityAnalysisUseCase {
     execute(options: CreateQualityAnalysisOptions): FutureData<Id> {
         return Future.joinObj({
             currentUser: this.userRepository.getCurrent(),
-            defaultSettings: this.settingsRepository.get(),
+            defaultSettings: this.settingsRepository.get(
+                options.metadata.programs.qualityIssues.code
+            ),
             sections: this.analysisSectionRepository.get(options.metadata),
             sequential: this.sequentialRepository.get(options.metadata),
         }).flatMap(({ currentUser, defaultSettings, sections, sequential }) => {
