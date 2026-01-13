@@ -37,6 +37,17 @@ export function useQualityIssuesProgram(): State {
         );
     }, [compositionRoot.qualityIssuesProgram.getAll, loading, snackBar]);
 
+    useEffect(() => {
+        if (qualityIssuesPrograms?.length === 1) {
+            const [program] = qualityIssuesPrograms;
+
+            if (!program) return;
+
+            setSelectedProgramCode(program.code);
+            history.push(`/${program.code}/dashboard`);
+        }
+    }, [qualityIssuesPrograms, history]);
+
     const qualityProgramIssuesOptions = useMemo(() => {
         return (
             qualityIssuesPrograms?.map(program => ({

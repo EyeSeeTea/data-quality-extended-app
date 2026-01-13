@@ -67,7 +67,7 @@ import { IssueSpreadSheetRepository } from "./data/repositories/IssueSpreadSheet
 import { IssueSpreadSheetTestRepository } from "./data/repositories/IssueSpreadSheetTestRepository";
 import { CreateIssueUseCase } from "$/domain/usecases/CreateIssueUseCase";
 import { QualityIssuesProgramD2Repository } from "$/data/repositories/QualityIssuesProgramD2Repository";
-import { GetAllQualityIssuesProgramUseCase } from "$/domain/usecases/GetAllQualityIssuesProgramUseCase";
+import { GetAllQualityIssuesProgramsUseCase } from "$/domain/usecases/GetAllQualityIssuesProgramsUseCase";
 import { QualityIssuesProgramTestRepository } from "$/data/repositories/QualityIssuesProgramTestRepository";
 import { QualityIssuesProgramRepository } from "$/domain/repositories/QualityIssuesProgramRepository";
 import { GetMetadataItemUseCase } from "$/domain/usecases/GetMetadataItemUseCase";
@@ -196,7 +196,7 @@ function getCompositionRoot(repositories: Repositories) {
             ),
         },
         qualityIssuesProgram: {
-            getAll: new GetAllQualityIssuesProgramUseCase(
+            getAll: new GetAllQualityIssuesProgramsUseCase(
                 repositories.qualityIssuesProgramRepository
             ),
         },
