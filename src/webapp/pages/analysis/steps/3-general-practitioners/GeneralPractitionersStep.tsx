@@ -11,11 +11,11 @@ import { PageStepProps } from "$/webapp/pages/analysis/AnalysisPage";
 import { EmptyState } from "$/webapp/components/empty-state/EmptyState";
 import { Typography } from "@material-ui/core";
 import { UserFeedbackContainer } from "$/webapp/components/user-feedback-container/UserFeedbackContainer";
-import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
+
+const NHWA_MODULE_2_CODE = "NHWA-M2-2023";
 
 export const GeneralPractitionersStep: React.FC<PageStepProps> = React.memo(props => {
     const { analysis, section, title, updateAnalysis } = props;
-    const { metadataItem } = useMetadataItemContext();
 
     const {
         disaggregations,
@@ -38,7 +38,7 @@ export const GeneralPractitionersStep: React.FC<PageStepProps> = React.memo(prop
         runAnalysis();
     };
 
-    return analysis.module.code !== metadataItem.dataSets.module2.code ? (
+    return analysis.module.code !== NHWA_MODULE_2_CODE ? (
         <UserFeedbackContainer isLoading={isLoading} error={error}>
             <StepAnalysis
                 id={analysis.id}

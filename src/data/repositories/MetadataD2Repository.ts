@@ -73,7 +73,7 @@ export class MetadataD2Repository implements MetadataRepository {
 
             dataSets: {
                 ...METADATA_FIELDS.dataSets,
-                filter: { code: { in: codeValues(metadataCodes.dataSets) } },
+                filter: { code: { in: metadataCodes.dataSets } },
             },
 
             trackedEntityAttributes: {
@@ -115,14 +115,31 @@ export class MetadataD2Repository implements MetadataRepository {
                     const objsByCode = _.keyBy(objs, obj => obj.code);
                     const objsByName = _.keyBy(objs, obj => obj.name);
                     const dictionary = metadataCodes[key];
+
+                    if (Array.isArray(dictionary)) {
+                        return dictionary.map(value => {
+                            const obj = objsByCode[value] || objsByName[value];
+                            if (!obj) {
+                                throw new Error(
+                                    `Metadata object not found: ${key}.code/name="${value}"`
+                                );
+                            }
+                            return obj;
+                        });
+                    }
+
                     return _.mapValues(dictionary, value => {
                         const obj = objsByCode[value] || objsByName[value];
-                        if (!obj)
-                            throw Error(`Metadata object not found: ${key}.code/name="${value}"`);
+                        if (!obj) {
+                            throw new Error(
+                                `Metadata object not found: ${key}.code/name="${value}"`
+                            );
+                        }
                         return obj;
                     });
                 }
             );
+
             return Future.success(metadataIndexed as unknown as MetadataItemWithoutOrgUnits);
         });
     }
@@ -166,7 +183,7 @@ type MetadataItemWithoutOrgUnits = Omit<MetadataItem, "organisationUnits">;
 
 type MetadataCodes = {
     trackedEntityTypes: { dataQuality: Code };
-    dataSets: { module1: Code; module2: Code };
+    dataSets: Code[];
     optionSets: { action: Code; status: Code };
     trackedEntityAttributes: {
         endDate: Code;

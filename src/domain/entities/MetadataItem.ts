@@ -14,7 +14,7 @@ export interface ProgramStage extends NamedCodeRef {
 export interface MetadataItem {
     trackedEntityTypes: { dataQuality: NamedCodeRef };
     organisationUnits: { global: NamedCodeRef };
-    dataSets: { module1: NamedCodeRef; module2: NamedCodeRef };
+    dataSets: NamedCodeRef[];
     optionSets: { action: OptionSet; status: OptionSet };
     trackedEntityAttributes: {
         endDate: NamedCodeRef;
