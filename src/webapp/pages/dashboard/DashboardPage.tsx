@@ -1,5 +1,7 @@
 import React from "react";
 import { ObjectsTable, useObjectsTable } from "@eyeseetea/d2-ui-components";
+import styled from "styled-components";
+import { useHistory, useParams } from "react-router-dom";
 
 import i18n from "$/utils/i18n";
 import { PageHeader } from "$/webapp/components/page-header/PageHeader";
@@ -18,21 +20,20 @@ import { useModules } from "$/webapp/hooks/useModule";
 import { Module } from "$/domain/entities/Module";
 import { Code, Id } from "$/domain/entities/Ref";
 import { ActionType } from "$/webapp/components/analysis-actions/AnalysisActions";
-import { useHistory, useParams } from "react-router-dom";
 import { PageContainer } from "$/webapp/components/page-container/PageContainer";
+import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
 
-type Props = { name: string };
-
-export const DashboardPage: React.FC<Props> = React.memo(props => {
-    const { name } = props;
+export const DashboardPage: React.FC = React.memo(() => {
     const { qualityIssuesProgramCode } = useParams<{
         qualityIssuesProgramCode: Code;
     }>();
+    const { metadataItem } = useMetadataItemContext();
 
     const [reload, refreshReload] = React.useState(0);
     const [selectedIds, setSelectedIds] = React.useState<{ action: ActionType; ids: Id[] }>();
     const [filters, setFilters] = React.useState<AnalysisFilterState>(initialFilters);
     const history = useHistory();
+
     const { createQualityAnalysis, removeQualityAnalysis, updateStatusQualityAnalysis } =
         useAnalysisMethods({
             onSuccess: id => {
@@ -43,6 +44,7 @@ export const DashboardPage: React.FC<Props> = React.memo(props => {
                 refreshReload(reload + 1);
             },
         });
+
     const { tableConfig } = useTableConfig({
         onRemoveQualityAnalysis: React.useCallback(
             (ids, action) => {
@@ -55,8 +57,11 @@ export const DashboardPage: React.FC<Props> = React.memo(props => {
             [history, qualityIssuesProgramCode]
         ),
     });
+
     const { getRows, loading } = useGetRows(filters, reload);
+
     const modules = useModules();
+
     const config = useObjectsTable(tableConfig, getRows);
 
     const onCreateAnalysis = React.useCallback(
@@ -90,7 +95,14 @@ export const DashboardPage: React.FC<Props> = React.memo(props => {
 
     return (
         <PageContainer>
-            <PageHeader title={i18n.t(name)} onBackClick={onBackHomePage} />
+            <HeaderContainer>
+                <PageHeader
+                    title={i18n.t(
+                        `Data Quality Analysis: ${metadataItem.programs.qualityIssues.name}`
+                    )}
+                    onBackClick={onBackHomePage}
+                />
+            </HeaderContainer>
 
             <ObjectsTable
                 loading={loading}
@@ -117,3 +129,7 @@ export const DashboardPage: React.FC<Props> = React.memo(props => {
         </PageContainer>
     );
 });
+
+const HeaderContainer = styled.div`
+    position: relative;
+`;
