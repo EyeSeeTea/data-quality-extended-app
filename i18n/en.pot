@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-01-09T14:04:50.743Z\n"
-"PO-Revision-Date: 2026-01-09T14:04:50.743Z\n"
+"POT-Creation-Date: 2026-01-19T15:25:10.461Z\n"
+"PO-Revision-Date: 2026-01-19T15:25:10.461Z\n"
 
 msgid "ID"
 msgstr ""
@@ -60,6 +60,9 @@ msgid "Select at least one organisation unit"
 msgstr ""
 
 msgid "Cannot be blank: {{fieldName}}"
+msgstr ""
+
+msgid "Start date must be before end date"
 msgstr ""
 
 msgid "No disaggregations selected"
@@ -166,6 +169,15 @@ msgstr ""
 msgid "Extend Follow-Up + Contact Emails"
 msgstr ""
 
+msgid "No program assigned"
+msgstr ""
+
+msgid "Data Quality Issues Program"
+msgstr ""
+
+msgid "Module Name"
+msgstr ""
+
 msgid "Back"
 msgstr ""
 
@@ -196,10 +208,10 @@ msgstr ""
 msgid "Saving..."
 msgstr ""
 
-msgid "Data Quality Analysis"
+msgid "Analysis"
 msgstr ""
 
-msgid "Analysis"
+msgid "Data Quality Analysis"
 msgstr ""
 
 msgid "Configuration"
@@ -250,13 +262,67 @@ msgstr ""
 msgid "No Issues found"
 msgstr ""
 
+msgid "New Data Quality Issues Program"
+msgstr ""
+
+msgid "Saving configuration..."
+msgstr ""
+
+msgid "Program Selection"
+msgstr ""
+
+msgid "Modules Selection"
+msgstr ""
+
+msgid "Default Settings"
+msgstr ""
+
+msgid "Select a program"
+msgstr ""
+
+msgid "Select at least one module"
+msgstr ""
+
+msgid "Select a default dataset"
+msgstr ""
+
+msgid "Select a start date"
+msgstr ""
+
+msgid "Select an end date"
+msgstr ""
+
+msgid "Select Program"
+msgstr ""
+
+msgid "Add Modules to Program"
+msgstr ""
+
+msgid "Save Configuration"
+msgstr ""
+
 msgid "Are you sure you want to {{action}} the selected rows?"
 msgstr ""
 
 msgid "Yes, {{actionButton}}"
 msgstr ""
 
-msgid "Quality Issues Program"
+msgid "Data Quality Issues Programs"
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "Configurate new program"
+msgstr ""
+
+msgid "Download metadata template"
+msgstr ""
+
+msgid "Download metadata package"
+msgstr ""
+
+msgid "Download"
 msgstr ""
 
 msgid "Progress"

@@ -16,10 +16,7 @@ export const ModulesTable: React.FC<ModulesTableProps> = React.memo(props => {
 
     const { tableConfig } = useModulesTableConfig(paginated);
 
-    const { getRows, loading } = useGetModuleRows(
-        qualityIssuesPrograms,
-        paginated
-    );
+    const { getRows, loading } = useGetModuleRows(qualityIssuesPrograms, paginated);
 
     const config = useObjectsTable(tableConfig, getRows);
 
