@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, TextField } from "@material-ui/core";
-import { Dropdown, OrgUnitsSelector, useSnackbar } from "@eyeseetea/d2-ui-components";
+import { Dropdown, OrgUnitsSelector } from "@eyeseetea/d2-ui-components";
 
 import i18n from "$/utils/i18n";
 import { useAppContext } from "$/webapp/contexts/app-context";
@@ -9,12 +9,12 @@ import { Maybe } from "$/utils/ts-utils";
 import { periods } from "$/webapp/components/analysis-filter/AnalysisFilter";
 import { Id } from "$/domain/entities/Ref";
 import _ from "$/domain/entities/generic/Collection";
-import { Country } from "$/domain/entities/Country";
 import styled from "styled-components";
 import { getDefaultModules } from "$/data/common/D2Module";
 import { Alert } from "@material-ui/lab";
 import { ORG_UNIT_LEVELS, ORG_UNIT_SELECTABLE_LEVELS } from "$/webapp/utils/form";
 import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
+import { useCountriesByIds } from "$/webapp/hooks/useCountriesByIds";
 
 export function getIdFromCountriesPaths(paths: string[]): string[] {
     return _(paths)
@@ -25,32 +25,11 @@ export function getIdFromCountriesPaths(paths: string[]): string[] {
         .value();
 }
 
-export function useCountries(props: UseCountriesProps) {
-    const { ids } = props;
-    const { compositionRoot } = useAppContext();
-    const snackbar = useSnackbar();
-    const [countries, setCountries] = React.useState<Country[]>();
-
-    React.useEffect(() => {
-        if (ids.length === 0) return;
-        compositionRoot.countries.getByIds.execute(ids).run(
-            result => {
-                setCountries(result);
-            },
-            err => {
-                snackbar.error(err.message);
-            }
-        );
-    }, [compositionRoot.countries.getByIds, ids, snackbar]);
-
-    return { countries };
-}
-
 export const ConfigurationForm: React.FC<ConfigurationFormProps> = React.memo(props => {
     const { initialData, onSave, updateCountry } = props;
     const { api, currentUser } = useAppContext();
     const { metadataItem } = useMetadataItemContext();
-    const { countries } = useCountries({ ids: initialData.countriesAnalysis });
+    const { countries } = useCountriesByIds(initialData.countriesAnalysis);
     const [formData, setFormData] = React.useState<QualityAnalysis>(() => {
         return initialData;
     });
@@ -183,8 +162,6 @@ type ConfigurationFormProps = {
     onSave: (data: QualityAnalysis) => void;
     updateCountry: React.Dispatch<React.SetStateAction<boolean>>;
 };
-
-type UseCountriesProps = { ids: Id[] };
 
 const Form = styled.form``;
 

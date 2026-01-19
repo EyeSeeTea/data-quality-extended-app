@@ -1,10 +1,26 @@
 import React from "react";
+import _ from "lodash";
 import styled from "styled-components";
-import { Dropdown } from "@eyeseetea/d2-ui-components";
+import { Dropdown, OrgUnitsSelector } from "@eyeseetea/d2-ui-components";
 
 import i18n from "$/utils/i18n";
-import { generatePeriodYearOptions } from "$/webapp/utils/form";
+import {
+    generatePeriodYearOptions,
+    ORG_UNIT_LEVELS,
+    ORG_UNIT_SELECTABLE_LEVELS,
+} from "$/webapp/utils/form";
 import { DataQualityIssuesProgramConfigOptions } from "$/domain/usecases/SaveDataQualityIssuesProgramConfigUseCase";
+import { useAppContext } from "$/webapp/contexts/app-context";
+import { Id } from "$/domain/entities/Ref";
+
+function getIdFromCountriesPaths(paths: string[]): string[] {
+    return _(paths)
+        .map(path => {
+            return _(path.split("/")).last() || undefined;
+        })
+        .compact()
+        .value();
+}
 
 type Props = {
     values: DataQualityIssuesProgramConfigOptions["defaultSettings"];
@@ -20,7 +36,16 @@ const currentYear = new Date().getFullYear();
 const periods = generatePeriodYearOptions(2000, currentYear);
 
 export const DefaultSettingsStep: React.FC<Props> = React.memo(props => {
+    const { api, currentUser } = useAppContext();
     const { values, onChange, selectedModuleOptions } = props;
+
+    const onOrgUnitsChange = React.useCallback(
+        (paths: Id[]) => {
+            const orgUnitIds = getIdFromCountriesPaths(paths as unknown as string[]);
+            onChange({ orgUnitPaths: paths, orgUnits: orgUnitIds });
+        },
+        [onChange]
+    );
 
     return (
         <Container>
@@ -47,6 +72,18 @@ export const DefaultSettingsStep: React.FC<Props> = React.memo(props => {
                     label={i18n.t("End Date")}
                 />
             </FieldsContainer>
+
+            <OrgUnitContainer>
+                <OrgUnitsSelector
+                    api={api}
+                    onChange={onOrgUnitsChange}
+                    selected={values.orgUnitPaths}
+                    levels={ORG_UNIT_LEVELS}
+                    selectableLevels={ORG_UNIT_SELECTABLE_LEVELS}
+                    rootIds={currentUser.countries.map(country => country.id)}
+                    withElevation={false}
+                />
+            </OrgUnitContainer>
         </Container>
     );
 });
@@ -57,6 +94,8 @@ const Container = styled.div`
     gap: 8px;
     flex-wrap: wrap;
 `;
+
+const OrgUnitContainer = styled.div``;
 
 const SelectorContainer = styled.div`
     margin: 8px 0 16px 0;

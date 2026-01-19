@@ -38,6 +38,7 @@ export class CreateQualityAnalysisUseCase {
             );
 
             return QualityAnalysis.build({
+                // TODO: use defaultSettings.endDate
                 endDate: previousYear,
                 id: getUid(`quality-analysis_${new Date().getTime()}`),
                 module: options.qualityAnalysis.module,
@@ -48,6 +49,7 @@ export class CreateQualityAnalysisUseCase {
                         status: QualityAnalysisSection.getInitialStatus(),
                     });
                 }),
+                // TODO: use defaultSettings.startDate
                 startDate: previousYear,
                 status: "In Progress",
                 lastModification: "",

@@ -79,7 +79,6 @@ export function useConfigProgram(): State {
 
     const onSaveConfiguration = React.useCallback(() => {
         loading.show(true, i18n.t("Saving configuration..."));
-        loading.show(true, "Loading...");
         compositionRoot.dataQualityIssuesProgramConfig.save.execute(configProgramState).run(
             () => {
                 loading.hide();
@@ -99,77 +98,60 @@ export function useConfigProgram(): State {
         snackBar,
     ]);
 
-    const ProgramSelectionComponent = React.useCallback(() => {
-        return (
-            <ProgramSelectionStep
-                options={notConfiguredProgramOptions}
-                value={configProgramState.selectedProgramCode}
-                onChange={(selectedProgramCode: Code | undefined) =>
-                    updateConfig({ selectedProgramCode })
-                }
-            />
-        );
-    }, [notConfiguredProgramOptions, configProgramState.selectedProgramCode, updateConfig]);
-
-    const ModulesSelectionComponent = React.useCallback(() => {
-        return (
-            <ModulesSelectionStep
-                modulesOptions={moduleOptionsNotConfigured}
-                values={configProgramState.selectedModuleCodes}
-                onChange={selectedModuleCodes => {
-                    updateConfig({ selectedModuleCodes });
-                }}
-            />
-        );
-    }, [moduleOptionsNotConfigured, configProgramState.selectedModuleCodes, updateConfig]);
-
-    const DefaultSettingsComponent = React.useCallback(() => {
-        return (
-            <DefaultSettingsStep
-                selectedModuleOptions={selectedModuleOptions}
-                values={configProgramState.defaultSettings}
-                onChange={updateDefaultSettings}
-            />
-        );
-    }, [selectedModuleOptions, configProgramState.defaultSettings, updateDefaultSettings]);
-
-    const SummaryComponent = React.useCallback(() => {
-        return (
-            <SummaryStep
-                configProgramState={configProgramState}
-                onSaveConfiguration={onSaveConfiguration}
-            />
-        );
-    }, [configProgramState, onSaveConfiguration]);
-
     const steps = React.useMemo((): WizardStep[] => {
         return [
             {
-                component: ProgramSelectionComponent,
+                component: ProgramSelectionStep,
                 key: "program-selection",
                 label: i18n.t("Program Selection"),
+                props: {
+                    options: notConfiguredProgramOptions,
+                    value: configProgramState.selectedProgramCode,
+                    onChange: (selectedProgramCode: Code | undefined) =>
+                        updateConfig({ selectedProgramCode }),
+                },
             },
             {
-                component: ModulesSelectionComponent,
+                component: ModulesSelectionStep,
                 key: "modules-selection",
                 label: i18n.t("Modules Selection"),
+                props: {
+                    modulesOptions: moduleOptionsNotConfigured,
+                    values: configProgramState.selectedModuleCodes,
+                    onChange: (selectedModuleCodes: Code[]) =>
+                        updateConfig({ selectedModuleCodes }),
+                },
             },
             {
-                component: DefaultSettingsComponent,
+                component: DefaultSettingsStep,
                 key: "default-settings",
                 label: i18n.t("Default Settings"),
+                props: {
+                    selectedModuleOptions,
+                    values: configProgramState.defaultSettings,
+                    onChange: updateDefaultSettings,
+                },
             },
             {
-                component: SummaryComponent,
+                component: SummaryStep,
                 key: "summary",
                 label: i18n.t("Summary"),
+                props: {
+                    programs: notConfiguredProgramOptions,
+                    modules: moduleOptionsNotConfigured,
+                    configProgramState: configProgramState,
+                    onSaveConfiguration: onSaveConfiguration,
+                },
             },
         ];
     }, [
-        DefaultSettingsComponent,
-        ModulesSelectionComponent,
-        ProgramSelectionComponent,
-        SummaryComponent,
+        configProgramState,
+        moduleOptionsNotConfigured,
+        notConfiguredProgramOptions,
+        onSaveConfiguration,
+        selectedModuleOptions,
+        updateConfig,
+        updateDefaultSettings,
     ]);
 
     const validateStep = React.useCallback(

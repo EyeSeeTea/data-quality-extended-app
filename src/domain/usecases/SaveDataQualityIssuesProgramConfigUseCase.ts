@@ -33,6 +33,7 @@ export type DataQualityIssuesProgramConfigOptions = {
         endDate: string | undefined;
         startDate: string | undefined;
         orgUnits: Id[];
+        orgUnitPaths: string[];
     };
 };
 export const initialState: DataQualityIssuesProgramConfigOptions = {
@@ -43,6 +44,7 @@ export const initialState: DataQualityIssuesProgramConfigOptions = {
         endDate: undefined,
         startDate: undefined,
         orgUnits: [],
+        orgUnitPaths: [],
     },
 };
 

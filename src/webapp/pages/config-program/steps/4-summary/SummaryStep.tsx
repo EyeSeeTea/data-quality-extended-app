@@ -1,31 +1,53 @@
-import { Button } from "@material-ui/core";
-import React from "react";
+import { Button, CircularProgress } from "@material-ui/core";
+import React, { useMemo } from "react";
 import styled from "styled-components";
 
 import i18n from "$/utils/i18n";
 import { DataQualityIssuesProgramConfigOptions } from "$/domain/usecases/SaveDataQualityIssuesProgramConfigUseCase";
+import { useCountriesByIds } from "$/webapp/hooks/useCountriesByIds";
 
 type Props = {
     configProgramState: DataQualityIssuesProgramConfigOptions;
     onSaveConfiguration: () => void;
+    programs: { text: string; value: string }[];
+    modules: { text: string; value: string }[];
 };
 
 export const SummaryStep: React.FC<Props> = React.memo(props => {
-    const { configProgramState, onSaveConfiguration } = props;
+    const { configProgramState, onSaveConfiguration, modules, programs } = props;
+    const { countries, isLoading } = useCountriesByIds(configProgramState.defaultSettings.orgUnits);
+
+    const programName = useMemo(() => {
+        return (
+            programs.find(p => p.value === configProgramState.selectedProgramCode)?.text ||
+            configProgramState.selectedProgramCode
+        );
+    }, [configProgramState.selectedProgramCode, programs]);
+
+    const moduleNames = useMemo(() => {
+        return configProgramState.selectedModuleCodes.map(
+            moduleCode => modules.find(m => m.value === moduleCode)?.text || moduleCode
+        );
+    }, [configProgramState.selectedModuleCodes, modules]);
+
+    if (isLoading) {
+        return <CircularProgress />;
+    }
+
     return (
         <div>
             <div>
                 <ul>
                     <li key={configProgramState.selectedProgramCode}>
                         {i18n.t("Data Quality Issues Program: ")}
-                        {configProgramState.selectedProgramCode}
+                        {programName}
                     </li>
 
                     <li key={configProgramState.selectedProgramCode}>
                         {i18n.t("Modules: ")}
                         <ul>
-                            {configProgramState.selectedModuleCodes.map(moduleCode => (
-                                <li key={moduleCode}>{moduleCode}</li>
+                            {moduleNames.map(module => (
+                                <li key={module}>{module}</li>
                             ))}
                         </ul>
                     </li>
@@ -44,6 +66,11 @@ export const SummaryStep: React.FC<Props> = React.memo(props => {
 
                             <li key={configProgramState.defaultSettings.endDate}>
                                 {i18n.t("End date: ")} {configProgramState.defaultSettings.endDate}
+                            </li>
+
+                            <li key={configProgramState.defaultSettings.orgUnits.join(",")}>
+                                {i18n.t("Organisation Units: ")}{" "}
+                                {countries?.map(country => country.name).join(", ")}
                             </li>
                         </ul>
                     </li>

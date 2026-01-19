@@ -241,7 +241,9 @@ export class DataQualityIssuesProgramConfigD2Repository
         programCode: Code,
         defaultSettings: DataQualityIssuesProgramConfig["defaultSettings"]
     ): FutureData<void> {
-        return apiToFuture(dataStore.save(`settings-${programCode}`, defaultSettings))
+        return apiToFuture(
+            dataStore.save(`settings-${programCode}`, { defaultConfig: defaultSettings })
+        )
             .map(() => undefined)
             .mapError(err => new Error(`Cannot save program settings. ${String(err)}`));
     }
