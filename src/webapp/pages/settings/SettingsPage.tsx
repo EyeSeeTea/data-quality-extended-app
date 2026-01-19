@@ -8,13 +8,16 @@ import { PageContainer } from "$/webapp/components/page-container/PageContainer"
 import styled from "styled-components";
 import { useSettings } from "$/webapp/hooks/useSettings";
 import { ModulesTable } from "$/webapp/components/modules-table/ModulesTable";
+import { ConfirmationDialog } from "@eyeseetea/d2-ui-components";
 
 export const SettingsPage: React.FC = React.memo(() => {
     const {
         onConfigurateNewProgram,
         onBackHomePage,
-        onDownloadProgramTemplate,
         qualityIssuesPrograms,
+        onDownloadMetadataPackageTemplate,
+        openDownloadMetadataPackage,
+        setOpenDownloadMetadataPackage,
     } = useSettings();
 
     return (
@@ -38,7 +41,7 @@ export const SettingsPage: React.FC = React.memo(() => {
                         aria-haspopup="true"
                         variant="outlined"
                         color="primary"
-                        onClick={onDownloadProgramTemplate}
+                        onClick={() => setOpenDownloadMetadataPackage(true)}
                         startIcon={<CloudDownloadIcon />}
                     >
                         {i18n.t("Download metadata template")}
@@ -49,6 +52,18 @@ export const SettingsPage: React.FC = React.memo(() => {
             {qualityIssuesPrograms && (
                 <ModulesTable qualityIssuesPrograms={qualityIssuesPrograms} />
             )}
+
+            <ConfirmationDialog
+                isOpen={openDownloadMetadataPackage}
+                title={i18n.t("Download metadata package")}
+                description={i18n.t("TODO: Add instructions about downloading metadata package.")}
+                onSave={onDownloadMetadataPackageTemplate}
+                onCancel={() => setOpenDownloadMetadataPackage(false)}
+                saveText={i18n.t("Download")}
+                cancelText={i18n.t("Cancel")}
+                fullWidth={true}
+                disableEnforceFocus
+            />
         </PageContainer>
     );
 });
