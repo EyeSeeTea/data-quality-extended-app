@@ -4,11 +4,11 @@ import { Dropdown } from "@eyeseetea/d2-ui-components";
 
 import i18n from "$/utils/i18n";
 import { generatePeriodYearOptions } from "$/webapp/utils/form";
-import { DataQualityIssuesProgramConfig } from "$/domain/entities/DataQualityIssuesProgramConfig";
+import { DataQualityIssuesProgramConfigOptions } from "$/domain/usecases/SaveDataQualityIssuesProgramConfigUseCase";
 
 type Props = {
-    values: DataQualityIssuesProgramConfig["defaultSettings"];
-    onChange: (patch: Partial<DataQualityIssuesProgramConfig["defaultSettings"]>) => void;
+    values: DataQualityIssuesProgramConfigOptions["defaultSettings"];
+    onChange: (patch: Partial<DataQualityIssuesProgramConfigOptions["defaultSettings"]>) => void;
     selectedModuleOptions: {
         text: string;
         value: string;

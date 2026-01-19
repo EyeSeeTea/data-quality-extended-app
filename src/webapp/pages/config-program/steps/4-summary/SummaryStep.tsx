@@ -2,11 +2,11 @@ import { Button } from "@material-ui/core";
 import React from "react";
 import styled from "styled-components";
 
-import { DataQualityIssuesProgramConfig } from "$/domain/entities/DataQualityIssuesProgramConfig";
 import i18n from "$/utils/i18n";
+import { DataQualityIssuesProgramConfigOptions } from "$/domain/usecases/SaveDataQualityIssuesProgramConfigUseCase";
 
 type Props = {
-    configProgramState: DataQualityIssuesProgramConfig;
+    configProgramState: DataQualityIssuesProgramConfigOptions;
     onSaveConfiguration: () => void;
 };
 

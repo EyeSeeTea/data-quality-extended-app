@@ -1,4 +1,4 @@
-import { WizardStep } from "@eyeseetea/d2-ui-components";
+import { useLoading, useSnackbar, WizardStep } from "@eyeseetea/d2-ui-components";
 import React, { useMemo, useState } from "react";
 import { useHistory } from "react-router-dom";
 
@@ -10,7 +10,11 @@ import { SummaryStep } from "$/webapp/pages/config-program/steps/4-summary/Summa
 import { Code } from "$/domain/entities/Ref";
 import { useModulesOptions } from "$/webapp/hooks/useModulesOptions";
 import { useQualityIssuesPrograms } from "$/webapp/pages/config-program/hooks/useQualityIssuesPrograms";
-import { DataQualityIssuesProgramConfig } from "$/domain/entities/DataQualityIssuesProgramConfig";
+import { useAppContext } from "$/webapp/contexts/app-context";
+import {
+    DataQualityIssuesProgramConfigOptions,
+    initialState,
+} from "$/domain/usecases/SaveDataQualityIssuesProgramConfigUseCase";
 
 type State = {
     onBackSettingsPage: () => void;
@@ -20,24 +24,16 @@ type State = {
 
 type StepKey = "program-selection" | "modules-selection" | "default-settings" | "summary";
 
-const initialState: DataQualityIssuesProgramConfig = {
-    selectedProgramCode: undefined,
-    selectedModuleCodes: [],
-    defaultSettings: {
-        dataSet: undefined,
-        endDate: undefined,
-        startDate: undefined,
-        orgUnits: [],
-    },
-};
-
 export function useConfigProgram(): State {
     const history = useHistory();
+    const loading = useLoading();
+    const snackBar = useSnackbar();
+    const { compositionRoot } = useAppContext();
     const { qualityIssuesPrograms } = useQualityIssuesPrograms();
     const { modulesOptions } = useModulesOptions();
 
     const [configProgramState, setConfigProgramState] =
-        useState<DataQualityIssuesProgramConfig>(initialState);
+        useState<DataQualityIssuesProgramConfigOptions>(initialState);
 
     const notConfiguredProgramOptions = useMemo(() => {
         return (
@@ -58,12 +54,15 @@ export function useConfigProgram(): State {
 
     const onBackSettingsPage = React.useCallback(() => history.push("/settings"), [history]);
 
-    const updateConfig = React.useCallback((patch: Partial<DataQualityIssuesProgramConfig>) => {
-        setConfigProgramState(prev => ({ ...prev, ...patch }));
-    }, []);
+    const updateConfig = React.useCallback(
+        (patch: Partial<DataQualityIssuesProgramConfigOptions>) => {
+            setConfigProgramState(prev => ({ ...prev, ...patch }));
+        },
+        []
+    );
 
     const updateDefaultSettings = React.useCallback(
-        (patch: Partial<DataQualityIssuesProgramConfig["defaultSettings"]>) => {
+        (patch: Partial<DataQualityIssuesProgramConfigOptions["defaultSettings"]>) => {
             setConfigProgramState(prev => ({
                 ...prev,
                 defaultSettings: { ...prev.defaultSettings, ...patch },
@@ -79,9 +78,26 @@ export function useConfigProgram(): State {
     }, [moduleOptionsNotConfigured, configProgramState.selectedModuleCodes]);
 
     const onSaveConfiguration = React.useCallback(() => {
-        console.log("Saving configuration:", configProgramState);
-        history.push("/settings");
-    }, [configProgramState, history]);
+        loading.show(true, i18n.t("Saving configuration..."));
+        loading.show(true, "Loading...");
+        compositionRoot.dataQualityIssuesProgramConfig.save.execute(configProgramState).run(
+            () => {
+                loading.hide();
+                snackBar.success(`Configuration saved successfully`);
+                history.push("/settings");
+            },
+            err => {
+                loading.hide();
+                snackBar.error(`Error saving configuration: ${err.message}`);
+            }
+        );
+    }, [
+        compositionRoot.dataQualityIssuesProgramConfig.save,
+        configProgramState,
+        history,
+        loading,
+        snackBar,
+    ]);
 
     const ProgramSelectionComponent = React.useCallback(() => {
         return (

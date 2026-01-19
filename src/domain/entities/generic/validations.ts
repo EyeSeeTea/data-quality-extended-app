@@ -9,6 +9,11 @@ export function validateRequired(
     return isBlank ? setErrorCode(errorCode) : [];
 }
 
+export function validateDateRange(startDate?: string, endDate?: string): ValidationErrorKey[] {
+    if (!startDate || !endDate) return [];
+    return startDate > endDate ? ["date_range_invalid"] : [];
+}
+
 function setErrorCode(errorCode?: ValidationErrorKey): ValidationErrorKey[] {
     return errorCode ? [errorCode] : ["field_cannot_be_blank"];
 }

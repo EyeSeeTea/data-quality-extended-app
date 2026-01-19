@@ -74,6 +74,10 @@ import { GetMetadataItemUseCase } from "$/domain/usecases/GetMetadataItemUseCase
 import { GetAllQualityIssuesProgramsUseCase } from "$/domain/usecases/GetAllQualityIssuesProgramsUseCase";
 import { GetAllModulesUseCase } from "$/domain/usecases/GetAllModulesUseCase";
 import { GetPaginatedModulesUseCase } from "$/domain/usecases/GetPaginatedModulesUseCase";
+import { DataQualityIssuesProgramConfigRepository } from "$/domain/repositories/DataQualityIssuesProgramConfigRepository";
+import { DataQualityIssuesProgramConfigD2Repository } from "$/data/repositories/DataQualityIssuesProgramConfigD2Repository";
+import { SaveDataQualityIssuesProgramConfigUseCase } from "$/domain/usecases/SaveDataQualityIssuesProgramConfigUseCase";
+import { DataQualityIssuesProgramConfigTestRepository } from "$/data/repositories/DataQualityIssuesProgramConfigTestRepository";
 
 export type CompositionRoot = ReturnType<typeof getCompositionRoot>;
 
@@ -93,6 +97,7 @@ type Repositories = {
     validationRuleAnalysisRepository: ValidationRuleAnalysisRepository;
     issueExportRepository: IssueExportRepository;
     qualityIssuesProgramRepository: QualityIssuesProgramRepository;
+    dataQualityIssuesProgramConfigRepository: DataQualityIssuesProgramConfigRepository;
 };
 
 function getCompositionRoot(repositories: Repositories) {
@@ -211,6 +216,11 @@ function getCompositionRoot(repositories: Repositories) {
         metadataItem: {
             get: new GetMetadataItemUseCase(repositories.metadataRepository),
         },
+        dataQualityIssuesProgramConfig: {
+            save: new SaveDataQualityIssuesProgramConfigUseCase(
+                repositories.dataQualityIssuesProgramConfigRepository
+            ),
+        },
     };
 }
 
@@ -231,6 +241,9 @@ export function getWebappCompositionRoot(api: D2Api) {
         validationRuleAnalysisRepository: new ValidationRuleAnalysisD2Repository(api),
         issueExportRepository: new IssueSpreadSheetRepository(),
         qualityIssuesProgramRepository: new QualityIssuesProgramD2Repository(api),
+        dataQualityIssuesProgramConfigRepository: new DataQualityIssuesProgramConfigD2Repository(
+            api
+        ),
     };
 
     return getCompositionRoot(repositories);
@@ -253,6 +266,8 @@ export function getTestCompositionRoot() {
         validationRuleAnalysisRepository: new ValidationRuleAnalysisTestRepository(),
         issueExportRepository: new IssueSpreadSheetTestRepository(),
         qualityIssuesProgramRepository: new QualityIssuesProgramTestRepository(),
+        dataQualityIssuesProgramConfigRepository:
+            new DataQualityIssuesProgramConfigTestRepository(),
     };
 
     return getCompositionRoot(repositories);
