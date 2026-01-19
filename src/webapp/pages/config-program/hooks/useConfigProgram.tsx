@@ -1,0 +1,212 @@
+import { WizardStep } from "@eyeseetea/d2-ui-components";
+import React, { useMemo, useState } from "react";
+import { useHistory } from "react-router-dom";
+
+import i18n from "$/utils/i18n";
+import { ProgramSelectionStep } from "$/webapp/pages/config-program/steps/1-program-selection/ProgramSelectionStep";
+import { ModulesSelectionStep } from "$/webapp/pages/config-program/steps/2-modules-selection/ModulesSelectionStep";
+import { DefaultSettingsStep } from "$/webapp/pages/config-program/steps/3-default-settings/DefaultSettingsStep";
+import { SummaryStep } from "$/webapp/pages/config-program/steps/4-summary/SummaryStep";
+import { Code } from "$/domain/entities/Ref";
+import { useModulesOptions } from "$/webapp/hooks/useModulesOptions";
+import { useQualityIssuesPrograms } from "$/webapp/pages/config-program/hooks/useQualityIssuesPrograms";
+import { DataQualityIssuesProgramConfig } from "$/domain/entities/DataQualityIssuesProgramConfig";
+
+type State = {
+    onBackSettingsPage: () => void;
+    steps: WizardStep[];
+    onStepChangeRequest: (currentStep: WizardStep) => Promise<string[] | undefined>;
+};
+
+type StepKey = "program-selection" | "modules-selection" | "default-settings" | "summary";
+
+const initialState: DataQualityIssuesProgramConfig = {
+    selectedProgramCode: undefined,
+    selectedModuleCodes: [],
+    defaultSettings: {
+        dataSet: undefined,
+        endDate: undefined,
+        startDate: undefined,
+        orgUnits: [],
+    },
+};
+
+export function useConfigProgram(): State {
+    const history = useHistory();
+    const { qualityIssuesPrograms } = useQualityIssuesPrograms();
+    const { modulesOptions } = useModulesOptions();
+
+    const [configProgramState, setConfigProgramState] =
+        useState<DataQualityIssuesProgramConfig>(initialState);
+
+    const notConfiguredProgramOptions = useMemo(() => {
+        return (
+            qualityIssuesPrograms
+                ?.filter(program => !program.modules.length)
+                ?.map(program => ({
+                    text: program.name,
+                    value: program.code,
+                })) || []
+        );
+    }, [qualityIssuesPrograms]);
+
+    const moduleOptionsNotConfigured = useMemo(() => {
+        const allConfiguredModuleCodes =
+            qualityIssuesPrograms?.flatMap(program => program.modules) || [];
+        return modulesOptions.filter(option => !allConfiguredModuleCodes.includes(option.value));
+    }, [qualityIssuesPrograms, modulesOptions]);
+
+    const onBackSettingsPage = React.useCallback(() => history.push("/settings"), [history]);
+
+    const updateConfig = React.useCallback((patch: Partial<DataQualityIssuesProgramConfig>) => {
+        setConfigProgramState(prev => ({ ...prev, ...patch }));
+    }, []);
+
+    const updateDefaultSettings = React.useCallback(
+        (patch: Partial<DataQualityIssuesProgramConfig["defaultSettings"]>) => {
+            setConfigProgramState(prev => ({
+                ...prev,
+                defaultSettings: { ...prev.defaultSettings, ...patch },
+            }));
+        },
+        []
+    );
+
+    const selectedModuleOptions = React.useMemo(() => {
+        return moduleOptionsNotConfigured.filter(option =>
+            configProgramState.selectedModuleCodes.includes(option.value)
+        );
+    }, [moduleOptionsNotConfigured, configProgramState.selectedModuleCodes]);
+
+    const onSaveConfiguration = React.useCallback(() => {
+        console.log("Saving configuration:", configProgramState);
+        history.push("/settings");
+    }, [configProgramState, history]);
+
+    const ProgramSelectionComponent = React.useCallback(() => {
+        return (
+            <ProgramSelectionStep
+                options={notConfiguredProgramOptions}
+                value={configProgramState.selectedProgramCode}
+                onChange={(selectedProgramCode: Code | undefined) =>
+                    updateConfig({ selectedProgramCode })
+                }
+            />
+        );
+    }, [notConfiguredProgramOptions, configProgramState.selectedProgramCode, updateConfig]);
+
+    const ModulesSelectionComponent = React.useCallback(() => {
+        return (
+            <ModulesSelectionStep
+                modulesOptions={moduleOptionsNotConfigured}
+                values={configProgramState.selectedModuleCodes}
+                onChange={selectedModuleCodes => {
+                    updateConfig({ selectedModuleCodes });
+                }}
+            />
+        );
+    }, [moduleOptionsNotConfigured, configProgramState.selectedModuleCodes, updateConfig]);
+
+    const DefaultSettingsComponent = React.useCallback(() => {
+        return (
+            <DefaultSettingsStep
+                selectedModuleOptions={selectedModuleOptions}
+                values={configProgramState.defaultSettings}
+                onChange={updateDefaultSettings}
+            />
+        );
+    }, [selectedModuleOptions, configProgramState.defaultSettings, updateDefaultSettings]);
+
+    const SummaryComponent = React.useCallback(() => {
+        return (
+            <SummaryStep
+                configProgramState={configProgramState}
+                onSaveConfiguration={onSaveConfiguration}
+            />
+        );
+    }, [configProgramState, onSaveConfiguration]);
+
+    const steps = React.useMemo((): WizardStep[] => {
+        return [
+            {
+                component: ProgramSelectionComponent,
+                key: "program-selection",
+                label: i18n.t("Program Selection"),
+            },
+            {
+                component: ModulesSelectionComponent,
+                key: "modules-selection",
+                label: i18n.t("Modules Selection"),
+            },
+            {
+                component: DefaultSettingsComponent,
+                key: "default-settings",
+                label: i18n.t("Default Settings"),
+            },
+            {
+                component: SummaryComponent,
+                key: "summary",
+                label: i18n.t("Summary"),
+            },
+        ];
+    }, [
+        DefaultSettingsComponent,
+        ModulesSelectionComponent,
+        ProgramSelectionComponent,
+        SummaryComponent,
+    ]);
+
+    const validateStep = React.useCallback(
+        async (stepKey: StepKey): Promise<string[] | undefined> => {
+            let errors: string[] = [];
+
+            if (stepKey === "program-selection") {
+                if (!configProgramState.selectedProgramCode) {
+                    errors = [...errors, i18n.t("Select a program")];
+                }
+            }
+
+            if (stepKey === "modules-selection") {
+                if (!configProgramState.selectedModuleCodes?.length) {
+                    errors = [...errors, i18n.t("Select at least one module")];
+                }
+            }
+
+            if (stepKey === "default-settings") {
+                const { dataSet, startDate, endDate } = configProgramState.defaultSettings ?? {};
+
+                if (!dataSet) {
+                    errors = [...errors, i18n.t("Select a default dataset")];
+                }
+
+                if (!startDate) {
+                    errors = [...errors, i18n.t("Select a start date")];
+                }
+
+                if (!endDate) {
+                    errors = [...errors, i18n.t("Select an end date")];
+                }
+
+                if (startDate && endDate && startDate > endDate) {
+                    errors = [...errors, i18n.t("Start date must be before end date")];
+                }
+            }
+
+            return errors.length ? errors : undefined;
+        },
+        [configProgramState]
+    );
+
+    const onStepChangeRequest = React.useCallback(
+        async (currentStep: WizardStep) => {
+            return validateStep(currentStep.key as StepKey);
+        },
+        [validateStep]
+    );
+
+    return {
+        onBackSettingsPage: onBackSettingsPage,
+        steps: steps,
+        onStepChangeRequest: onStepChangeRequest,
+    };
+}

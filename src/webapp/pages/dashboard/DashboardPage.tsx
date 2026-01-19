@@ -1,6 +1,8 @@
 import React from "react";
 import { ObjectsTable, useObjectsTable } from "@eyeseetea/d2-ui-components";
 import styled from "styled-components";
+import SettingsIcon from "@material-ui/icons/Settings";
+import { IconButton } from "material-ui";
 import { useHistory, useParams } from "react-router-dom";
 
 import i18n from "$/utils/i18n";
@@ -21,18 +23,22 @@ import { Module } from "$/domain/entities/Module";
 import { Code, Id } from "$/domain/entities/Ref";
 import { ActionType } from "$/webapp/components/analysis-actions/AnalysisActions";
 import { PageContainer } from "$/webapp/components/page-container/PageContainer";
+import { useAppContext } from "$/webapp/contexts/app-context";
 import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
+import { useConfiguredQualityIssuesProgram } from "$/webapp/hooks/useConfiguredQualityIssuesProgram";
 
 export const DashboardPage: React.FC = React.memo(() => {
     const { qualityIssuesProgramCode } = useParams<{
         qualityIssuesProgramCode: Code;
     }>();
     const { metadataItem } = useMetadataItemContext();
+    const { configuredQualityProgramIssuesOptions } = useConfiguredQualityIssuesProgram();
 
     const [reload, refreshReload] = React.useState(0);
     const [selectedIds, setSelectedIds] = React.useState<{ action: ActionType; ids: Id[] }>();
     const [filters, setFilters] = React.useState<AnalysisFilterState>(initialFilters);
     const history = useHistory();
+    const { currentUser } = useAppContext();
 
     const { createQualityAnalysis, removeQualityAnalysis, updateStatusQualityAnalysis } =
         useAnalysisMethods({
@@ -93,6 +99,10 @@ export const DashboardPage: React.FC = React.memo(() => {
 
     const onBackHomePage = React.useCallback(() => history.push("/"), [history]);
 
+    const goToSettings = React.useCallback(() => {
+        history.push(`/settings`);
+    }, [history]);
+
     return (
         <PageContainer>
             <HeaderContainer>
@@ -100,8 +110,18 @@ export const DashboardPage: React.FC = React.memo(() => {
                     title={i18n.t(
                         `Data Quality Analysis: ${metadataItem.programs.qualityIssues.name}`
                     )}
-                    onBackClick={onBackHomePage}
+                    onBackClick={
+                        configuredQualityProgramIssuesOptions.length === 1
+                            ? undefined
+                            : onBackHomePage
+                    }
                 />
+
+                {currentUser.isAdmin() && (
+                    <StyledIconButton onClick={goToSettings} style={{ position: "absolute" }}>
+                        <SettingsIcon />
+                    </StyledIconButton>
+                )}
             </HeaderContainer>
 
             <ObjectsTable
@@ -132,4 +152,9 @@ export const DashboardPage: React.FC = React.memo(() => {
 
 const HeaderContainer = styled.div`
     position: relative;
+`;
+
+const StyledIconButton = styled(IconButton)`
+    top: 0;
+    right: 0;
 `;

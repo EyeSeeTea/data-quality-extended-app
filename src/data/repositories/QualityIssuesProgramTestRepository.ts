@@ -4,6 +4,10 @@ import { QualityIssuesProgramRepository } from "$/domain/repositories/QualityIss
 import { QualityIssuesProgram } from "$/domain/entities/QualityIssuesProgram";
 
 export class QualityIssuesProgramTestRepository implements QualityIssuesProgramRepository {
+    getAllConfigured(): FutureData<QualityIssuesProgram[]> {
+        return Future.success([]);
+    }
+
     getAll(): FutureData<QualityIssuesProgram[]> {
         return Future.success([]);
     }

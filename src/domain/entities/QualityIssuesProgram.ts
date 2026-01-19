@@ -1,5 +1,5 @@
-export type QualityIssuesProgram = {
-    id: string;
-    name: string;
-    code: string;
+import { Code, NamedCodeRef } from "$/domain/entities/Ref";
+
+export type QualityIssuesProgram = NamedCodeRef & {
+    modules: Code[];
 };

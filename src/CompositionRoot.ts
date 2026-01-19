@@ -67,10 +67,13 @@ import { IssueSpreadSheetRepository } from "./data/repositories/IssueSpreadSheet
 import { IssueSpreadSheetTestRepository } from "./data/repositories/IssueSpreadSheetTestRepository";
 import { CreateIssueUseCase } from "$/domain/usecases/CreateIssueUseCase";
 import { QualityIssuesProgramD2Repository } from "$/data/repositories/QualityIssuesProgramD2Repository";
-import { GetAllQualityIssuesProgramsUseCase } from "$/domain/usecases/GetAllQualityIssuesProgramsUseCase";
+import { GetAllConfiguredQualityIssuesProgramsUseCase } from "$/domain/usecases/GetAllConfiguredQualityIssuesProgramsUseCase";
 import { QualityIssuesProgramTestRepository } from "$/data/repositories/QualityIssuesProgramTestRepository";
 import { QualityIssuesProgramRepository } from "$/domain/repositories/QualityIssuesProgramRepository";
 import { GetMetadataItemUseCase } from "$/domain/usecases/GetMetadataItemUseCase";
+import { GetAllQualityIssuesProgramsUseCase } from "$/domain/usecases/GetAllQualityIssuesProgramsUseCase";
+import { GetAllModulesUseCase } from "$/domain/usecases/GetAllModulesUseCase";
+import { GetPaginatedModulesUseCase } from "$/domain/usecases/GetPaginatedModulesUseCase";
 
 export type CompositionRoot = ReturnType<typeof getCompositionRoot>;
 
@@ -100,7 +103,9 @@ function getCompositionRoot(repositories: Repositories) {
         users: { getCurrent: new GetCurrentUserUseCase(repositories.usersRepository) },
         modules: {
             get: new GetModulesUseCase(repositories.moduleRepository),
+            getAllBase: new GetAllModulesUseCase(repositories.moduleRepository),
             getDisaggregations: new GetDisaggregationsUseCase(repositories.moduleRepository),
+            getPaginated: new GetPaginatedModulesUseCase(repositories.moduleRepository),
         },
         qualityAnalysis: {
             get: new GetQualityAnalysisUseCase(repositories.qualityAnalysisRepository),
@@ -196,6 +201,9 @@ function getCompositionRoot(repositories: Repositories) {
             ),
         },
         qualityIssuesProgram: {
+            getAllConfigured: new GetAllConfiguredQualityIssuesProgramsUseCase(
+                repositories.qualityIssuesProgramRepository
+            ),
             getAll: new GetAllQualityIssuesProgramsUseCase(
                 repositories.qualityIssuesProgramRepository
             ),

@@ -8,11 +8,11 @@ import { useAppContext } from "$/webapp/contexts/app-context";
 
 type State = {
     selectedProgramCode: Code | undefined;
-    qualityProgramIssuesOptions: { text: string; value: string }[];
+    configuredQualityProgramIssuesOptions: { text: string; value: string }[];
     onSelectQualityProgramIssues: (code: string | undefined) => void;
 };
 
-export function useQualityIssuesProgram(): State {
+export function useConfiguredQualityIssuesProgram(): State {
     const { compositionRoot } = useAppContext();
     const snackBar = useSnackbar();
     const loading = useLoading();
@@ -25,7 +25,7 @@ export function useQualityIssuesProgram(): State {
 
     useEffect(() => {
         loading.show(true, "Loading...");
-        compositionRoot.qualityIssuesProgram.getAll.execute().run(
+        compositionRoot.qualityIssuesProgram.getAllConfigured.execute().run(
             programs => {
                 setQualityIssuesPrograms(programs);
                 loading.hide();
@@ -35,7 +35,7 @@ export function useQualityIssuesProgram(): State {
                 snackBar.error(`Error loading Data Quality Issues Programs: ${err.message}`);
             }
         );
-    }, [compositionRoot.qualityIssuesProgram.getAll, loading, snackBar]);
+    }, [compositionRoot.qualityIssuesProgram.getAllConfigured, loading, snackBar]);
 
     useEffect(() => {
         if (qualityIssuesPrograms?.length === 1) {
@@ -48,7 +48,7 @@ export function useQualityIssuesProgram(): State {
         }
     }, [qualityIssuesPrograms, history]);
 
-    const qualityProgramIssuesOptions = useMemo(() => {
+    const configuredQualityProgramIssuesOptions = useMemo(() => {
         return (
             qualityIssuesPrograms?.map(program => ({
                 text: program.name,
@@ -66,8 +66,8 @@ export function useQualityIssuesProgram(): State {
     );
 
     return {
-        selectedProgramCode,
-        qualityProgramIssuesOptions,
-        onSelectQualityProgramIssues,
+        selectedProgramCode: selectedProgramCode,
+        configuredQualityProgramIssuesOptions: configuredQualityProgramIssuesOptions,
+        onSelectQualityProgramIssues: onSelectQualityProgramIssues,
     };
 }

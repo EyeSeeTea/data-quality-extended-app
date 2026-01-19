@@ -3,12 +3,12 @@ import { Either } from "./generic/Either";
 import { ValidationError } from "./generic/Errors";
 import { Struct } from "./generic/Struct";
 import { validateRequired } from "./generic/validations";
-import { Module } from "./Module";
+import { ModuleBase } from "./Module";
 import { Id } from "./Ref";
 
 export interface SettingsAttrs {
     endDate: string;
-    module: Module;
+    module: ModuleBase;
     startDate: string;
     countryIds: Id[];
     sections: Maybe<SectionSetting[]>;
