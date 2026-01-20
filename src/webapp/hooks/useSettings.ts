@@ -8,20 +8,12 @@ type State = {
     onConfigurateNewProgram: () => void;
     onBackHomePage: () => void;
     qualityIssuesPrograms: QualityIssuesProgram[] | undefined;
-    onDownloadMetadataPackageTemplate: () => void;
-    openDownloadMetadataPackage: boolean;
-    setOpenDownloadMetadataPackage: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export function useSettings(): State {
     const history = useHistory();
 
     const { qualityIssuesPrograms } = useQualityIssuesPrograms();
-    const [openDownloadMetadataPackage, setOpenDownloadMetadataPackage] = React.useState(false);
-
-    const onDownloadMetadataPackageTemplate = React.useCallback(() => {
-        setOpenDownloadMetadataPackage(false);
-    }, []);
 
     const onConfigurateNewProgram = React.useCallback(
         () => history.push("/config-program"),
@@ -34,8 +26,5 @@ export function useSettings(): State {
         onConfigurateNewProgram: onConfigurateNewProgram,
         onBackHomePage: onBackHomePage,
         qualityIssuesPrograms: qualityIssuesPrograms,
-        onDownloadMetadataPackageTemplate: onDownloadMetadataPackageTemplate,
-        openDownloadMetadataPackage: openDownloadMetadataPackage,
-        setOpenDownloadMetadataPackage: setOpenDownloadMetadataPackage,
     };
 }
