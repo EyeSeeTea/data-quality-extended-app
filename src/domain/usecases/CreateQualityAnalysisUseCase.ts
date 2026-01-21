@@ -37,9 +37,10 @@ export class CreateQualityAnalysisUseCase {
                 currentUser.username
             );
 
+            const { endDate, startDate, usePreviousYear } = defaultSettings;
+
             return QualityAnalysis.build({
-                // TODO: use defaultSettings.endDate
-                endDate: previousYear,
+                endDate: usePreviousYear ? previousYear : endDate,
                 id: getUid(`quality-analysis_${new Date().getTime()}`),
                 module: options.qualityAnalysis.module,
                 name: qualityAnalysisName,
@@ -49,8 +50,7 @@ export class CreateQualityAnalysisUseCase {
                         status: QualityAnalysisSection.getInitialStatus(),
                     });
                 }),
-                // TODO: use defaultSettings.startDate
-                startDate: previousYear,
+                startDate: usePreviousYear ? previousYear : startDate,
                 status: "In Progress",
                 lastModification: "",
                 countriesAnalysis: defaultSettings.countryIds,

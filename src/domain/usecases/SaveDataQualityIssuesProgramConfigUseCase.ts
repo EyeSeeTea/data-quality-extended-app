@@ -32,6 +32,7 @@ export type DataQualityIssuesProgramConfigOptions = {
         dataSet: Code | undefined;
         endDate: string | undefined;
         startDate: string | undefined;
+        usePreviousYear: boolean;
         orgUnits: Id[];
         orgUnitPaths: string[];
     };
@@ -43,6 +44,7 @@ export const initialState: DataQualityIssuesProgramConfigOptions = {
         dataSet: undefined,
         endDate: undefined,
         startDate: undefined,
+        usePreviousYear: false,
         orgUnits: [],
         orgUnitPaths: [],
     },
@@ -59,6 +61,7 @@ function mapToDataQualityIssuesProgramConfig(
             startDate: selectedOptions.defaultSettings.startDate as string,
             endDate: selectedOptions.defaultSettings.endDate as string,
             orgUnits: selectedOptions.defaultSettings.orgUnits,
+            usePreviousYear: selectedOptions.defaultSettings.usePreviousYear,
         },
     });
 }

@@ -24,6 +24,7 @@ export class SettingsD2Repository implements SettingsRepository {
                     module: dataSet,
                     countryIds: d2Response.defaultConfig.orgUnits,
                     startDate: d2Response.defaultConfig.startDate,
+                    usePreviousYear: d2Response.defaultConfig.usePreviousYear,
                     sections: d2Response.sections,
                 }).get();
             });
@@ -45,6 +46,9 @@ export class SettingsD2Repository implements SettingsRepository {
 }
 
 type D2DataStore = {
-    defaultConfig: Pick<Settings, "endDate" | "startDate"> & { dataSet: string; orgUnits: Id[] };
+    defaultConfig: Pick<Settings, "endDate" | "startDate" | "usePreviousYear"> & {
+        dataSet: string;
+        orgUnits: Id[];
+    };
     sections: SectionSetting[];
 };

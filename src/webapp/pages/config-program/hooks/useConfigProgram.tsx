@@ -171,22 +171,25 @@ export function useConfigProgram(): State {
             }
 
             if (stepKey === "default-settings") {
-                const { dataSet, startDate, endDate } = configProgramState.defaultSettings ?? {};
+                const { dataSet, startDate, endDate, usePreviousYear } =
+                    configProgramState.defaultSettings ?? {};
 
                 if (!dataSet) {
                     errors = [...errors, i18n.t("Select a default dataset")];
                 }
 
-                if (!startDate) {
-                    errors = [...errors, i18n.t("Select a start date")];
-                }
+                if (!usePreviousYear) {
+                    if (!startDate) {
+                        errors = [...errors, i18n.t("Select a start date")];
+                    }
 
-                if (!endDate) {
-                    errors = [...errors, i18n.t("Select an end date")];
-                }
+                    if (!endDate) {
+                        errors = [...errors, i18n.t("Select an end date")];
+                    }
 
-                if (startDate && endDate && startDate > endDate) {
-                    errors = [...errors, i18n.t("Start date must be before end date")];
+                    if (startDate && endDate && startDate > endDate) {
+                        errors = [...errors, i18n.t("Start date must be before end date")];
+                    }
                 }
             }
 

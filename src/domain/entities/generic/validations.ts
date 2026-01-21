@@ -9,6 +9,12 @@ export function validateRequired(
     return isBlank ? setErrorCode(errorCode) : [];
 }
 
+export function validateMustBeEmpty(value: any): ValidationErrorKey[] {
+    const isBlank = !value || (value.length !== undefined && value.length === 0);
+
+    return isBlank ? [] : ["must_be_empty"];
+}
+
 export function validateDateRange(startDate?: string, endDate?: string): ValidationErrorKey[] {
     if (!startDate || !endDate) return [];
     return startDate > endDate ? ["date_range_invalid"] : [];
