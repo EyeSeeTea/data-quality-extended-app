@@ -37,7 +37,7 @@ export class CreateQualityAnalysisUseCase {
                 currentUser.username
             );
 
-            const { endDate, startDate, usePreviousYear } = defaultSettings;
+            const { endDate, startDate, usePreviousYear, countryIds } = defaultSettings;
 
             return QualityAnalysis.build({
                 endDate: usePreviousYear ? previousYear : endDate,
@@ -53,7 +53,7 @@ export class CreateQualityAnalysisUseCase {
                 startDate: usePreviousYear ? previousYear : startDate,
                 status: "In Progress",
                 lastModification: "",
-                countriesAnalysis: defaultSettings.countryIds,
+                countriesAnalysis: countryIds,
                 sequential: { value: `DQ-${sequential.value}` },
             }).match({
                 error: errors => {

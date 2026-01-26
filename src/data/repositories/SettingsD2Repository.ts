@@ -1,6 +1,6 @@
 import _ from "$/domain/entities/generic/Collection";
 import { D2Api } from "$/types/d2-api";
-import { SectionSetting, Settings } from "$/domain/entities/Settings";
+import { Settings } from "$/domain/entities/Settings";
 import { SettingsRepository } from "$/domain/repositories/SettingsRepository";
 import { FutureData, apiToFuture } from "$/data/api-futures";
 import { Code, Id, NamedCodeRef } from "$/domain/entities/Ref";
@@ -25,7 +25,6 @@ export class SettingsD2Repository implements SettingsRepository {
                     countryIds: d2Response.defaultConfig.orgUnits,
                     startDate: d2Response.defaultConfig.startDate,
                     usePreviousYear: d2Response.defaultConfig.usePreviousYear,
-                    sections: d2Response.sections,
                 }).get();
             });
         });
@@ -50,5 +49,4 @@ type D2DataStore = {
         dataSet: string;
         orgUnits: Id[];
     };
-    sections: SectionSetting[];
 };

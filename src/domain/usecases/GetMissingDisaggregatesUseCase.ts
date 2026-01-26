@@ -17,10 +17,9 @@ import { UCIssue } from "./common/UCIssue";
 import { QualityAnalysisIssue } from "$/domain/entities/QualityAnalysisIssue";
 import { MissingDisaggregates } from "$/domain/entities/MissingDisaggregates";
 import { getCurrentSection } from "./common/utils";
-import { SettingsRepository } from "$/domain/repositories/SettingsRepository";
-import { SectionDisaggregation, SectionSetting, Settings } from "$/domain/entities/Settings";
 import { MissingComboValue } from "$/domain/entities/MissingComboValue";
 import { MetadataItem } from "$/domain/entities/MetadataItem";
+import { SectionDisaggregation } from "$/domain/entities/SectionDisaggregation";
 
 const separator = " - ";
 export class GetMissingDisaggregatesUseCase {
@@ -31,36 +30,29 @@ export class GetMissingDisaggregatesUseCase {
         private analysisRepository: QualityAnalysisRepository,
         private moduleRepository: ModuleRepository,
         private dataValueRepository: DataValueRepository,
-        private issueRepository: IssueRepository,
-        private settingsRepository: SettingsRepository
+        private issueRepository: IssueRepository
     ) {
         this.analysisUseCase = new UCAnalysis(this.analysisRepository);
         this.dataValueUseCase = new UCDataValue(this.dataValueRepository);
         this.issueUseCase = new UCIssue(this.issueRepository);
     }
+
     execute(options: GetMissingDisaggregatesOptions): FutureData<QualityAnalysis> {
-        return Future.joinObj({
-            analysis: this.analysisUseCase.getById(options.analysisId, options.metadata),
-            settings: this.settingsRepository.get(options.metadata.programs.qualityIssues.code),
-        }).flatMap(({ analysis, settings }) => {
-            return this.getDisaggregatesValues(analysis, settings, options);
-        });
+        return this.analysisUseCase
+            .getById(options.analysisId, options.metadata)
+            .flatMap(analysis => {
+                return this.getDisaggregatesValues(analysis, options);
+            });
     }
 
     private getDisaggregatesValues(
         analysis: QualityAnalysis,
-        settings: Settings,
         options: GetMissingDisaggregatesOptions
     ): FutureData<QualityAnalysis> {
-        return this.getDataElementsWithValues(analysis, options, settings).flatMap(result => {
+        return this.getDataElementsWithValues(analysis, options).flatMap(result => {
             const { dataValues, dataElements } = result;
 
-            const missingValues = this.buildDisaggregatesValues(
-                dataValues,
-                dataElements,
-                settings,
-                options
-            );
+            const missingValues = this.buildDisaggregatesValues(dataValues, dataElements, options);
 
             return this.issueUseCase
                 .getTotalIssuesBySection(analysis, options.sectionId, options.metadata)
@@ -233,13 +225,11 @@ export class GetMissingDisaggregatesUseCase {
     private buildDisaggregatesValues(
         dataValues: Record<string, DataValue[]>,
         dataElements: DataElement[],
-        settings: Settings,
         options: GetMissingDisaggregatesOptions
     ): MissingValues[] {
         const keys = _(dataValues).keys().value();
 
-        const sectionSetting = this.getSectionSetting(settings, options);
-        const selectedDisaggregations = sectionSetting.disaggregations.filter(disaggregation => {
+        const selectedDisaggregations = options.sectionDisaggregations.filter(disaggregation => {
             return options.disaggregationsIds.includes(disaggregation.id);
         });
 
@@ -386,12 +376,10 @@ export class GetMissingDisaggregatesUseCase {
 
     private getDataElementsWithValues(
         analysis: QualityAnalysis,
-        options: GetMissingDisaggregatesOptions,
-        settings: Settings
+        options: GetMissingDisaggregatesOptions
     ): FutureData<{ dataValues: Record<string, DataValue[]>; dataElements: DataElement[] }> {
         const { module } = analysis;
-        const sectionSetting = this.getSectionSetting(settings, options);
-        const selectedDisaggregations = sectionSetting.disaggregations.filter(disaggregation => {
+        const selectedDisaggregations = options.sectionDisaggregations.filter(disaggregation => {
             return options.disaggregationsIds.includes(disaggregation.id);
         });
         return this.getDataElements(module.id, selectedDisaggregations).flatMap(dataElements => {
@@ -457,15 +445,6 @@ export class GetMissingDisaggregatesUseCase {
             [analysis.startDate, analysis.endDate]
         );
     }
-
-    private getSectionSetting(
-        settings: Settings,
-        options: GetMissingDisaggregatesOptions
-    ): SectionSetting {
-        const sectionSetting = settings.sections?.find(section => section.id === options.sectionId);
-        if (!sectionSetting) throw Error(`Cannot found section in settings: ${options.sectionId}`);
-        return sectionSetting;
-    }
 }
 
 type GetMissingDisaggregatesOptions = {
@@ -473,6 +452,7 @@ type GetMissingDisaggregatesOptions = {
     disaggregationsIds: Id[];
     sectionId: Id;
     metadata: MetadataItem;
+    sectionDisaggregations: SectionDisaggregation[];
 };
 
 type MissingValues = {

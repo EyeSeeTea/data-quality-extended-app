@@ -1,4 +1,3 @@
-import { Maybe } from "$/utils/ts-utils";
 import { Either } from "./generic/Either";
 import { ValidationError } from "./generic/Errors";
 import { Struct } from "./generic/Struct";
@@ -12,22 +11,7 @@ export interface SettingsAttrs {
     startDate: string;
     countryIds: Id[];
     usePreviousYear: boolean;
-    sections: Maybe<SectionSetting[]>;
 }
-
-export type SectionSetting = {
-    id: Id;
-    disaggregations: SectionDisaggregation[];
-};
-
-export type SectionDisaggregation = {
-    id: Id;
-    disaggregationId: Id;
-    name: string;
-    type: "combos" | "key_occupations" | "edu_occupations";
-    combinations: string[];
-    nursingMidwifery: Maybe<string[][]>;
-};
 
 export class Settings extends Struct<SettingsAttrs>() {
     static build(attrs: SettingsAttrs): Either<ValidationError<Settings>[], Settings> {
