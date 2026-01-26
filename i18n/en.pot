@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-01-20T07:36:28.547Z\n"
-"PO-Revision-Date: 2026-01-20T07:36:28.547Z\n"
+"POT-Creation-Date: 2026-01-26T09:41:19.910Z\n"
+"PO-Revision-Date: 2026-01-26T09:41:19.910Z\n"
 
 msgid "ID"
 msgstr ""
@@ -63,6 +63,24 @@ msgid "Cannot be blank: {{fieldName}}"
 msgstr ""
 
 msgid "Start date must be before end date"
+msgstr ""
+
+msgid "Must be empty: {{fieldName}}"
+msgstr ""
+
+msgid "Must be a number: {{fieldName}}"
+msgstr ""
+
+msgid "At least one step is required"
+msgstr ""
+
+msgid "Duplicate step types are not allowed"
+msgstr ""
+
+msgid "Invalid value: {{fieldName}}"
+msgstr ""
+
+msgid "At least one disaggregation is required"
 msgstr ""
 
 msgid "No disaggregations selected"
@@ -214,13 +232,13 @@ msgstr ""
 msgid "Data Quality Analysis"
 msgstr ""
 
+msgid "You must save the Analysis configuration before running any step"
+msgstr ""
+
 msgid "Configuration"
 msgstr ""
 
 msgid "Summary"
-msgstr ""
-
-msgid "You must save the Analysis configuration before running any step"
 msgstr ""
 
 msgid "Algorithm"
@@ -296,6 +314,9 @@ msgid "Select Program"
 msgstr ""
 
 msgid "Add Modules to Program"
+msgstr ""
+
+msgid "Use previous year for start and end dates"
 msgstr ""
 
 msgid "Save Configuration"
