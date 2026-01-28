@@ -15,5 +15,6 @@ export type StepType = (typeof StepTypes)[number];
 export type StepSettings = {
     type: StepType;
     sectionId: Id;
+    order: number;
     disaggregations?: SectionDisaggregation[];
 };

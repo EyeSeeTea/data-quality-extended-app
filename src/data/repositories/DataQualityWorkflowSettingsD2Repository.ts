@@ -1,13 +1,13 @@
 import { D2Api } from "$/types/d2-api";
 import { FutureData, apiToFuture } from "$/data/api-futures";
-import { Code, Id } from "$/domain/entities/Ref";
+import { Code } from "$/domain/entities/Ref";
 import { DataQualityWorkflowSettings } from "$/domain/entities/DataQualityWorkflowSettings";
 import { DATA_QUALITY_NAMESPACE } from "$/data/common/DataStoreConfig";
 import { DataQualityWorkflowSettingsRepository } from "$/domain/repositories/DataQualityWorkflowSettingsRepository";
 import { Future } from "$/domain/entities/generic/Future";
 import { StepSettings, StepType } from "$/domain/entities/StepSettings";
 import { getErrors } from "$/domain/entities/generic/Errors";
-import { SectionDisaggregation } from "$/domain/entities/SectionDisaggregation";
+import { StepSettingsDatastore } from "$/data/repositories/entities/StepSettingsDatastore";
 
 export class DataQualityWorkflowSettingsD2Repository
     implements DataQualityWorkflowSettingsRepository
@@ -45,14 +45,9 @@ export class DataQualityWorkflowSettingsD2Repository
     private mapStepsDatastoreToStepSettings(steps: StepSettingsDatastore[]): StepSettings[] {
         return steps.map(step => ({
             type: step.type as StepType,
-            sectionId: step.programStageId as Id,
-            disaggregations: step.disaggregations,
+            sectionId: step.programStageId,
+            order: step.order,
+            disaggregations: step.disaggregations || [],
         }));
     }
 }
-
-type StepSettingsDatastore = {
-    type: string;
-    programStageId: string;
-    disaggregations?: SectionDisaggregation[];
-};

@@ -7,6 +7,8 @@ import {
     validateRequired,
 } from "$/domain/entities/generic/validations";
 import { Code, Id } from "$/domain/entities/Ref";
+import { StepSettings } from "$/domain/entities/StepSettings";
+
 interface DataQualityIssuesProgramConfigAttrs {
     selectedProgramCode: Code;
     selectedModuleCodes: Code[];
@@ -17,6 +19,7 @@ interface DataQualityIssuesProgramConfigAttrs {
         usePreviousYear: boolean;
         orgUnits: Id[];
     };
+    steps: StepSettings[];
 }
 
 export class DataQualityIssuesProgramConfig extends Struct<DataQualityIssuesProgramConfigAttrs>() {
@@ -79,6 +82,12 @@ export class DataQualityIssuesProgramConfig extends Struct<DataQualityIssuesProg
                 errors: validateRequired(ds?.dataSet, "field_cannot_be_blank"),
                 value: "dataSet",
                 fieldName: "default module",
+            },
+            {
+                property: "steps" as const,
+                errors: validateRequired(config.steps),
+                value: config.steps,
+                fieldName: "steps configuration",
             },
             ...dateErrors,
         ].filter(validation => validation.errors.length > 0);

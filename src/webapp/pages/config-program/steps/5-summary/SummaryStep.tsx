@@ -5,6 +5,7 @@ import styled from "styled-components";
 import i18n from "$/utils/i18n";
 import { DataQualityIssuesProgramConfigOptions } from "$/domain/usecases/SaveDataQualityIssuesProgramConfigUseCase";
 import { useCountriesByIds } from "$/webapp/hooks/useCountriesByIds";
+import { getStepTypeLabel } from "$/webapp/pages/config-program/getStepTypeLabel";
 
 type Props = {
     configProgramState: DataQualityIssuesProgramConfigOptions;
@@ -59,19 +60,41 @@ export const SummaryStep: React.FC<Props> = React.memo(props => {
                                 {i18n.t("Module: ")} {configProgramState.defaultSettings.dataSet}
                             </li>
 
-                            <li key={configProgramState.defaultSettings.startDate}>
-                                {i18n.t("Start date: ")}
-                                {configProgramState.defaultSettings.startDate}
-                            </li>
+                            {configProgramState.defaultSettings.usePreviousYear ? (
+                                <li key={configProgramState.defaultSettings.endDate}>
+                                    {i18n.t("Use previous year for start and end dates")}
+                                </li>
+                            ) : (
+                                <>
+                                    <li key={configProgramState.defaultSettings.startDate}>
+                                        {i18n.t("Start date: ")}
+                                        {configProgramState.defaultSettings.startDate}
+                                    </li>
 
-                            <li key={configProgramState.defaultSettings.endDate}>
-                                {i18n.t("End date: ")} {configProgramState.defaultSettings.endDate}
-                            </li>
+                                    <li key={configProgramState.defaultSettings.endDate}>
+                                        {i18n.t("End date: ")}{" "}
+                                        {configProgramState.defaultSettings.endDate}
+                                    </li>
+                                </>
+                            )}
 
                             <li key={configProgramState.defaultSettings.orgUnits.join(",")}>
                                 {i18n.t("Organisation Units: ")}{" "}
                                 {countries?.map(country => country.name).join(", ")}
                             </li>
+                        </ul>
+                    </li>
+
+                    <li key={configProgramState.selectedProgramCode}>
+                        {i18n.t("Steps: ")}
+                        <ul>
+                            {configProgramState.steps
+                                .sort((a, b) => a.order - b.order)
+                                .map(step => (
+                                    <li key={step.type}>
+                                        {step.order}. {getStepTypeLabel(step.type)}
+                                    </li>
+                                ))}
                         </ul>
                     </li>
                 </ul>

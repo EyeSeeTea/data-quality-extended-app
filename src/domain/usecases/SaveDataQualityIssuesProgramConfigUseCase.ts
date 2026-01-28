@@ -4,6 +4,7 @@ import { Either } from "$/domain/entities/generic/Either";
 import { getErrors, ValidationError } from "$/domain/entities/generic/Errors";
 import { Future } from "$/domain/entities/generic/Future";
 import { Code, Id } from "$/domain/entities/Ref";
+import { StepSettings } from "$/domain/entities/StepSettings";
 import { DataQualityIssuesProgramConfigRepository } from "$/domain/repositories/DataQualityIssuesProgramConfigRepository";
 
 export class SaveDataQualityIssuesProgramConfigUseCase {
@@ -36,7 +37,9 @@ export type DataQualityIssuesProgramConfigOptions = {
         orgUnits: Id[];
         orgUnitPaths: string[];
     };
+    steps: StepSettings[];
 };
+
 export const initialState: DataQualityIssuesProgramConfigOptions = {
     selectedProgramCode: undefined,
     selectedModuleCodes: [],
@@ -48,6 +51,7 @@ export const initialState: DataQualityIssuesProgramConfigOptions = {
         orgUnits: [],
         orgUnitPaths: [],
     },
+    steps: [],
 };
 
 function mapToDataQualityIssuesProgramConfig(
@@ -63,5 +67,6 @@ function mapToDataQualityIssuesProgramConfig(
             orgUnits: selectedOptions.defaultSettings.orgUnits,
             usePreviousYear: selectedOptions.defaultSettings.usePreviousYear,
         },
+        steps: selectedOptions.steps,
     });
 }

@@ -6,7 +6,7 @@ import i18n from "$/utils/i18n";
 import { ProgramSelectionStep } from "$/webapp/pages/config-program/steps/1-program-selection/ProgramSelectionStep";
 import { ModulesSelectionStep } from "$/webapp/pages/config-program/steps/2-modules-selection/ModulesSelectionStep";
 import { DefaultSettingsStep } from "$/webapp/pages/config-program/steps/3-default-settings/DefaultSettingsStep";
-import { SummaryStep } from "$/webapp/pages/config-program/steps/4-summary/SummaryStep";
+import { SummaryStep } from "$/webapp/pages/config-program/steps/5-summary/SummaryStep";
 import { Code } from "$/domain/entities/Ref";
 import { useModulesOptions } from "$/webapp/hooks/useModulesOptions";
 import { useQualityIssuesPrograms } from "$/webapp/pages/config-program/hooks/useQualityIssuesPrograms";
@@ -15,6 +15,8 @@ import {
     DataQualityIssuesProgramConfigOptions,
     initialState,
 } from "$/domain/usecases/SaveDataQualityIssuesProgramConfigUseCase";
+import { StepsSettingsStep } from "$/webapp/pages/config-program/steps/4-steps-settings/StepsSettingsStep";
+import { StepSettings } from "$/domain/entities/StepSettings";
 
 type State = {
     onBackSettingsPage: () => void;
@@ -22,7 +24,12 @@ type State = {
     onStepChangeRequest: (currentStep: WizardStep) => Promise<string[] | undefined>;
 };
 
-type StepKey = "program-selection" | "modules-selection" | "default-settings" | "summary";
+type StepKey =
+    | "program-selection"
+    | "modules-selection"
+    | "default-settings"
+    | "steps-settings"
+    | "summary";
 
 export function useConfigProgram(): State {
     const history = useHistory();
@@ -76,6 +83,14 @@ export function useConfigProgram(): State {
             configProgramState.selectedModuleCodes.includes(option.value)
         );
     }, [moduleOptionsNotConfigured, configProgramState.selectedModuleCodes]);
+
+    const sections = useMemo(() => {
+        return (
+            qualityIssuesPrograms?.find(
+                program => program.code === configProgramState.selectedProgramCode
+            )?.sections || []
+        );
+    }, [configProgramState.selectedProgramCode, qualityIssuesPrograms]);
 
     const onSaveConfiguration = React.useCallback(() => {
         loading.show(true, i18n.t("Saving configuration..."));
@@ -133,6 +148,16 @@ export function useConfigProgram(): State {
                 },
             },
             {
+                component: StepsSettingsStep,
+                key: "steps-settings",
+                label: i18n.t("Steps Configuration"),
+                props: {
+                    value: configProgramState.steps,
+                    onChange: (steps: StepSettings[]) => updateConfig({ steps }),
+                    sections: sections,
+                },
+            },
+            {
                 component: SummaryStep,
                 key: "summary",
                 label: i18n.t("Summary"),
@@ -152,6 +177,7 @@ export function useConfigProgram(): State {
         selectedModuleOptions,
         updateConfig,
         updateDefaultSettings,
+        sections,
     ]);
 
     const validateStep = React.useCallback(
@@ -193,9 +219,27 @@ export function useConfigProgram(): State {
                 }
             }
 
+            if (stepKey === "steps-settings") {
+                const expectedSectionIds = sections.map(s => s.id);
+                const configuredSectionIds = (configProgramState.steps ?? []).map(s => s.sectionId);
+                const isEverythingConfigured =
+                    expectedSectionIds.length === configuredSectionIds.length &&
+                    expectedSectionIds.every(id => configuredSectionIds.includes(id));
+
+                if (!isEverythingConfigured) {
+                    errors = [...errors, i18n.t("All program stages must be configured")];
+                }
+            }
+
             return errors.length ? errors : undefined;
         },
-        [configProgramState]
+        [
+            configProgramState.defaultSettings,
+            configProgramState.selectedModuleCodes?.length,
+            configProgramState.selectedProgramCode,
+            configProgramState.steps,
+            sections,
+        ]
     );
 
     const onStepChangeRequest = React.useCallback(

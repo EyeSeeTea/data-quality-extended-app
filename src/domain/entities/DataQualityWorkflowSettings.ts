@@ -50,11 +50,13 @@ export class DataQualityWorkflowSettings extends Struct<DataQualityWorkflowSetti
                             ...validateOneOf(step.type, StepTypes),
                         ],
                         value: step.type,
+                        fieldName: "step type",
                     },
                     {
                         property: "steps" as const,
                         errors: validateRequired(step.sectionId),
                         value: step.sectionId,
+                        fieldName: "section",
                     },
                     ...disaggErrors,
                 ].filter(v => v.errors.length > 0);

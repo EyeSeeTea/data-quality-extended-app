@@ -90,7 +90,7 @@ export function buildStepsFromSections(options: {
     } = options;
 
     const sectionSteps = _(analysis.sections)
-        .map((section): Maybe<WizardStep & { id: string }> => {
+        .map((section): Maybe<WizardStep & { id: string; order: number }> => {
             const stepSettings = workflowSettings.steps.find(s => s.sectionId === section.id);
             const stepType = stepSettings?.type;
             if (!stepType || !stepSettings) return undefined;
@@ -105,6 +105,7 @@ export function buildStepsFromSections(options: {
 
             return {
                 id: section.id,
+                order: stepSettings.order,
                 icon: (
                     <StepIcon
                         isCompleted={isCompleted}
@@ -130,6 +131,7 @@ export function buildStepsFromSections(options: {
             };
         })
         .compact()
+        .sortBy(step => step.order)
         .value();
 
     return [

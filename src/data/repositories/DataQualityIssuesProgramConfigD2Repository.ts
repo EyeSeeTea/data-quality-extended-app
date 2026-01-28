@@ -11,6 +11,7 @@ import {
 } from "$/data/repositories/entities/DatastoreProgramConfig";
 import { DATA_QUALITY_NAMESPACE, dataStoreKeys } from "$/data/common/DataStoreConfig";
 import { DataStore } from "@eyeseetea/d2-api/api";
+import { StepSettingsDatastore } from "$/data/repositories/entities/StepSettingsDatastore";
 
 export class DataQualityIssuesProgramConfigD2Repository
     implements DataQualityIssuesProgramConfigRepository
@@ -22,7 +23,6 @@ export class DataQualityIssuesProgramConfigD2Repository
             return Future.error(new Error("No program selected"));
         }
         const dataStore = this.api.dataStore(DATA_QUALITY_NAMESPACE);
-
         return this.getProgramConfigTemplate(dataStore).flatMap(template => {
             const datastoreProgramConfig: DatastoreProgramConfig = buildProgramConfigByProgramCode(
                 template,
@@ -49,7 +49,13 @@ export class DataQualityIssuesProgramConfigD2Repository
                             dataStore,
                             programMetadata.code,
                             configuration.defaultSettings
-                        );
+                        ).flatMap(() => {
+                            return this.saveProgramStepsSettings(
+                                dataStore,
+                                programMetadata.code,
+                                configuration.steps
+                            );
+                        });
                     });
                 });
             });
@@ -246,6 +252,22 @@ export class DataQualityIssuesProgramConfigD2Repository
         )
             .map(() => undefined)
             .mapError(err => new Error(`Cannot save program settings. ${String(err)}`));
+    }
+
+    private saveProgramStepsSettings(
+        dataStore: DataStore,
+        programCode: Code,
+        stepsSettings: DataQualityIssuesProgramConfig["steps"]
+    ): FutureData<void> {
+        const datastoreStepSettings: StepSettingsDatastore[] = stepsSettings.map(step => ({
+            type: step.type,
+            programStageId: step.sectionId,
+            order: step.order,
+            disaggregations: step.disaggregations,
+        }));
+        return apiToFuture(dataStore.save(`steps-${programCode}`, datastoreStepSettings))
+            .map(() => undefined)
+            .mapError(err => new Error(`Cannot save steps settings. ${String(err)}`));
     }
 }
 

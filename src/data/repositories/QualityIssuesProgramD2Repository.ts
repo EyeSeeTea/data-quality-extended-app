@@ -47,11 +47,17 @@ export class QualityIssuesProgramD2Repository implements QualityIssuesProgramRep
                     (programDatastore: QualityIssuesProgramDatastore) =>
                         programDatastore.code === program.code
                 )?.dataSets || [];
+
+            const sections = program.programStages.map(stage => ({
+                id: stage.id,
+                name: stage.name,
+            }));
             return {
                 id: program.id,
                 name: program.name,
                 code: program.code,
                 modules: modules,
+                sections: sections,
             };
         });
     }
@@ -135,6 +141,10 @@ const programFields = {
     id: true,
     code: true,
     name: true,
+    programStages: {
+        id: true,
+        name: true,
+    },
 } as const;
 
 type D2Program = MetadataPick<{
