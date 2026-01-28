@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-01-26T09:41:19.910Z\n"
-"PO-Revision-Date: 2026-01-26T09:41:19.910Z\n"
+"POT-Creation-Date: 2026-01-28T07:35:49.339Z\n"
+"PO-Revision-Date: 2026-01-28T07:35:49.339Z\n"
 
 msgid "ID"
 msgstr ""
@@ -283,6 +283,24 @@ msgstr ""
 msgid "New Data Quality Issues Program"
 msgstr ""
 
+msgid "Outliers"
+msgstr ""
+
+msgid "Disaggregates"
+msgstr ""
+
+msgid "Double counts and missing GP"
+msgstr ""
+
+msgid "Missing Nurses"
+msgstr ""
+
+msgid "Validation"
+msgstr ""
+
+msgid "Manual Issues"
+msgstr ""
+
 msgid "Saving configuration..."
 msgstr ""
 
@@ -293,6 +311,9 @@ msgid "Modules Selection"
 msgstr ""
 
 msgid "Default Settings"
+msgstr ""
+
+msgid "Steps Configuration"
 msgstr ""
 
 msgid "Select a program"
@@ -310,6 +331,9 @@ msgstr ""
 msgid "Select an end date"
 msgstr ""
 
+msgid "All program stages must be configured"
+msgstr ""
+
 msgid "Select Program"
 msgstr ""
 
@@ -317,6 +341,12 @@ msgid "Add Modules to Program"
 msgstr ""
 
 msgid "Use previous year for start and end dates"
+msgstr ""
+
+msgid "Step type"
+msgstr ""
+
+msgid "<No value>"
 msgstr ""
 
 msgid "Save Configuration"
