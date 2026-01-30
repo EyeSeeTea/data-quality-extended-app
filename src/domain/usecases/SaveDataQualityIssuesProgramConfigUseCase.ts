@@ -5,6 +5,7 @@ import { getErrors, ValidationError } from "$/domain/entities/generic/Errors";
 import { Future } from "$/domain/entities/generic/Future";
 import { Code, Id } from "$/domain/entities/Ref";
 import { DataQualityIssuesProgramConfigRepository } from "$/domain/repositories/DataQualityIssuesProgramConfigRepository";
+import { Maybe } from "$/utils/ts-utils";
 
 export class SaveDataQualityIssuesProgramConfigUseCase {
     constructor(
@@ -26,12 +27,12 @@ export class SaveDataQualityIssuesProgramConfigUseCase {
 }
 
 export type DataQualityIssuesProgramConfigOptions = {
-    selectedProgramCode: Code | undefined;
+    selectedProgramCode: Maybe<Code>;
     selectedModuleCodes: Code[];
     defaultSettings: {
-        dataSet: Code | undefined;
-        endDate: string | undefined;
-        startDate: string | undefined;
+        dataSet: Maybe<Code>;
+        endDate: Maybe<string>;
+        startDate: Maybe<string>;
         orgUnits: Id[];
         orgUnitPaths: string[];
     };
