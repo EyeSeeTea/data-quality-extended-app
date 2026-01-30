@@ -133,11 +133,7 @@ export class ModuleD2Repository implements ModuleRepository {
     getPaginated(options: ModulesPaginatedOptions): FutureData<ModulesBasePaginated> {
         return apiToFuture(
             this.api.models.dataSets.get({
-                fields: {
-                    id: true,
-                    displayName: true,
-                    code: true,
-                },
+                fields: dataSetFields,
                 totalPages: true,
                 page: options.pagination.page,
                 pageSize: options.pagination.pageSize,
@@ -180,7 +176,7 @@ export class ModuleD2Repository implements ModuleRepository {
         const firstPage = 1;
         const dataSets: D2DataSet[] = [];
 
-        const fetchPage = (page: number, acc: D2DataSet[]): FutureData<D2DataSet[]> => {
+        const fetchPage = (page: number, accDataSets: D2DataSet[]): FutureData<D2DataSet[]> => {
             return apiToFuture(
                 this.api.models.dataSets.get({
                     fields: dataSetFields,
@@ -196,7 +192,7 @@ export class ModuleD2Repository implements ModuleRepository {
                 })
             ).flatMap(response => {
                 const apiDataSets: D2DataSet[] = response.objects ?? [];
-                const nextAccDataSets = [...acc, ...apiDataSets];
+                const nextAccDataSets = [...accDataSets, ...apiDataSets];
 
                 const pager = response.pager ?? response;
                 const pageCount = pager.pageCount;
