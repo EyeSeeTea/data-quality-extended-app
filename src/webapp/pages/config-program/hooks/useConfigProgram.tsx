@@ -158,13 +158,18 @@ export function useConfigProgram(): State {
 
             if (stepKey === "program-selection") {
                 if (!configProgramState.selectedProgramCode) {
-                    errors = [...errors, i18n.t("Select a program")];
+                    errors = [
+                        ...errors,
+                        i18n.t(
+                            "Select a location where data quality analysis issues will be created"
+                        ),
+                    ];
                 }
             }
 
             if (stepKey === "modules-selection") {
                 if (!configProgramState.selectedModuleCodes?.length) {
-                    errors = [...errors, i18n.t("Select at least one module")];
+                    errors = [...errors, i18n.t("Select at least one Dataset")];
                 }
             }
 
