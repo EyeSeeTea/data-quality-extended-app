@@ -4,9 +4,10 @@ import { useSnackbar, useLoading } from "@eyeseetea/d2-ui-components";
 import { useAppContext } from "$/webapp/contexts/app-context";
 import { QualityIssuesProgram } from "$/domain/entities/QualityIssuesProgram";
 import i18n from "$/utils/i18n";
+import { Maybe } from "$/utils/ts-utils";
 
 type State = {
-    qualityIssuesPrograms: QualityIssuesProgram[] | undefined;
+    qualityIssuesPrograms: Maybe<QualityIssuesProgram[]>;
 };
 
 export function useQualityIssuesPrograms(): State {
@@ -14,9 +15,7 @@ export function useQualityIssuesPrograms(): State {
     const snackBar = useSnackbar();
     const loading = useLoading();
 
-    const [qualityIssuesPrograms, setQualityIssuesPrograms] = useState<
-        QualityIssuesProgram[] | undefined
-    >(undefined);
+    const [qualityIssuesPrograms, setQualityIssuesPrograms] = useState<QualityIssuesProgram[]>();
 
     useEffect(() => {
         if (!qualityIssuesPrograms) {

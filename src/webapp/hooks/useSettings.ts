@@ -3,11 +3,12 @@ import { useHistory } from "react-router-dom";
 
 import { QualityIssuesProgram } from "$/domain/entities/QualityIssuesProgram";
 import { useQualityIssuesPrograms } from "$/webapp/pages/config-program/hooks/useQualityIssuesPrograms";
+import { Maybe } from "$/utils/ts-utils";
 
 type State = {
     onConfigurateNewProgram: () => void;
     onBackHomePage: () => void;
-    qualityIssuesPrograms: QualityIssuesProgram[] | undefined;
+    qualityIssuesPrograms: Maybe<QualityIssuesProgram[]>;
 };
 
 export function useSettings(): State {

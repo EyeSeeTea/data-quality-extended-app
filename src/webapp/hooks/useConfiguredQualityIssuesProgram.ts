@@ -6,11 +6,12 @@ import { useSnackbar } from "@eyeseetea/d2-ui-components/snackbar";
 import { useLoading } from "@eyeseetea/d2-ui-components/loading";
 import { useAppContext } from "$/webapp/contexts/app-context";
 import i18n from "$/utils/i18n";
+import { Maybe } from "$/utils/ts-utils";
 
 type State = {
-    selectedProgramCode: Code | undefined;
+    selectedProgramCode: Maybe<Code>;
     configuredQualityProgramIssuesOptions: { text: string; value: string }[];
-    onSelectQualityProgramIssues: (code: string | undefined) => void;
+    onSelectQualityProgramIssues: (code: Maybe<string>) => void;
 };
 
 export function useConfiguredQualityIssuesProgram(): State {

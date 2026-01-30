@@ -14,7 +14,7 @@ export function useModulesOptions(): State {
     const snackBar = useSnackbar();
     const loading = useLoading();
 
-    const [modules, setModules] = useState<ModuleBase[] | undefined>(undefined);
+    const [modules, setModules] = useState<ModuleBase[]>();
 
     useEffect(() => {
         if (!modules) {
