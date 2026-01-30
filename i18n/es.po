@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2026-01-30T10:09:40.753Z\n"
+"POT-Creation-Date: 2026-01-30T10:32:08.114Z\n"
 "PO-Revision-Date: 2018-10-25T09:02:35.143Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -175,7 +175,7 @@ msgstr ""
 msgid "Data Quality Issues Program"
 msgstr ""
 
-msgid "Module Name"
+msgid "Dataset Name"
 msgstr ""
 
 msgid "Back"
@@ -271,7 +271,7 @@ msgstr ""
 msgid "Program Selection"
 msgstr ""
 
-msgid "Modules Selection"
+msgid "Dataset Selection"
 msgstr ""
 
 msgid "Default Settings"
@@ -295,7 +295,7 @@ msgstr ""
 msgid "Select Program"
 msgstr ""
 
-msgid "Add Modules to Program"
+msgid "Add Datasets to Program"
 msgstr ""
 
 msgid "Data Quality Issues Program: "

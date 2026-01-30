@@ -114,7 +114,7 @@ export function useConfigProgram(): State {
             {
                 component: ModulesSelectionStep,
                 key: "modules-selection",
-                label: i18n.t("Modules Selection"),
+                label: i18n.t("Dataset Selection"),
                 props: {
                     modulesOptions: moduleOptionsNotConfigured,
                     values: configProgramState.selectedModuleCodes,

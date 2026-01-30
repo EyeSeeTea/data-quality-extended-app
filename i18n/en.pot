@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-01-30T10:09:40.753Z\n"
-"PO-Revision-Date: 2026-01-30T10:09:40.753Z\n"
+"POT-Creation-Date: 2026-01-30T10:32:08.114Z\n"
+"PO-Revision-Date: 2026-01-30T10:32:08.114Z\n"
 
 msgid "ID"
 msgstr ""
@@ -175,7 +175,7 @@ msgstr ""
 msgid "Data Quality Issues Program"
 msgstr ""
 
-msgid "Module Name"
+msgid "Dataset Name"
 msgstr ""
 
 msgid "Back"
@@ -271,7 +271,7 @@ msgstr ""
 msgid "Program Selection"
 msgstr ""
 
-msgid "Modules Selection"
+msgid "Dataset Selection"
 msgstr ""
 
 msgid "Default Settings"
@@ -295,7 +295,7 @@ msgstr ""
 msgid "Select Program"
 msgstr ""
 
-msgid "Add Modules to Program"
+msgid "Add Datasets to Program"
 msgstr ""
 
 msgid "Data Quality Issues Program: "

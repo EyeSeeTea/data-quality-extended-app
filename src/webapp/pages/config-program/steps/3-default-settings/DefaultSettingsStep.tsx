@@ -54,7 +54,7 @@ export const DefaultSettingsStep: React.FC<Props> = React.memo(props => {
                     items={selectedModuleOptions}
                     onChange={value => onChange({ dataSet: value })}
                     value={values.dataSet}
-                    label={i18n.t("Module")}
+                    label={i18n.t("Dataset")}
                 />
             </SelectorContainer>
 

@@ -37,7 +37,7 @@ export const ModulesSelectionStep: React.FC<Props> = React.memo(props => {
         <Container>
             <SelectorContainer>
                 <InputLabel id="modules-selection-label">
-                    {i18n.t("Add Modules to Program")}
+                    {i18n.t("Add Datasets to Program")}
                 </InputLabel>
 
                 <StyledMultiSelect
