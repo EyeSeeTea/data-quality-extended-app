@@ -103,7 +103,7 @@ export function useConfigProgram(): State {
             {
                 component: ProgramSelectionStep,
                 key: "program-selection",
-                label: i18n.t("Program Selection"),
+                label: i18n.t("Data Quality Analysis Location"),
                 props: {
                     options: notConfiguredProgramOptions,
                     value: configProgramState.selectedProgramCode,

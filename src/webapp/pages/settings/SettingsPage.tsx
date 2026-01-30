@@ -24,7 +24,7 @@ export const SettingsPage: React.FC = React.memo(() => {
                         color="primary"
                         onClick={onConfigurateNewProgram}
                     >
-                        {i18n.t("Configurate new program")}
+                        {i18n.t("Set up data quality analysis")}
                     </Button>
                 </RowContainer>
             </Container>

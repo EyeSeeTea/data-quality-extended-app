@@ -17,7 +17,9 @@ export const ProgramSelectionStep: React.FC<Props> = React.memo(props => {
     return (
         <Container>
             <ProgramSelectorContainer>
-                <InputLabel id="program-selection-label">{i18n.t("Select Program")}</InputLabel>
+                <InputLabel id="program-selection-label">
+                    {i18n.t("Select where data quality analysis issues will be created")}
+                </InputLabel>
 
                 <StyledSelect
                     labelId="program-selection-label"

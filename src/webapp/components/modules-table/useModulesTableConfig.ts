@@ -12,7 +12,7 @@ export function useModulesTableConfig(paginated: boolean): {
             { name: "name", text: i18n.t("Dataset"), sortable: true },
             {
                 name: "dataQualityIssuesProgramName",
-                text: i18n.t("Data Quality Issues Program"),
+                text: i18n.t("Data Quality Analysis Location"),
                 sortable: !paginated,
             },
         ];

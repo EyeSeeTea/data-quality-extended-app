@@ -17,7 +17,7 @@ export function useSettings(): State {
     const { qualityIssuesPrograms } = useQualityIssuesPrograms();
 
     const onConfigurateNewProgram = React.useCallback(
-        () => history.push("/config-program"),
+        () => history.push("/configuration"),
         [history]
     );
 

@@ -37,7 +37,7 @@ export const ModulesSelectionStep: React.FC<Props> = React.memo(props => {
         <Container>
             <SelectorContainer>
                 <InputLabel id="modules-selection-label">
-                    {i18n.t("Add Datasets to Program")}
+                    {i18n.t("Select datasets for data quality analysis")}
                 </InputLabel>
 
                 <StyledMultiSelect
@@ -50,6 +50,12 @@ export const ModulesSelectionStep: React.FC<Props> = React.memo(props => {
                     open={open}
                     onOpen={handleOpen}
                     onClose={handleClose}
+                    displayEmpty
+                    renderValue={selected => {
+                        const codes = selected as Code[];
+                        if (!codes?.length) return;
+                        return i18n.t("{{count}} datasets selected", { count: codes.length });
+                    }}
                 >
                     {modulesOptions.map(option => (
                         <MenuItem key={option.text} value={option.value}>
