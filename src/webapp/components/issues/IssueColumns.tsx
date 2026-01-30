@@ -5,6 +5,7 @@ import { TableColumn } from "@eyeseetea/d2-ui-components";
 import i18n from "$/utils/i18n";
 import { EditIssueValue } from "./EditIssueValue";
 import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
+import { hasUserGroups } from "$/webapp/components/issues/utils";
 
 export function useIssueColumns() {
     const { metadataItem } = useMetadataItemContext();
@@ -101,10 +102,6 @@ export function useIssueColumns() {
 
         const actionIndex = baseColumns.findIndex(c => c.name === "action");
 
-        if (actionIndex === -1) {
-            return baseColumns;
-        }
-
         const columnsWithContactEmails: TableColumn<QualityAnalysisIssue>[] = [
             ...baseColumns.slice(0, actionIndex + 1),
             {
@@ -119,9 +116,7 @@ export function useIssueColumns() {
             ...baseColumns.slice(actionIndex + 1),
         ];
 
-        return metadataItem.userGroups && Object.keys(metadataItem.userGroups).length
-            ? columnsWithContactEmails
-            : baseColumns;
+        return hasUserGroups(metadataItem.userGroups) ? columnsWithContactEmails : baseColumns;
     }, [metadataItem.userGroups]);
 
     return { refresh, setRefresh, issueColumns };
