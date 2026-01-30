@@ -36,14 +36,12 @@ export function useConfigProgram(): State {
         useState<DataQualityIssuesProgramConfigOptions>(initialState);
 
     const notConfiguredProgramOptions = useMemo(() => {
-        return (
-            qualityIssuesPrograms
-                ?.filter(program => !program.modules.length)
-                ?.map(program => ({
-                    text: program.name,
-                    value: program.code,
-                })) || []
-        );
+        return qualityIssuesPrograms
+            ?.filter(program => !program.modules.length)
+            ?.map(program => ({
+                text: program.name,
+                value: program.code,
+            }));
     }, [qualityIssuesPrograms]);
 
     const moduleOptionsNotConfigured = useMemo(() => {
@@ -125,7 +123,7 @@ export function useConfigProgram(): State {
             {
                 component: DefaultSettingsStep,
                 key: "default-settings",
-                label: i18n.t("Default Settings"),
+                label: i18n.t("Default Analysis Settings"),
                 props: {
                     selectedModuleOptions,
                     values: configProgramState.defaultSettings,
@@ -137,7 +135,7 @@ export function useConfigProgram(): State {
                 key: "summary",
                 label: i18n.t("Summary"),
                 props: {
-                    programs: notConfiguredProgramOptions,
+                    programs: notConfiguredProgramOptions || [],
                     modules: moduleOptionsNotConfigured,
                     configProgramState: configProgramState,
                     onSaveConfiguration: onSaveConfiguration,

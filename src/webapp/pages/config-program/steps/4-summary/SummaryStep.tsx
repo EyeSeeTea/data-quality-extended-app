@@ -39,12 +39,12 @@ export const SummaryStep: React.FC<Props> = React.memo(props => {
             <div>
                 <ul>
                     <li key={configProgramState.selectedProgramCode}>
-                        {i18n.t("Data Quality Issues Program: ", { nsSeparator: false })}
+                        {i18n.t("Data Quality Analysis Location: ", { nsSeparator: false })}
                         {programName}
                     </li>
 
                     <li key={configProgramState.selectedProgramCode}>
-                        {i18n.t("Modules: ", { nsSeparator: false })}
+                        {i18n.t("Selected Datasets to be analysed: ", { nsSeparator: false })}
                         <ul>
                             {moduleNames.map(module => (
                                 <li key={module}>{module}</li>
@@ -53,10 +53,10 @@ export const SummaryStep: React.FC<Props> = React.memo(props => {
                     </li>
 
                     <li>
-                        {i18n.t("Default settings: ", { nsSeparator: false })}
+                        {i18n.t("Default analysis settings: ", { nsSeparator: false })}
                         <ul>
                             <li key={configProgramState.defaultSettings.dataSet}>
-                                {i18n.t("Module: ", { nsSeparator: false })}{" "}
+                                {i18n.t("Dataset: ", { nsSeparator: false })}{" "}
                                 {configProgramState.defaultSettings.dataSet}
                             </li>
 
@@ -87,7 +87,7 @@ export const SummaryStep: React.FC<Props> = React.memo(props => {
                     color="primary"
                     onClick={onSaveConfiguration}
                 >
-                    {i18n.t("Save Configuration")}
+                    {i18n.t("Save setup")}
                 </Button>
             </ButtonContainer>
         </div>
