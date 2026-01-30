@@ -1,5 +1,6 @@
 import { MetadataItem } from "$/domain/entities/MetadataItem";
 import { Code } from "$/domain/entities/Ref";
+import i18n from "$/utils/i18n";
 import { setupLogger } from "$/utils/logger";
 import { useAppContext } from "$/webapp/contexts/app-context";
 import { MetadataItemContext } from "$/webapp/contexts/metadata-item-context";
@@ -19,14 +20,19 @@ export const MetadataItemContextProvider: React.FC<PropsWithChildren> = ({ child
 
     useEffect(() => {
         if (!metadataItem && qualityIssuesProgramCode) {
-            loading.show(true, "Loading...");
+            loading.show(true, i18n.t("Loading..."));
             compositionRoot.metadataItem.get.execute(qualityIssuesProgramCode).run(
                 metadata => {
                     setMetadataItem(metadata);
                     loading.hide();
                 },
                 err => {
-                    snackBar.error(`Error loading Metadata Item: ${err.message}`);
+                    snackBar.error(
+                        i18n.t("Error loading Metadata Item: {{message}}", {
+                            message: err.message,
+                            nsSeparator: false,
+                        })
+                    );
                     loading.hide();
                 }
             );

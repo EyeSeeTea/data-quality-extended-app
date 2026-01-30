@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-01-30T10:32:08.114Z\n"
-"PO-Revision-Date: 2026-01-30T10:32:08.114Z\n"
+"POT-Creation-Date: 2026-01-30T11:15:30.729Z\n"
+"PO-Revision-Date: 2026-01-30T11:15:30.729Z\n"
 
 msgid "ID"
 msgstr ""
@@ -185,6 +185,18 @@ msgid "Help"
 msgstr ""
 
 msgid "Running analysis..."
+msgstr ""
+
+msgid "Loading..."
+msgstr ""
+
+msgid "Error loading Metadata Item: {{message}}"
+msgstr ""
+
+msgid "Error loading Data Quality Issues Programs: {{message}}"
+msgstr ""
+
+msgid "Error loading Datasets: {{message}}"
 msgstr ""
 
 msgid "Creating Data Quality Report..."

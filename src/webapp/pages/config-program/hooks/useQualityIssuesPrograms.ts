@@ -3,6 +3,7 @@ import { useSnackbar, useLoading } from "@eyeseetea/d2-ui-components";
 
 import { useAppContext } from "$/webapp/contexts/app-context";
 import { QualityIssuesProgram } from "$/domain/entities/QualityIssuesProgram";
+import i18n from "$/utils/i18n";
 
 type State = {
     qualityIssuesPrograms: QualityIssuesProgram[] | undefined;
@@ -19,7 +20,7 @@ export function useQualityIssuesPrograms(): State {
 
     useEffect(() => {
         if (!qualityIssuesPrograms) {
-            loading.show(true, "Loading...");
+            loading.show(true, i18n.t("Loading..."));
             compositionRoot.qualityIssuesProgram.getAll.execute().run(
                 programs => {
                     setQualityIssuesPrograms(programs);
@@ -27,7 +28,12 @@ export function useQualityIssuesPrograms(): State {
                 },
                 err => {
                     loading.hide();
-                    snackBar.error(`Error loading Data Quality Issues Programs: ${err.message}`);
+                    snackBar.error(
+                        i18n.t("Error loading Data Quality Issues Programs: {{message}}", {
+                            message: err.message,
+                            nsSeparator: false,
+                        })
+                    );
                 }
             );
         }
