@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2026-01-30T13:37:26.864Z\n"
+"POT-Creation-Date: 2026-01-30T14:06:11.999Z\n"
 "PO-Revision-Date: 2018-10-25T09:02:35.143Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -286,10 +286,10 @@ msgstr ""
 msgid "Default Analysis Settings"
 msgstr ""
 
-msgid "Select a program"
+msgid "Select a location where data quality analysis issues will be created"
 msgstr ""
 
-msgid "Select at least one module"
+msgid "Select at least one Dataset"
 msgstr ""
 
 msgid "Select a default dataset"
@@ -348,10 +348,13 @@ msgstr ""
 msgid "Data Quality Issues Programs"
 msgstr ""
 
-msgid "Settings"
+msgid "Data Quality Analysis Settings"
 msgstr ""
 
 msgid "Set up data quality analysis"
+msgstr ""
+
+msgid "Edit data quality analysis setup"
 msgstr ""
 
 msgid "Progress"

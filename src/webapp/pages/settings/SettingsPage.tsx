@@ -13,9 +13,12 @@ export const SettingsPage: React.FC = React.memo(() => {
 
     return (
         <PageContainer>
-            <PageHeader title={i18n.t("Settings")} onBackClick={onBackHomePage} />
+            <PageHeader
+                title={i18n.t("Data Quality Analysis Settings")}
+                onBackClick={onBackHomePage}
+            />
 
-            <Container>
+            <RowContainer>
                 <RowContainer>
                     <Button
                         aria-controls="simple-menu"
@@ -27,7 +30,7 @@ export const SettingsPage: React.FC = React.memo(() => {
                         {i18n.t("Set up data quality analysis")}
                     </Button>
                 </RowContainer>
-            </Container>
+            </RowContainer>
 
             {qualityIssuesPrograms && (
                 <ModulesTable qualityIssuesPrograms={qualityIssuesPrograms} />
@@ -36,12 +39,11 @@ export const SettingsPage: React.FC = React.memo(() => {
     );
 });
 
-const Container = styled.div``;
-
 const RowContainer = styled.div`
-    margin-block: 16px;
     display: flex;
     gap: 16px;
     flex-direction: row;
     justify-content: flex-end;
+    align-items: center;
+    margin-inline-end: 4px;
 `;
