@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2026-01-20T07:36:28.547Z\n"
+"POT-Creation-Date: 2026-01-30T10:09:40.753Z\n"
 "PO-Revision-Date: 2018-10-25T09:02:35.143Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -296,6 +296,27 @@ msgid "Select Program"
 msgstr ""
 
 msgid "Add Modules to Program"
+msgstr ""
+
+msgid "Data Quality Issues Program: "
+msgstr ""
+
+msgid "Modules: "
+msgstr ""
+
+msgid "Default settings: "
+msgstr ""
+
+msgid "Module: "
+msgstr ""
+
+msgid "Start date: "
+msgstr ""
+
+msgid "End date: "
+msgstr ""
+
+msgid "Organisation Units: "
 msgstr ""
 
 msgid "Save Configuration"

@@ -39,12 +39,12 @@ export const SummaryStep: React.FC<Props> = React.memo(props => {
             <div>
                 <ul>
                     <li key={configProgramState.selectedProgramCode}>
-                        {i18n.t("Data Quality Issues Program: ")}
+                        {i18n.t("Data Quality Issues Program: ", { nsSeparator: false })}
                         {programName}
                     </li>
 
                     <li key={configProgramState.selectedProgramCode}>
-                        {i18n.t("Modules: ")}
+                        {i18n.t("Modules: ", { nsSeparator: false })}
                         <ul>
                             {moduleNames.map(module => (
                                 <li key={module}>{module}</li>
@@ -53,23 +53,25 @@ export const SummaryStep: React.FC<Props> = React.memo(props => {
                     </li>
 
                     <li>
-                        {i18n.t("Default settings: ")}
+                        {i18n.t("Default settings: ", { nsSeparator: false })}
                         <ul>
                             <li key={configProgramState.defaultSettings.dataSet}>
-                                {i18n.t("Module: ")} {configProgramState.defaultSettings.dataSet}
+                                {i18n.t("Module: ", { nsSeparator: false })}{" "}
+                                {configProgramState.defaultSettings.dataSet}
                             </li>
 
                             <li key={configProgramState.defaultSettings.startDate}>
-                                {i18n.t("Start date: ")}
+                                {i18n.t("Start date: ", { nsSeparator: false })}
                                 {configProgramState.defaultSettings.startDate}
                             </li>
 
                             <li key={configProgramState.defaultSettings.endDate}>
-                                {i18n.t("End date: ")} {configProgramState.defaultSettings.endDate}
+                                {i18n.t("End date: ", { nsSeparator: false })}{" "}
+                                {configProgramState.defaultSettings.endDate}
                             </li>
 
                             <li key={configProgramState.defaultSettings.orgUnits.join(",")}>
-                                {i18n.t("Organisation Units: ")}{" "}
+                                {i18n.t("Organisation Units: ", { nsSeparator: false })}{" "}
                                 {countries?.map(country => country.name).join(", ")}
                             </li>
                         </ul>

@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-01-20T07:36:28.547Z\n"
-"PO-Revision-Date: 2026-01-20T07:36:28.547Z\n"
+"POT-Creation-Date: 2026-01-30T10:09:40.753Z\n"
+"PO-Revision-Date: 2026-01-30T10:09:40.753Z\n"
 
 msgid "ID"
 msgstr ""
@@ -296,6 +296,27 @@ msgid "Select Program"
 msgstr ""
 
 msgid "Add Modules to Program"
+msgstr ""
+
+msgid "Data Quality Issues Program: "
+msgstr ""
+
+msgid "Modules: "
+msgstr ""
+
+msgid "Default settings: "
+msgstr ""
+
+msgid "Module: "
+msgstr ""
+
+msgid "Start date: "
+msgstr ""
+
+msgid "End date: "
+msgstr ""
+
+msgid "Organisation Units: "
 msgstr ""
 
 msgid "Save Configuration"
