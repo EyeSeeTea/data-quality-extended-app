@@ -4,6 +4,7 @@ import { InputLabel, Select, MenuItem, Input } from "@material-ui/core";
 
 import i18n from "$/utils/i18n";
 import { Code } from "$/domain/entities/Ref";
+import { ProgramSelectorContainer } from "$/webapp/pages/config-program/steps/ProgramSelectorContainer";
 
 type Props = {
     value: Code | undefined;
@@ -37,14 +38,6 @@ export const ProgramSelectionStep: React.FC<Props> = React.memo(props => {
 });
 
 const Container = styled.div``;
-
-const ProgramSelectorContainer = styled.div`
-    margin: 8px 0 16px 0;
-
-    > div {
-        min-width: 300px;
-    }
-`;
 
 const StyledSelect = styled(Select)`
     margin-block: 8px;

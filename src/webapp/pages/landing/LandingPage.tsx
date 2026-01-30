@@ -10,6 +10,7 @@ import { PageHeader } from "$/webapp/components/page-header/PageHeader";
 import { PageContainer } from "$/webapp/components/page-container/PageContainer";
 import { useConfiguredQualityIssuesProgram } from "$/webapp/hooks/useConfiguredQualityIssuesProgram";
 import { useAppContext } from "$/webapp/contexts/app-context";
+import { ProgramSelectorContainer } from "$/webapp/pages/config-program/steps/ProgramSelectorContainer";
 
 type Props = { name: string };
 
@@ -72,12 +73,4 @@ const HeaderContainer = styled.div`
 const StyledIconButton = styled(IconButton)`
     top: 0;
     right: 0;
-`;
-
-const ProgramSelectorContainer = styled.div`
-    margin: 8px 0 16px 0;
-
-    > div {
-        min-width: 300px;
-    }
 `;
