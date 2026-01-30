@@ -12,15 +12,7 @@ import {
 import { DataQualityIssuesProgramConfigOptions } from "$/domain/usecases/SaveDataQualityIssuesProgramConfigUseCase";
 import { useAppContext } from "$/webapp/contexts/app-context";
 import { Id } from "$/domain/entities/Ref";
-
-function getIdFromCountriesPaths(paths: string[]): string[] {
-    return _(paths)
-        .map(path => {
-            return _(path.split("/")).last() || undefined;
-        })
-        .compact()
-        .value();
-}
+import { getIdFromCountriesPaths } from "$/webapp/components/configuration-form/ConfigurationForm";
 
 type Props = {
     values: DataQualityIssuesProgramConfigOptions["defaultSettings"];
@@ -41,7 +33,7 @@ export const DefaultSettingsStep: React.FC<Props> = React.memo(props => {
 
     const onOrgUnitsChange = React.useCallback(
         (paths: Id[]) => {
-            const orgUnitIds = getIdFromCountriesPaths(paths as unknown as string[]);
+            const orgUnitIds = getIdFromCountriesPaths(paths);
             onChange({ orgUnitPaths: paths, orgUnits: orgUnitIds });
         },
         [onChange]
