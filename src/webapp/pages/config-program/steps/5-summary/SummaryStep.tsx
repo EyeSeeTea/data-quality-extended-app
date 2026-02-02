@@ -91,7 +91,7 @@ export const SummaryStep: React.FC<Props> = React.memo(props => {
                     </li>
 
                     <li key={configProgramState.selectedProgramCode}>
-                        {i18n.t("Steps: ")}
+                        {i18n.t("Steps: ", { nsSeparator: false })}
                         <ul>
                             {configProgramState.steps
                                 .sort((a, b) => a.order - b.order)

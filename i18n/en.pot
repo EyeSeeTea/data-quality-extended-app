@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-01-30T14:06:11.999Z\n"
-"PO-Revision-Date: 2026-01-30T14:06:11.999Z\n"
+"POT-Creation-Date: 2026-02-02T16:16:30.795Z\n"
+"PO-Revision-Date: 2026-02-02T16:16:30.795Z\n"
 
 msgid "ID"
 msgstr ""
@@ -322,6 +322,9 @@ msgstr ""
 msgid "Default Analysis Settings"
 msgstr ""
 
+msgid "Steps Configuration"
+msgstr ""
+
 msgid "Select a location where data quality analysis issues will be created"
 msgstr ""
 
@@ -337,6 +340,9 @@ msgstr ""
 msgid "Select an end date"
 msgstr ""
 
+msgid "All program stages must be configured"
+msgstr ""
+
 msgid "Select where data quality analysis issues will be created"
 msgstr ""
 
@@ -349,6 +355,15 @@ msgid "Select datasets for data quality analysis"
 msgstr ""
 
 msgid "No datasets are available for data quality analysis."
+msgstr ""
+
+msgid "Use previous year for start and end dates"
+msgstr ""
+
+msgid "Step type"
+msgstr ""
+
+msgid "<No value>"
 msgstr ""
 
 msgid "Data Quality Analysis Location: "
@@ -370,6 +385,9 @@ msgid "End date: "
 msgstr ""
 
 msgid "Organisation Units: "
+msgstr ""
+
+msgid "Steps: "
 msgstr ""
 
 msgid "Save setup"
