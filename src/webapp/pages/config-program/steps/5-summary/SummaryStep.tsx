@@ -31,6 +31,13 @@ export const SummaryStep: React.FC<Props> = React.memo(props => {
         );
     }, [configProgramState.selectedModuleCodes, modules]);
 
+    const defaultModule = React.useMemo(() => {
+        return (
+            modules.find(m => m.value === configProgramState.defaultSettings.dataSet)?.text ||
+            configProgramState.defaultSettings.dataSet
+        );
+    }, [configProgramState.defaultSettings.dataSet, modules]);
+
     if (isLoading) {
         return <CircularProgress />;
     }
@@ -58,9 +65,8 @@ export const SummaryStep: React.FC<Props> = React.memo(props => {
                     <li>
                         {i18n.t("Default analysis settings: ", { nsSeparator: false })}
                         <ul>
-                            <li key={configProgramState.defaultSettings.dataSet}>
-                                {i18n.t("Dataset: ", { nsSeparator: false })}{" "}
-                                {configProgramState.defaultSettings.dataSet}
+                            <li key={defaultModule}>
+                                {i18n.t("Dataset: ", { nsSeparator: false })} {defaultModule}
                             </li>
 
                             {configProgramState.defaultSettings.usePreviousYear ? (

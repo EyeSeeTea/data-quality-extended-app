@@ -15,7 +15,7 @@ export const SettingsPage: React.FC = React.memo(() => {
         onBackHomePage,
         qualityIssuesPrograms,
         onEditNewProgram,
-        currentOptions,
+        currentOptionsToEdit,
     } = useSettings();
 
     return (
@@ -38,10 +38,10 @@ export const SettingsPage: React.FC = React.memo(() => {
                     </Button>
                 </RowContainer>
 
-                {currentOptions.length > 0 && (
+                {currentOptionsToEdit.length > 0 && (
                     <MenuButton
                         label={i18n.t("Edit data quality analysis setup")}
-                        items={currentOptions}
+                        items={currentOptionsToEdit}
                         onItemSelected={onEditNewProgram}
                         buttonVariant="outlined"
                     />

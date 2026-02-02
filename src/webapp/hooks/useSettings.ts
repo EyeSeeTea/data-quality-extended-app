@@ -17,7 +17,7 @@ type State = {
     onEditNewProgram: (code: Code) => void;
     onBackHomePage: () => void;
     qualityIssuesPrograms: Maybe<QualityIssuesProgram[]>;
-    currentOptions: Option[];
+    currentOptionsToEdit: Option[];
 };
 
 export function useSettings(): State {
@@ -37,12 +37,14 @@ export function useSettings(): State {
 
     const onBackHomePage = React.useCallback(() => history.push("/"), [history]);
 
-    const currentOptions = React.useMemo(
+    const currentOptionsToEdit = React.useMemo(
         () =>
-            qualityIssuesPrograms?.map(program => ({
-                id: program.code,
-                label: program.name,
-            })) || [],
+            qualityIssuesPrograms
+                ?.filter(program => program.modules.length > 0)
+                .map(program => ({
+                    id: program.code,
+                    label: program.name,
+                })) || [],
         [qualityIssuesPrograms]
     );
 
@@ -51,6 +53,6 @@ export function useSettings(): State {
         onEditNewProgram: onEditNewProgram,
         onBackHomePage: onBackHomePage,
         qualityIssuesPrograms: qualityIssuesPrograms,
-        currentOptions: currentOptions,
+        currentOptionsToEdit: currentOptionsToEdit,
     };
 }

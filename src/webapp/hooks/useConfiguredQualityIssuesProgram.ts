@@ -12,6 +12,7 @@ type State = {
     selectedProgramCode: Maybe<Code>;
     configuredQualityProgramIssuesOptions: { text: string; value: string }[];
     onSelectQualityProgramIssues: (code: Maybe<string>) => void;
+    qualityIssuesPrograms: Maybe<QualityIssuesProgram[]>;
 };
 
 export function useConfiguredQualityIssuesProgram(): State {
@@ -76,5 +77,6 @@ export function useConfiguredQualityIssuesProgram(): State {
         selectedProgramCode: selectedProgramCode,
         configuredQualityProgramIssuesOptions: configuredQualityProgramIssuesOptions,
         onSelectQualityProgramIssues: onSelectQualityProgramIssues,
+        qualityIssuesPrograms: qualityIssuesPrograms,
     };
 }
