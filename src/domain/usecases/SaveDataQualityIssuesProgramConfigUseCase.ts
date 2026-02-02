@@ -21,7 +21,9 @@ export class SaveDataQualityIssuesProgramConfigUseCase {
                 return Future.error(new Error(errorMessages));
             },
             success: configuration => {
-                return this.dataQualityIssuesProgramConfigRepository.save(configuration);
+                return this.dataQualityIssuesProgramConfigRepository.save(configuration, {
+                    isEdit: configurationOptions.isEdit,
+                });
             },
         });
     }
@@ -39,6 +41,7 @@ export type DataQualityIssuesProgramConfigOptions = {
         orgUnitPaths: string[];
     };
     steps: StepSettings[];
+    isEdit: boolean;
 };
 
 export const initialState: DataQualityIssuesProgramConfigOptions = {
@@ -53,6 +56,7 @@ export const initialState: DataQualityIssuesProgramConfigOptions = {
         orgUnitPaths: [],
     },
     steps: [],
+    isEdit: false,
 };
 
 function mapToDataQualityIssuesProgramConfig(

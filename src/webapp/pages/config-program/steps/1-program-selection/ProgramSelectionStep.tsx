@@ -16,10 +16,11 @@ type Props = {
     value: Code | undefined;
     onChange: (code: Code | undefined) => void;
     options: Maybe<Option[]>;
+    disabled: boolean;
 };
 
 export const ProgramSelectionStep: React.FC<Props> = React.memo(props => {
-    const { value, onChange, options } = props;
+    const { value, onChange, options, disabled } = props;
     if (!options) {
         return null;
     }
@@ -39,6 +40,7 @@ export const ProgramSelectionStep: React.FC<Props> = React.memo(props => {
                             value={value}
                             onChange={e => onChange(e.target.value as Code)}
                             input={<Input />}
+                            disabled={disabled}
                         >
                             {options.map(option => (
                                 <MenuItem key={option.text} value={option.value}>

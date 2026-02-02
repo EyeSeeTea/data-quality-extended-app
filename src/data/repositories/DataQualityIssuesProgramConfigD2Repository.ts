@@ -1,6 +1,9 @@
 import _ from "lodash";
 import { D2Api, MetadataPick } from "$/types/d2-api";
-import { DataQualityIssuesProgramConfigRepository } from "$/domain/repositories/DataQualityIssuesProgramConfigRepository";
+import {
+    DataQualityIssuesProgramConfigRepository,
+    SaveOptions,
+} from "$/domain/repositories/DataQualityIssuesProgramConfigRepository";
 import { apiToFuture, FutureData } from "$/data/api-futures";
 import { Future } from "$/domain/entities/generic/Future";
 import { DataQualityIssuesProgramConfig } from "$/domain/entities/DataQualityIssuesProgramConfig";
@@ -12,53 +15,80 @@ import {
 import { DATA_QUALITY_NAMESPACE, dataStoreKeys } from "$/data/common/DataStoreConfig";
 import { DataStore } from "@eyeseetea/d2-api/api";
 import { StepSettingsDatastore } from "$/data/repositories/entities/StepSettingsDatastore";
+import { StepSettings } from "$/domain/entities/StepSettings";
 
 export class DataQualityIssuesProgramConfigD2Repository
     implements DataQualityIssuesProgramConfigRepository
 {
     constructor(private api: D2Api) {}
 
-    save(configuration: DataQualityIssuesProgramConfig): FutureData<void> {
+    save(configuration: DataQualityIssuesProgramConfig, options: SaveOptions): FutureData<void> {
         if (!configuration.selectedProgramCode) {
             return Future.error(new Error("No program selected"));
         }
         const dataStore = this.api.dataStore(DATA_QUALITY_NAMESPACE);
-        return this.getProgramConfigTemplate(dataStore).flatMap(template => {
-            const datastoreProgramConfig: DatastoreProgramConfig = buildProgramConfigByProgramCode(
-                template,
-                configuration.selectedProgramCode,
-                configuration.selectedModuleCodes
-            );
 
-            return this.checkProgramMetadataCodes(
+        if (options.isEdit) {
+            return this.saveProgramSettings(
+                dataStore,
                 configuration.selectedProgramCode,
-                datastoreProgramConfig
-            ).flatMap(programMetadata => {
-                return this.saveInDatastorePrograms(
-                    dataStore,
-                    programMetadata.code,
-                    programMetadata.name,
-                    configuration.selectedModuleCodes
-                ).flatMap(() => {
-                    return this.saveProgramConfig(
+                configuration.defaultSettings
+            );
+        } else {
+            return this.getProgramConfigTemplate(dataStore).flatMap(template => {
+                const datastoreProgramConfig: DatastoreProgramConfig =
+                    buildProgramConfigByProgramCode(
+                        template,
+                        configuration.selectedProgramCode,
+                        configuration.selectedModuleCodes
+                    );
+
+                return this.checkProgramMetadataCodes(
+                    configuration.selectedProgramCode,
+                    datastoreProgramConfig
+                ).flatMap(programMetadata => {
+                    return this.saveInDatastorePrograms(
                         dataStore,
                         programMetadata.code,
-                        datastoreProgramConfig
+                        programMetadata.name,
+                        configuration.selectedModuleCodes
                     ).flatMap(() => {
-                        return this.saveProgramSettings(
+                        return this.saveProgramConfig(
                             dataStore,
                             programMetadata.code,
-                            configuration.defaultSettings
+                            datastoreProgramConfig
                         ).flatMap(() => {
-                            return this.saveProgramStepsSettings(
+                            return this.saveProgramSettings(
                                 dataStore,
                                 programMetadata.code,
-                                configuration.steps
-                            );
+                                configuration.defaultSettings
+                            ).flatMap(() => {
+                                return this.saveProgramStepsSettings(
+                                    dataStore,
+                                    programMetadata.code,
+                                    configuration.steps
+                                );
+                            });
                         });
                     });
                 });
             });
+        }
+    }
+
+    get(code: Code): FutureData<DataQualityIssuesProgramConfig> {
+        const dataStore = this.api.dataStore(DATA_QUALITY_NAMESPACE);
+        return Future.joinObj({
+            datastoreProgramConfig: this.getProgramConfig(dataStore, code),
+            defaultSettings: this.getProgramSettings(dataStore, code),
+            steps: this.getProgramStepsSettings(dataStore, code),
+        }).map(({ datastoreProgramConfig, defaultSettings, steps }) => {
+            return DataQualityIssuesProgramConfig.build({
+                selectedProgramCode: code,
+                selectedModuleCodes: datastoreProgramConfig.dataSets,
+                defaultSettings: defaultSettings,
+                steps: steps,
+            }).get();
         });
     }
 
@@ -219,6 +249,22 @@ export class DataQualityIssuesProgramConfigD2Repository
             .mapError(err => new Error(`Cannot save program config. ${String(err)}`));
     }
 
+    private getProgramConfig(
+        dataStore: DataStore,
+        programCode: Code
+    ): FutureData<DatastoreProgramConfig> {
+        return apiToFuture(
+            dataStore.get<DatastoreProgramConfig>(`programs-${programCode}`)
+        ).flatMap(datastoreProgramConfig => {
+            if (!datastoreProgramConfig) {
+                return Future.error(
+                    new Error(`No configuration found for program code: ${programCode}`)
+                );
+            }
+            return Future.success(datastoreProgramConfig);
+        });
+    }
+
     private saveInDatastorePrograms(
         dataStore: DataStore,
         programCode: Code,
@@ -268,6 +314,45 @@ export class DataQualityIssuesProgramConfigD2Repository
         return apiToFuture(dataStore.save(`steps-${programCode}`, datastoreStepSettings))
             .map(() => undefined)
             .mapError(err => new Error(`Cannot save steps settings. ${String(err)}`));
+    }
+
+    private getProgramSettings(
+        dataStore: DataStore,
+        programCode: Code
+    ): FutureData<DataQualityIssuesProgramConfig["defaultSettings"]> {
+        return apiToFuture(
+            dataStore.get<{ defaultConfig: DataQualityIssuesProgramConfig["defaultSettings"] }>(
+                `settings-${programCode}`
+            )
+        ).flatMap(settings => {
+            if (!settings) {
+                return Future.error(
+                    new Error(`No settings found for program code: ${programCode}`)
+                );
+            }
+            return Future.success(settings.defaultConfig);
+        });
+    }
+
+    private getProgramStepsSettings(
+        dataStore: DataStore,
+        programCode: Code
+    ): FutureData<StepSettings[]> {
+        return apiToFuture(dataStore.get<StepSettingsDatastore[]>(`steps-${programCode}`)).flatMap(
+            datastoreSteps => {
+                if (!datastoreSteps) {
+                    return Future.error(new Error(`No steps found for: ${programCode}`));
+                }
+                const steps: StepSettings[] = datastoreSteps.map(step => ({
+                    type: step.type,
+                    sectionId: step.programStageId,
+                    order: step.order,
+                    disaggregations: step.disaggregations ?? [],
+                }));
+
+                return Future.success(steps);
+            }
+        );
     }
 }
 

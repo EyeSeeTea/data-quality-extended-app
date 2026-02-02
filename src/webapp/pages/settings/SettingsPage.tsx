@@ -7,9 +7,16 @@ import { PageContainer } from "$/webapp/components/page-container/PageContainer"
 import styled from "styled-components";
 import { useSettings } from "$/webapp/hooks/useSettings";
 import { ModulesTable } from "$/webapp/components/modules-table/ModulesTable";
+import { MenuButton } from "$/webapp/components/menu-button/MenuButton";
 
 export const SettingsPage: React.FC = React.memo(() => {
-    const { onConfigurateNewProgram, onBackHomePage, qualityIssuesPrograms } = useSettings();
+    const {
+        onConfigurateNewProgram,
+        onBackHomePage,
+        qualityIssuesPrograms,
+        onEditNewProgram,
+        currentOptions,
+    } = useSettings();
 
     return (
         <PageContainer>
@@ -30,6 +37,15 @@ export const SettingsPage: React.FC = React.memo(() => {
                         {i18n.t("Set up data quality analysis")}
                     </Button>
                 </RowContainer>
+
+                {currentOptions.length > 0 && (
+                    <MenuButton
+                        label={i18n.t("Edit data quality analysis setup")}
+                        items={currentOptions}
+                        onItemSelected={onEditNewProgram}
+                        buttonVariant="outlined"
+                    />
+                )}
             </RowContainer>
 
             {qualityIssuesPrograms && (

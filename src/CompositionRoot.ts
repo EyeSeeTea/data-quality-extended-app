@@ -80,6 +80,7 @@ import { GetDataQualityWorkflowSettingsUseCase } from "$/domain/usecases/GetData
 import { DataQualityWorkflowSettingsRepository } from "$/domain/repositories/DataQualityWorkflowSettingsRepository";
 import { DataQualityWorkflowSettingsD2Repository } from "$/data/repositories/DataQualityWorkflowSettingsD2Repository";
 import { DataQualityWorkflowSettingsTestRepository } from "$/data/repositories/DataQualityWorkflowSettingsTestRepository";
+import { GetDataQualityIssuesProgramConfigUseCase } from "$/domain/usecases/GetDataQualityIssuesProgramConfigUseCase";
 
 export type CompositionRoot = ReturnType<typeof getCompositionRoot>;
 
@@ -211,6 +212,9 @@ function getCompositionRoot(repositories: Repositories) {
         },
         dataQualityIssuesProgramConfig: {
             save: new SaveDataQualityIssuesProgramConfigUseCase(
+                repositories.dataQualityIssuesProgramConfigRepository
+            ),
+            get: new GetDataQualityIssuesProgramConfigUseCase(
                 repositories.dataQualityIssuesProgramConfigRepository
             ),
         },

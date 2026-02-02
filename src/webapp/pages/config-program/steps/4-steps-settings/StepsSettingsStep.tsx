@@ -30,10 +30,11 @@ type Props = {
     value: StepSettings[];
     onChange: (steps: StepSettings[]) => void;
     sections: NamedRef[];
+    disabled: boolean;
 };
 
 export const StepsSettingsStep: React.FC<Props> = React.memo(props => {
-    const { value, onChange, sections } = props;
+    const { value, onChange, sections, disabled } = props;
     const [rows, setRows] = React.useState<Row[]>(() => buildRows(value, sections));
 
     React.useEffect(() => {
@@ -116,6 +117,7 @@ export const StepsSettingsStep: React.FC<Props> = React.memo(props => {
                                                         (e.target.value as StepType) || undefined
                                                     )
                                                 }
+                                                disabled={disabled}
                                             >
                                                 <MenuItem value="">
                                                     <em>{i18n.t("<No value>")}</em>
@@ -143,7 +145,7 @@ export const StepsSettingsStep: React.FC<Props> = React.memo(props => {
                                     <IconButton
                                         onClick={() => onMoveStep(index, -1)}
                                         size="small"
-                                        disabled={!canMoveUp}
+                                        disabled={!canMoveUp || disabled}
                                     >
                                         <ArrowUpwardIcon fontSize="small" />
                                     </IconButton>
@@ -151,7 +153,7 @@ export const StepsSettingsStep: React.FC<Props> = React.memo(props => {
                                     <IconButton
                                         onClick={() => onMoveStep(index, 1)}
                                         size="small"
-                                        disabled={!canMoveDown}
+                                        disabled={!canMoveDown || disabled}
                                     >
                                         <ArrowDownwardIcon fontSize="small" />
                                     </IconButton>

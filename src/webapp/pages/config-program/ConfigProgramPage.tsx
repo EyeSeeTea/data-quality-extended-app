@@ -5,9 +5,10 @@ import { PageContainer } from "$/webapp/components/page-container/PageContainer"
 import { PageHeader } from "$/webapp/components/page-header/PageHeader";
 import i18n from "$/utils/i18n";
 import { useConfigProgram } from "$/webapp/pages/config-program/hooks/useConfigProgram";
+import { CircularProgress } from "@material-ui/core";
 
 export const ConfigProgramPage: React.FC = React.memo(() => {
-    const { onBackSettingsPage, steps, onStepChangeRequest } = useConfigProgram();
+    const { onBackSettingsPage, steps, onStepChangeRequest, initialStepKey } = useConfigProgram();
 
     return (
         <PageContainer>
@@ -16,13 +17,17 @@ export const ConfigProgramPage: React.FC = React.memo(() => {
                 onBackClick={onBackSettingsPage}
             />
 
-            <Wizard
-                lastClickableStepIndex={steps.length}
-                initialStepKey="program-selection"
-                steps={steps}
-                onStepChangeRequest={onStepChangeRequest}
-                useSnackFeedback
-            />
+            {steps.length === 0 ? (
+                <CircularProgress />
+            ) : (
+                <Wizard
+                    lastClickableStepIndex={steps.length}
+                    initialStepKey={initialStepKey}
+                    steps={steps}
+                    onStepChangeRequest={onStepChangeRequest}
+                    useSnackFeedback
+                />
+            )}
         </PageContainer>
     );
 });

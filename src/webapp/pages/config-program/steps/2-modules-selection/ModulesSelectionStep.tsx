@@ -9,11 +9,11 @@ type Props = {
     values: Code[];
     onChange: (codes: Code[]) => void;
     modulesOptions: { text: string; value: string }[];
+    disabled: boolean;
 };
 
 export const ModulesSelectionStep: React.FC<Props> = React.memo(props => {
-    const { values, onChange, modulesOptions } = props;
-
+    const { values, onChange, modulesOptions, disabled } = props;
     const [selection, setSelection] = React.useState<Code[]>(values);
     const [open, setOpen] = React.useState(false);
 
@@ -57,6 +57,7 @@ export const ModulesSelectionStep: React.FC<Props> = React.memo(props => {
                             if (!codes?.length) return;
                             return i18n.t("{{count}} datasets selected", { count: codes.length });
                         }}
+                        disabled={disabled}
                     >
                         {modulesOptions.map(option => (
                             <MenuItem key={option.text} value={option.value}>
