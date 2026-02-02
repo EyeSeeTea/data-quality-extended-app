@@ -15,7 +15,13 @@ export function Router() {
             <Switch>
                 <AdminRoute exact path="/settings" render={() => <SettingsPage />} />
 
-                <AdminRoute exact path="/config-program" render={() => <ConfigProgramPage />} />
+                <AdminRoute exact path="/configuration" render={() => <ConfigProgramPage />} />
+
+                <AdminRoute
+                    exact
+                    path="/configuration/:qualityIssuesProgramCode"
+                    render={() => <ConfigProgramPage />}
+                />
 
                 <Route
                     path="/:qualityIssuesProgramCode"

@@ -13,15 +13,7 @@ import { DataQualityIssuesProgramConfigOptions } from "$/domain/usecases/SaveDat
 import { useAppContext } from "$/webapp/contexts/app-context";
 import { Id } from "$/domain/entities/Ref";
 import { CheckboxInline } from "$/webapp/components/issues/CheckboxInline";
-
-function getIdFromCountriesPaths(paths: string[]): string[] {
-    return _(paths)
-        .map(path => {
-            return _(path.split("/")).last() || undefined;
-        })
-        .compact()
-        .value();
-}
+import { getIdFromCountriesPaths } from "$/webapp/components/configuration-form/ConfigurationForm";
 
 type Props = {
     values: DataQualityIssuesProgramConfigOptions["defaultSettings"];
@@ -42,7 +34,7 @@ export const DefaultSettingsStep: React.FC<Props> = React.memo(props => {
 
     const onOrgUnitsChange = React.useCallback(
         (paths: Id[]) => {
-            const orgUnitIds = getIdFromCountriesPaths(paths as unknown as string[]);
+            const orgUnitIds = getIdFromCountriesPaths(paths);
             onChange({ orgUnitPaths: paths, orgUnits: orgUnitIds });
         },
         [onChange]
@@ -66,7 +58,7 @@ export const DefaultSettingsStep: React.FC<Props> = React.memo(props => {
                     items={selectedModuleOptions}
                     onChange={value => onChange({ dataSet: value })}
                     value={values.dataSet}
-                    label={i18n.t("Module")}
+                    label={i18n.t("Dataset")}
                 />
             </SelectorContainer>
 

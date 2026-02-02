@@ -19,6 +19,7 @@ import CloudDownload from "@material-ui/icons/CloudDownload";
 import { useTableUtils } from "$/webapp/hooks/useTable";
 import { useIssueColumns } from "./IssueColumns";
 import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
+import { hasUserGroups } from "$/webapp/components/issues/utils";
 
 export function useCopyContactEmails(props: UseCopyContactEmailsProps) {
     const { onSuccess } = props;
@@ -35,8 +36,7 @@ export function useCopyContactEmails(props: UseCopyContactEmailsProps) {
             sectionId: Maybe<Id>,
             filters: GetIssuesOptions["filters"]
         ) => {
-            if (!metadataItem.userGroups || Object.keys(metadataItem.userGroups).length === 0)
-                return;
+            if (!hasUserGroups(metadataItem.userGroups)) return;
 
             loading.show(true, i18n.t("Copying Contact Emails and marking for Follow-Up"));
             compositionRoot.issues.copyEmails
@@ -126,21 +126,20 @@ export function useTableConfig(props: UseTableConfigProps) {
                   ]
                 : undefined,
             stickyHeader: true,
-            actions:
-                metadataItem.userGroups && Object.keys(metadataItem.userGroups).length
-                    ? [
-                          {
-                              name: "Extend Contact Emails",
-                              text: i18n.t("Extend Follow-Up + Contact Emails"),
-                              primary: false,
-                              onClick(selectedIds) {
-                                  const issueId = selectedIds[0];
-                                  if (!issueId) return false;
-                                  copyContactEmails(issueId, analysisId, sectionId, filters);
-                              },
+            actions: hasUserGroups(metadataItem.userGroups)
+                ? [
+                      {
+                          name: "Extend Contact Emails",
+                          text: i18n.t("Extend Follow-Up + Contact Emails"),
+                          primary: false,
+                          onClick(selectedIds) {
+                              const issueId = selectedIds[0];
+                              if (!issueId) return false;
+                              copyContactEmails(issueId, analysisId, sectionId, filters);
                           },
-                      ]
-                    : [],
+                      },
+                  ]
+                : [],
             columns: columnsToShow,
             initialSorting: { field: "number", order: "asc" },
             paginationOptions: {

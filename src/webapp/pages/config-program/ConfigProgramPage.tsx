@@ -12,7 +12,7 @@ export const ConfigProgramPage: React.FC = React.memo(() => {
     return (
         <PageContainer>
             <PageHeader
-                title={i18n.t("New Data Quality Issues Program")}
+                title={i18n.t("Data Quality Analysis Setup")}
                 onBackClick={onBackSettingsPage}
             />
 

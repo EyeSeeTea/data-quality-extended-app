@@ -5,6 +5,7 @@ import { SettingsRepository } from "$/domain/repositories/SettingsRepository";
 import { FutureData, apiToFuture } from "$/data/api-futures";
 import { Code, Id, NamedCodeRef } from "$/domain/entities/Ref";
 import { DATA_QUALITY_NAMESPACE } from "$/data/common/DataStoreConfig";
+import { Future } from "$/domain/entities/generic/Future";
 
 export class SettingsD2Repository implements SettingsRepository {
     constructor(private api: D2Api) {}
@@ -15,9 +16,12 @@ export class SettingsD2Repository implements SettingsRepository {
             dataStore.get<D2DataStore>(`settings-${selectedQualityIssuesProgramCode}`)
         ).flatMap(d2Response => {
             if (!d2Response)
-                throw Error(
-                    `Cannot found ${DATA_QUALITY_NAMESPACE}/${`settings-${selectedQualityIssuesProgramCode}`} in datastore`
+                return Future.error(
+                    new Error(
+                        `Cannot found ${DATA_QUALITY_NAMESPACE}/${`settings-${selectedQualityIssuesProgramCode}`} in datastore`
+                    )
                 );
+
             return this.getDataSet(d2Response.defaultConfig.dataSet).map(dataSet => {
                 return Settings.build({
                     endDate: d2Response.defaultConfig.endDate,
@@ -36,10 +40,11 @@ export class SettingsD2Repository implements SettingsRepository {
                 fields: { id: true, code: true, name: true },
                 filter: { code: { eq: dataSetCode } },
             })
-        ).map(d2Response => {
+        ).flatMap(d2Response => {
             const dataSet = _(d2Response.objects).first();
-            if (!dataSet) throw Error(`Cannot found dataSet: ${dataSetCode}`);
-            return dataSet;
+            if (!dataSet)
+                return Future.error(new Error(`Data set with code ${dataSetCode} not found`));
+            return Future.success(dataSet);
         });
     }
 }

@@ -9,10 +9,10 @@ export function useModulesTableConfig(paginated: boolean): {
 } {
     const modulesColumns: TableColumn<ModuleBaseViewModel>[] = React.useMemo(() => {
         return [
-            { name: "name", text: i18n.t("Module"), sortable: true },
+            { name: "name", text: i18n.t("Dataset"), sortable: true },
             {
                 name: "dataQualityIssuesProgramName",
-                text: i18n.t("Data Quality Issues Program"),
+                text: i18n.t("Data Quality Analysis Location"),
                 sortable: !paginated,
             },
         ];
@@ -31,7 +31,7 @@ export function useModulesTableConfig(paginated: boolean): {
                 ? { field: "name", order: "asc" }
                 : { field: "dataQualityIssuesProgramName", order: "asc" },
             paginationOptions: { pageSizeOptions: [10, 25, 50], pageSizeInitialValue: 25 },
-            searchBoxLabel: i18n.t("Module Name"),
+            searchBoxLabel: i18n.t("Dataset Name"),
             onReorderColumns: saveColumns,
         };
     }, [columnsToShow, paginated, saveColumns]);

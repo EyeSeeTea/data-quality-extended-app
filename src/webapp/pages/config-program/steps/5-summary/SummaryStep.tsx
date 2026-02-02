@@ -40,12 +40,14 @@ export const SummaryStep: React.FC<Props> = React.memo(props => {
             <div>
                 <ul>
                     <li key={configProgramState.selectedProgramCode}>
-                        {i18n.t("Data Quality Issues Program: ")}
-                        {programName}
+                        {i18n.t("Data Quality Analysis Location: ", { nsSeparator: false })}
+                        <ul>
+                            <li>{programName}</li>
+                        </ul>
                     </li>
 
                     <li key={configProgramState.selectedProgramCode}>
-                        {i18n.t("Modules: ")}
+                        {i18n.t("Selected Datasets to be analysed: ", { nsSeparator: false })}
                         <ul>
                             {moduleNames.map(module => (
                                 <li key={module}>{module}</li>
@@ -54,10 +56,11 @@ export const SummaryStep: React.FC<Props> = React.memo(props => {
                     </li>
 
                     <li>
-                        {i18n.t("Default settings: ")}
+                        {i18n.t("Default analysis settings: ", { nsSeparator: false })}
                         <ul>
                             <li key={configProgramState.defaultSettings.dataSet}>
-                                {i18n.t("Module: ")} {configProgramState.defaultSettings.dataSet}
+                                {i18n.t("Dataset: ", { nsSeparator: false })}{" "}
+                                {configProgramState.defaultSettings.dataSet}
                             </li>
 
                             {configProgramState.defaultSettings.usePreviousYear ? (
@@ -67,21 +70,23 @@ export const SummaryStep: React.FC<Props> = React.memo(props => {
                             ) : (
                                 <>
                                     <li key={configProgramState.defaultSettings.startDate}>
-                                        {i18n.t("Start date: ")}
+                                        {i18n.t("Start date: ", { nsSeparator: false })}
                                         {configProgramState.defaultSettings.startDate}
                                     </li>
 
                                     <li key={configProgramState.defaultSettings.endDate}>
-                                        {i18n.t("End date: ")}{" "}
+                                        {i18n.t("End date: ", { nsSeparator: false })}{" "}
                                         {configProgramState.defaultSettings.endDate}
                                     </li>
                                 </>
                             )}
 
-                            <li key={configProgramState.defaultSettings.orgUnits.join(",")}>
-                                {i18n.t("Organisation Units: ")}{" "}
-                                {countries?.map(country => country.name).join(", ")}
-                            </li>
+                            {configProgramState.defaultSettings.orgUnits.length > 0 && (
+                                <li key={configProgramState.defaultSettings.orgUnits.join(",")}>
+                                    {i18n.t("Organisation Units: ", { nsSeparator: false })}{" "}
+                                    {countries?.map(country => country.name).join(", ")}
+                                </li>
+                            )}
                         </ul>
                     </li>
 
@@ -108,7 +113,7 @@ export const SummaryStep: React.FC<Props> = React.memo(props => {
                     color="primary"
                     onClick={onSaveConfiguration}
                 >
-                    {i18n.t("Save Configuration")}
+                    {i18n.t("Save setup")}
                 </Button>
             </ButtonContainer>
         </div>

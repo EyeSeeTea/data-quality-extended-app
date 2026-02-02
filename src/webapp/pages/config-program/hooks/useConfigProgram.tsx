@@ -43,14 +43,12 @@ export function useConfigProgram(): State {
         useState<DataQualityIssuesProgramConfigOptions>(initialState);
 
     const notConfiguredProgramOptions = useMemo(() => {
-        return (
-            qualityIssuesPrograms
-                ?.filter(program => !program.modules.length)
-                ?.map(program => ({
-                    text: program.name,
-                    value: program.code,
-                })) || []
-        );
+        return qualityIssuesPrograms
+            ?.filter(program => !program.modules.length)
+            ?.map(program => ({
+                text: program.name,
+                value: program.code,
+            }));
     }, [qualityIssuesPrograms]);
 
     const moduleOptionsNotConfigured = useMemo(() => {
@@ -118,7 +116,7 @@ export function useConfigProgram(): State {
             {
                 component: ProgramSelectionStep,
                 key: "program-selection",
-                label: i18n.t("Program Selection"),
+                label: i18n.t("Data Quality Analysis Location"),
                 props: {
                     options: notConfiguredProgramOptions,
                     value: configProgramState.selectedProgramCode,
@@ -129,7 +127,7 @@ export function useConfigProgram(): State {
             {
                 component: ModulesSelectionStep,
                 key: "modules-selection",
-                label: i18n.t("Modules Selection"),
+                label: i18n.t("Dataset Selection"),
                 props: {
                     modulesOptions: moduleOptionsNotConfigured,
                     values: configProgramState.selectedModuleCodes,
@@ -140,7 +138,7 @@ export function useConfigProgram(): State {
             {
                 component: DefaultSettingsStep,
                 key: "default-settings",
-                label: i18n.t("Default Settings"),
+                label: i18n.t("Default Analysis Settings"),
                 props: {
                     selectedModuleOptions,
                     values: configProgramState.defaultSettings,
@@ -162,7 +160,7 @@ export function useConfigProgram(): State {
                 key: "summary",
                 label: i18n.t("Summary"),
                 props: {
-                    programs: notConfiguredProgramOptions,
+                    programs: notConfiguredProgramOptions || [],
                     modules: moduleOptionsNotConfigured,
                     configProgramState: configProgramState,
                     onSaveConfiguration: onSaveConfiguration,
@@ -186,13 +184,18 @@ export function useConfigProgram(): State {
 
             if (stepKey === "program-selection") {
                 if (!configProgramState.selectedProgramCode) {
-                    errors = [...errors, i18n.t("Select a program")];
+                    errors = [
+                        ...errors,
+                        i18n.t(
+                            "Select a location where data quality analysis issues will be created"
+                        ),
+                    ];
                 }
             }
 
             if (stepKey === "modules-selection") {
                 if (!configProgramState.selectedModuleCodes?.length) {
-                    errors = [...errors, i18n.t("Select at least one module")];
+                    errors = [...errors, i18n.t("Select at least one Dataset")];
                 }
             }
 

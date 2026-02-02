@@ -26,7 +26,7 @@ export function useGetModuleRows(
             return {
                 ...moduleBase,
                 dataQualityIssuesProgramCode: program?.code,
-                dataQualityIssuesProgramName: program?.name || i18n.t("No program assigned"),
+                dataQualityIssuesProgramName: program?.name || i18n.t("No configured"),
             };
         },
         [qualityIssuesPrograms]

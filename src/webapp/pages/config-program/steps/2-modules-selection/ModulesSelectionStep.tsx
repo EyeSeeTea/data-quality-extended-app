@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import { Select, InputLabel, MenuItem, Input } from "@material-ui/core";
+import { Select, InputLabel, MenuItem, Input, Typography } from "@material-ui/core";
 
 import i18n from "$/utils/i18n";
 import { Code } from "$/domain/entities/Ref";
@@ -35,29 +35,43 @@ export const ModulesSelectionStep: React.FC<Props> = React.memo(props => {
 
     return (
         <Container>
-            <SelectorContainer>
-                <InputLabel id="modules-selection-label">
-                    {i18n.t("Add Modules to Program")}
-                </InputLabel>
+            {modulesOptions.length > 0 ? (
+                <SelectorContainer>
+                    <InputLabel id="modules-selection-label">
+                        {i18n.t("Select datasets for data quality analysis")}
+                    </InputLabel>
 
-                <StyledMultiSelect
-                    labelId="modules-selection-label"
-                    id="modules-selection"
-                    multiple
-                    value={selection}
-                    onChange={e => setSelection(e.target.value as Code[])}
-                    input={<Input />}
-                    open={open}
-                    onOpen={handleOpen}
-                    onClose={handleClose}
-                >
-                    {modulesOptions.map(option => (
-                        <MenuItem key={option.text} value={option.value}>
-                            {option.text}
-                        </MenuItem>
-                    ))}
-                </StyledMultiSelect>
-            </SelectorContainer>
+                    <StyledMultiSelect
+                        labelId="modules-selection-label"
+                        id="modules-selection"
+                        multiple
+                        value={selection}
+                        onChange={e => setSelection(e.target.value as Code[])}
+                        input={<Input />}
+                        open={open}
+                        onOpen={handleOpen}
+                        onClose={handleClose}
+                        displayEmpty
+                        renderValue={selected => {
+                            const codes = selected as Code[];
+                            if (!codes?.length) return;
+                            return i18n.t("{{count}} datasets selected", { count: codes.length });
+                        }}
+                    >
+                        {modulesOptions.map(option => (
+                            <MenuItem key={option.text} value={option.value}>
+                                {option.text}
+                            </MenuItem>
+                        ))}
+                    </StyledMultiSelect>
+                </SelectorContainer>
+            ) : (
+                <EmptyState>
+                    <Typography variant="body1" color="textSecondary">
+                        {i18n.t("No datasets are available for data quality analysis.")}
+                    </Typography>
+                </EmptyState>
+            )}
         </Container>
     );
 });
@@ -75,4 +89,8 @@ const SelectorContainer = styled.div`
 
 const StyledMultiSelect = styled(Select)`
     margin-block: 8px;
+`;
+
+const EmptyState = styled.div`
+    margin-top: 12px;
 `;

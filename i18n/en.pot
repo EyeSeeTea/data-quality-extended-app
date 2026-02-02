@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-01-28T07:35:49.339Z\n"
-"PO-Revision-Date: 2026-01-28T07:35:49.339Z\n"
+"POT-Creation-Date: 2026-01-30T14:06:11.999Z\n"
+"PO-Revision-Date: 2026-01-30T14:06:11.999Z\n"
 
 msgid "ID"
 msgstr ""
@@ -187,13 +187,13 @@ msgstr ""
 msgid "Extend Follow-Up + Contact Emails"
 msgstr ""
 
-msgid "No program assigned"
+msgid "No configured"
 msgstr ""
 
-msgid "Data Quality Issues Program"
+msgid "Data Quality Analysis Location"
 msgstr ""
 
-msgid "Module Name"
+msgid "Dataset Name"
 msgstr ""
 
 msgid "Back"
@@ -203,6 +203,18 @@ msgid "Help"
 msgstr ""
 
 msgid "Running analysis..."
+msgstr ""
+
+msgid "Loading..."
+msgstr ""
+
+msgid "Error loading Metadata Item: {{message}}"
+msgstr ""
+
+msgid "Error loading Data Quality Issues Programs: {{message}}"
+msgstr ""
+
+msgid "Error loading Datasets: {{message}}"
 msgstr ""
 
 msgid "Creating Data Quality Report..."
@@ -280,7 +292,7 @@ msgstr ""
 msgid "No Issues found"
 msgstr ""
 
-msgid "New Data Quality Issues Program"
+msgid "Data Quality Analysis Setup"
 msgstr ""
 
 msgid "Outliers"
@@ -304,22 +316,16 @@ msgstr ""
 msgid "Saving configuration..."
 msgstr ""
 
-msgid "Program Selection"
+msgid "Dataset Selection"
 msgstr ""
 
-msgid "Modules Selection"
+msgid "Default Analysis Settings"
 msgstr ""
 
-msgid "Default Settings"
+msgid "Select a location where data quality analysis issues will be created"
 msgstr ""
 
-msgid "Steps Configuration"
-msgstr ""
-
-msgid "Select a program"
-msgstr ""
-
-msgid "Select at least one module"
+msgid "Select at least one Dataset"
 msgstr ""
 
 msgid "Select a default dataset"
@@ -331,25 +337,42 @@ msgstr ""
 msgid "Select an end date"
 msgstr ""
 
-msgid "All program stages must be configured"
+msgid "Select where data quality analysis issues will be created"
 msgstr ""
 
-msgid "Select Program"
+msgid ""
+"No location is available to store data quality analysis issues. Please "
+"create one first."
 msgstr ""
 
-msgid "Add Modules to Program"
+msgid "Select datasets for data quality analysis"
 msgstr ""
 
-msgid "Use previous year for start and end dates"
+msgid "No datasets are available for data quality analysis."
 msgstr ""
 
-msgid "Step type"
+msgid "Data Quality Analysis Location: "
 msgstr ""
 
-msgid "<No value>"
+msgid "Selected Datasets to be analysed: "
 msgstr ""
 
-msgid "Save Configuration"
+msgid "Default analysis settings: "
+msgstr ""
+
+msgid "Dataset: "
+msgstr ""
+
+msgid "Start date: "
+msgstr ""
+
+msgid "End date: "
+msgstr ""
+
+msgid "Organisation Units: "
+msgstr ""
+
+msgid "Save setup"
 msgstr ""
 
 msgid "Are you sure you want to {{action}} the selected rows?"
@@ -361,10 +384,13 @@ msgstr ""
 msgid "Data Quality Issues Programs"
 msgstr ""
 
-msgid "Settings"
+msgid "Data Quality Analysis Settings"
 msgstr ""
 
-msgid "Configurate new program"
+msgid "Set up data quality analysis"
+msgstr ""
+
+msgid "Edit data quality analysis setup"
 msgstr ""
 
 msgid "Progress"

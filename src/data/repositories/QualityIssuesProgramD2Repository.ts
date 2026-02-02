@@ -91,24 +91,22 @@ export class QualityIssuesProgramD2Repository implements QualityIssuesProgramRep
                         programStatus: "ACTIVE",
                         skipPaging: true,
                     })
-                ).flatMap(programsResponse => {
-                    return Future.success(programsResponse.objects);
-                });
+                ).map(programsResponse => programsResponse.objects);
             })
-        ).flatMap(listOfPrograms => Future.success(_(listOfPrograms).flatten().value()));
+        ).map(listOfPrograms => _(listOfPrograms).flatten().value());
     }
 
     private getAllDataQualityIssuesPrograms(): FutureData<D2Program[]> {
         const programs: D2Program[] = [];
-        let page = 1;
-        let pageCount: number | undefined;
+        const pageSize = DEFAULT_PAGE_SIZE;
+        const firstPage = 1;
 
-        const fetchPage = (): FutureData<D2Program[]> => {
+        const fetchPage = (page: number, accPrograms: D2Program[]): FutureData<D2Program[]> => {
             return apiToFuture(
                 this.api.models.programs.get({
                     fields: programFields,
                     totalPages: true,
-                    pageSize: DEFAULT_PAGE_SIZE,
+                    pageSize: pageSize,
                     page: page,
                     filter: {
                         code: {
@@ -119,21 +117,21 @@ export class QualityIssuesProgramD2Repository implements QualityIssuesProgramRep
                 })
             ).flatMap(response => {
                 const apiPrograms: D2Program[] = response.objects ?? [];
-                programs.push(...apiPrograms);
+                const nextAccPrograms = [...accPrograms, ...apiPrograms];
 
                 const pager = response.pager ?? response;
-                pageCount = pager.pageCount;
-                page = pager.page + 1;
+                const pageCount = pager.pageCount;
+                const nextPage = (pager.page ?? page) + 1;
 
-                if (pageCount !== undefined && page <= pageCount) {
-                    return fetchPage();
+                if (pageCount !== undefined && nextPage <= pageCount) {
+                    return fetchPage(nextPage, nextAccPrograms);
                 }
 
-                return Future.success(programs);
+                return Future.success(nextAccPrograms);
             });
         };
 
-        return fetchPage();
+        return fetchPage(firstPage, programs);
     }
 }
 
