@@ -111,7 +111,7 @@ export const DashboardPage: React.FC = React.memo(() => {
                         `Data Quality Analysis: ${metadataItem.programs.qualityIssues.name}`
                     )}
                     onBackClick={
-                        configuredQualityProgramIssuesOptions.length === 1
+                        configuredQualityProgramIssuesOptions?.length === 1
                             ? undefined
                             : onBackHomePage
                     }

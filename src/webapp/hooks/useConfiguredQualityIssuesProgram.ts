@@ -8,9 +8,10 @@ import { useAppContext } from "$/webapp/contexts/app-context";
 import i18n from "$/utils/i18n";
 import { Maybe } from "$/utils/ts-utils";
 
+type Option = { text: string; value: string };
 type State = {
     selectedProgramCode: Maybe<Code>;
-    configuredQualityProgramIssuesOptions: { text: string; value: string }[];
+    configuredQualityProgramIssuesOptions: Maybe<Option[]>;
     onSelectQualityProgramIssues: (code: Maybe<string>) => void;
     qualityIssuesPrograms: Maybe<QualityIssuesProgram[]>;
 };
@@ -57,12 +58,10 @@ export function useConfiguredQualityIssuesProgram(): State {
     }, [qualityIssuesPrograms, history]);
 
     const configuredQualityProgramIssuesOptions = useMemo(() => {
-        return (
-            qualityIssuesPrograms?.map(program => ({
-                text: program.name,
-                value: program.code,
-            })) || []
-        );
+        return qualityIssuesPrograms?.map(program => ({
+            text: program.name,
+            value: program.code,
+        }));
     }, [qualityIssuesPrograms]);
 
     const onSelectQualityProgramIssues = useCallback(

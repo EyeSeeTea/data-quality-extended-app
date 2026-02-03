@@ -11,6 +11,7 @@ import { PageContainer } from "$/webapp/components/page-container/PageContainer"
 import { useConfiguredQualityIssuesProgram } from "$/webapp/hooks/useConfiguredQualityIssuesProgram";
 import { useAppContext } from "$/webapp/contexts/app-context";
 import { ProgramSelectorContainer } from "$/webapp/pages/config-program/steps/ProgramSelectorContainer";
+import { Typography } from "@material-ui/core";
 
 type Props = { name: string };
 
@@ -38,10 +39,6 @@ export const LandingPage: React.FC<Props> = React.memo(props => {
         }
     }, [configuredQualityProgramIssuesOptions, history, onSelectQualityProgramIssues]);
 
-    if (!configuredQualityProgramIssuesOptions?.length) {
-        return null;
-    }
-
     return (
         <PageContainer>
             <HeaderContainer>
@@ -54,14 +51,24 @@ export const LandingPage: React.FC<Props> = React.memo(props => {
                 )}
             </HeaderContainer>
 
-            <ProgramSelectorContainer>
-                <Dropdown
-                    items={configuredQualityProgramIssuesOptions}
-                    onChange={onSelectQualityProgramIssues}
-                    value={selectedProgramCode}
-                    label={i18n.t("Data Quality Issues Programs")}
-                />
-            </ProgramSelectorContainer>
+            {!configuredQualityProgramIssuesOptions?.length ? (
+                !configuredQualityProgramIssuesOptions ? null : (
+                    <EmptyState>
+                        <Typography variant="body1">
+                            {i18n.t("No Data Quality Analysis Locations have been configured yet.")}
+                        </Typography>
+                    </EmptyState>
+                )
+            ) : (
+                <ProgramSelectorContainer>
+                    <Dropdown
+                        items={configuredQualityProgramIssuesOptions}
+                        onChange={onSelectQualityProgramIssues}
+                        value={selectedProgramCode}
+                        label={i18n.t("Data Quality Analysis Locations")}
+                    />
+                </ProgramSelectorContainer>
+            )}
         </PageContainer>
     );
 });
@@ -73,4 +80,8 @@ const HeaderContainer = styled.div`
 const StyledIconButton = styled(IconButton)`
     top: 0;
     right: 0;
+`;
+
+const EmptyState = styled.div`
+    margin-top: 12px;
 `;
