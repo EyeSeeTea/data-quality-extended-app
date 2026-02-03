@@ -7,21 +7,17 @@ import {
     ListItem,
     ListItemText,
     IconButton,
-    InputLabel,
-    Select,
-    MenuItem,
-    FormControl,
+    TextField,
 } from "@material-ui/core";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
 import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward";
+import WarningIcon from "@material-ui/icons/Warning";
 
 import i18n from "$/utils/i18n";
-import { StepType, StepTypes, StepSettings } from "$/domain/entities/StepSettings";
+import { ACCEPTED_SECTION_NAMES, StepSettings } from "$/domain/entities/StepSettings";
 import { NamedRef } from "$/domain/entities/Ref";
-import { getStepTypeLabel } from "$/webapp/pages/config-program/getStepTypeLabel";
 import {
     buildRows,
-    isStepTypeDisabledForRow,
     Row,
     rowsToValue,
 } from "$/webapp/pages/config-program/steps/4-steps-settings/utils";
@@ -38,8 +34,14 @@ export const StepsSettingsStep: React.FC<Props> = React.memo(props => {
     const [rows, setRows] = React.useState<Row[]>(() => buildRows(value, sections));
 
     React.useEffect(() => {
-        setRows(buildRows(value, sections));
-    }, [value, sections]);
+        const nextRows = buildRows(value, sections);
+        setRows(nextRows);
+
+        if (value.length === 0) {
+            const defaultValue = rowsToValue(nextRows);
+            if (defaultValue.length > 0) onChange(defaultValue);
+        }
+    }, [value, sections, onChange]);
 
     const onMoveStep = useCallback(
         (index: number, direction: -1 | 1) => {
@@ -66,14 +68,14 @@ export const StepsSettingsStep: React.FC<Props> = React.memo(props => {
         [onChange]
     );
 
-    const onStepTypeChange = useCallback(
-        (index: number, stepType?: StepType) => {
+    const onCustomNameChange = useCallback(
+        (index: number, customName: string) => {
             setRows(prev => {
                 const current = prev[index];
                 if (!current) return prev;
 
                 const next = prev.map((row, i) =>
-                    i === index ? { ...row, stepType: stepType || undefined } : row
+                    i === index ? { ...row, customName: customName } : row
                 );
 
                 onChange(rowsToValue(next));
@@ -83,17 +85,13 @@ export const StepsSettingsStep: React.FC<Props> = React.memo(props => {
         [onChange]
     );
 
-    const stepsAlreadyUsed = React.useMemo(
-        () => rows.map(row => row.stepType).filter((row): row is StepType => !!row),
-        [rows]
-    );
-
     return (
         <RootPaper elevation={0}>
             <Typography variant="h6">{i18n.t("Steps Configuration")}</Typography>
 
             <List>
                 {rows.map((row, index) => {
+                    const noStepTypeMatch = !row.stepType;
                     const canMoveUp = !!row.stepType && index > 0 && !!rows[index - 1]?.stepType;
                     const canMoveDown =
                         !!row.stepType && index < rows.length - 1 && !!rows[index + 1]?.stepType;
@@ -105,59 +103,61 @@ export const StepsSettingsStep: React.FC<Props> = React.memo(props => {
                                     <ListItemText primary={`${index + 1}. ${row.sectionName}`} />
                                 </Left>
 
-                                <Middle>
-                                    <DropdownWrapper>
-                                        <FormControl fullWidth>
-                                            <InputLabel>{i18n.t("Step type")}</InputLabel>
-                                            <Select
-                                                value={row.stepType ?? ""}
-                                                onChange={e =>
-                                                    onStepTypeChange(
-                                                        index,
-                                                        (e.target.value as StepType) || undefined
-                                                    )
-                                                }
-                                                disabled={disabled}
-                                            >
-                                                <MenuItem value="">
-                                                    <em>{i18n.t("<No value>")}</em>
-                                                </MenuItem>
+                                {noStepTypeMatch ? (
+                                    <WarningLine>
+                                        <WarningIcon fontSize="small" />
+                                        <WarningText>
+                                            <div>
+                                                {i18n.t(
+                                                    "No match found for this section name, so it cannot be configured."
+                                                )}
+                                            </div>
+                                            <div>
+                                                {i18n.t(
+                                                    `Accepted section names: ${ACCEPTED_SECTION_NAMES.join(
+                                                        ", "
+                                                    )}`,
+                                                    { nsSeparator: false }
+                                                )}
+                                            </div>
+                                        </WarningText>
+                                    </WarningLine>
+                                ) : (
+                                    <>
+                                        <Middle>
+                                            <TextFieldWrapper>
+                                                <TextField
+                                                    fullWidth
+                                                    label={i18n.t("Custom name")}
+                                                    value={row.customName}
+                                                    onChange={e =>
+                                                        onCustomNameChange(index, e.target.value)
+                                                    }
+                                                />
+                                            </TextFieldWrapper>
+                                        </Middle>
 
-                                                {StepTypes.map(step => (
-                                                    <MenuItem
-                                                        key={step}
-                                                        value={step}
-                                                        disabled={isStepTypeDisabledForRow(
-                                                            step,
-                                                            row,
-                                                            stepsAlreadyUsed
-                                                        )}
-                                                    >
-                                                        {getStepTypeLabel(step)}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
-                                    </DropdownWrapper>
-                                </Middle>
+                                        {disabled ? null : (
+                                            <Actions>
+                                                <IconButton
+                                                    onClick={() => onMoveStep(index, -1)}
+                                                    size="small"
+                                                    disabled={!canMoveUp}
+                                                >
+                                                    <ArrowUpwardIcon fontSize="small" />
+                                                </IconButton>
 
-                                <Actions>
-                                    <IconButton
-                                        onClick={() => onMoveStep(index, -1)}
-                                        size="small"
-                                        disabled={!canMoveUp || disabled}
-                                    >
-                                        <ArrowUpwardIcon fontSize="small" />
-                                    </IconButton>
-
-                                    <IconButton
-                                        onClick={() => onMoveStep(index, 1)}
-                                        size="small"
-                                        disabled={!canMoveDown || disabled}
-                                    >
-                                        <ArrowDownwardIcon fontSize="small" />
-                                    </IconButton>
-                                </Actions>
+                                                <IconButton
+                                                    onClick={() => onMoveStep(index, 1)}
+                                                    size="small"
+                                                    disabled={!canMoveDown}
+                                                >
+                                                    <ArrowDownwardIcon fontSize="small" />
+                                                </IconButton>
+                                            </Actions>
+                                        )}
+                                    </>
+                                )}
                             </RowContent>
                         </ListItem>
                     );
@@ -175,6 +175,7 @@ const RowContent = styled.div`
     display: flex;
     align-items: center;
     gap: 8px;
+    margin-block-start: 12px;
 `;
 
 const Left = styled.div`
@@ -193,8 +194,20 @@ const Actions = styled.div`
     gap: 4px;
 `;
 
-const DropdownWrapper = styled.div`
+const TextFieldWrapper = styled.div`
     width: 360px;
     max-width: 360px;
     flex: 0 0 360px;
+`;
+
+const WarningLine = styled.div`
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    opacity: 0.9;
+`;
+
+const WarningText = styled.div`
+    font-size: 14px;
+    line-height: 16px;
 `;

@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2026-02-02T16:16:30.795Z\n"
+"POT-Creation-Date: 2026-02-03T13:31:03.187Z\n"
 "PO-Revision-Date: 2018-10-25T09:02:35.143Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -295,24 +295,6 @@ msgstr ""
 msgid "Data Quality Analysis Setup"
 msgstr ""
 
-msgid "Outliers"
-msgstr ""
-
-msgid "Disaggregates"
-msgstr ""
-
-msgid "Double counts and missing GP"
-msgstr ""
-
-msgid "Missing Nurses"
-msgstr ""
-
-msgid "Validation"
-msgstr ""
-
-msgid "Manual Issues"
-msgstr ""
-
 msgid "Saving configuration..."
 msgstr ""
 
@@ -340,7 +322,7 @@ msgstr ""
 msgid "Select an end date"
 msgstr ""
 
-msgid "All program stages must be configured"
+msgid "At least one step must be configured"
 msgstr ""
 
 msgid "Select where data quality analysis issues will be created"
@@ -360,10 +342,10 @@ msgstr ""
 msgid "Use previous year for start and end dates"
 msgstr ""
 
-msgid "Step type"
+msgid "No match found for this section name, so it cannot be configured."
 msgstr ""
 
-msgid "<No value>"
+msgid "Custom name"
 msgstr ""
 
 msgid "Data Quality Analysis Location: "
@@ -399,7 +381,10 @@ msgstr ""
 msgid "Yes, {{actionButton}}"
 msgstr ""
 
-msgid "Data Quality Issues Programs"
+msgid "No Data Quality Analysis Locations have been configured yet."
+msgstr ""
+
+msgid "Data Quality Analysis Locations"
 msgstr ""
 
 msgid "Data Quality Analysis Settings"
@@ -415,6 +400,13 @@ msgid "Progress"
 msgstr ""
 
 msgid "Last Modification"
+msgstr ""
+
+msgctxt ""
+"NAMES.join(\n"
+"                                                        \", \"\n"
+"                                                    )}"
+msgid "Accepted section names: ${ACCEPTED_SECTION"
 msgstr ""
 
 #~ msgid "Add"

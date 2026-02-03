@@ -5,7 +5,6 @@ import styled from "styled-components";
 import i18n from "$/utils/i18n";
 import { DataQualityIssuesProgramConfigOptions } from "$/domain/usecases/SaveDataQualityIssuesProgramConfigUseCase";
 import { useCountriesByIds } from "$/webapp/hooks/useCountriesByIds";
-import { getStepTypeLabel } from "$/webapp/pages/config-program/getStepTypeLabel";
 
 type Props = {
     configProgramState: DataQualityIssuesProgramConfigOptions;
@@ -103,7 +102,7 @@ export const SummaryStep: React.FC<Props> = React.memo(props => {
                                 .sort((a, b) => a.order - b.order)
                                 .map(step => (
                                     <li key={step.type}>
-                                        {step.order}. {getStepTypeLabel(step.type)}
+                                        {step.order}. {step.name}
                                     </li>
                                 ))}
                         </ul>

@@ -317,17 +317,12 @@ export function useConfigProgram(): State {
             }
 
             if (stepKey === "steps-settings") {
-                const expectedSectionIds = sections.map(s => s.id);
                 const configuredSectionIds = (configProgramState?.steps ?? []).map(
                     s => s.sectionId
                 );
 
-                const isEverythingConfigured =
-                    expectedSectionIds.length === configuredSectionIds.length &&
-                    expectedSectionIds.every(id => configuredSectionIds.includes(id));
-
-                if (!isEverythingConfigured) {
-                    errors = [...errors, i18n.t("All program stages must be configured")];
+                if (configuredSectionIds.length === 0) {
+                    errors = [...errors, i18n.t("At least one step must be configured")];
                 }
             }
 
@@ -338,7 +333,6 @@ export function useConfigProgram(): State {
             configProgramState?.selectedModuleCodes?.length,
             configProgramState?.selectedProgramCode,
             configProgramState?.steps,
-            sections,
         ]
     );
 

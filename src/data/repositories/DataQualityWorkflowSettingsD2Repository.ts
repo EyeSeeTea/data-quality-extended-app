@@ -5,9 +5,11 @@ import { DataQualityWorkflowSettings } from "$/domain/entities/DataQualityWorkfl
 import { DATA_QUALITY_NAMESPACE } from "$/data/common/DataStoreConfig";
 import { DataQualityWorkflowSettingsRepository } from "$/domain/repositories/DataQualityWorkflowSettingsRepository";
 import { Future } from "$/domain/entities/generic/Future";
-import { StepSettings, StepType } from "$/domain/entities/StepSettings";
 import { getErrors } from "$/domain/entities/generic/Errors";
-import { StepSettingsDatastore } from "$/data/repositories/entities/StepSettingsDatastore";
+import {
+    mapStepsDatastoreToStepSettings,
+    StepSettingsDatastore,
+} from "$/data/repositories/entities/StepSettingsDatastore";
 
 export class DataQualityWorkflowSettingsD2Repository
     implements DataQualityWorkflowSettingsRepository
@@ -16,7 +18,7 @@ export class DataQualityWorkflowSettingsD2Repository
 
     get(programCode: Code): FutureData<DataQualityWorkflowSettings> {
         return this.getStepsFromDatastoreKey(programCode).flatMap(stepsDatastore => {
-            const steps = this.mapStepsDatastoreToStepSettings(stepsDatastore);
+            const steps = mapStepsDatastoreToStepSettings(stepsDatastore);
 
             return DataQualityWorkflowSettings.build({ steps }).match({
                 error: errors => Future.error(new Error(getErrors(errors))),
@@ -40,14 +42,5 @@ export class DataQualityWorkflowSettingsD2Repository
                 return Future.success(stepsDatastore);
             }
         );
-    }
-
-    private mapStepsDatastoreToStepSettings(steps: StepSettingsDatastore[]): StepSettings[] {
-        return steps.map(step => ({
-            type: step.type as StepType,
-            sectionId: step.programStageId,
-            order: step.order,
-            disaggregations: step.disaggregations || [],
-        }));
     }
 }

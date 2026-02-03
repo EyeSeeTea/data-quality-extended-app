@@ -115,7 +115,7 @@ export function buildStepsFromSections(options: {
                     />
                 ),
                 key: section.name.toLowerCase(),
-                label: section.name,
+                label: stepSettings.name,
                 props: { analysis: analysis },
                 component: () => (
                     <StepComponent

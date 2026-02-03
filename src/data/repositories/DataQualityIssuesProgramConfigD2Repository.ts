@@ -14,7 +14,11 @@ import {
 } from "$/data/repositories/entities/DatastoreProgramConfig";
 import { DATA_QUALITY_NAMESPACE, dataStoreKeys } from "$/data/common/DataStoreConfig";
 import { DataStore } from "@eyeseetea/d2-api/api";
-import { StepSettingsDatastore } from "$/data/repositories/entities/StepSettingsDatastore";
+import {
+    mapStepsDatastoreToStepSettings,
+    mapStepSettingsToDatastore,
+    StepSettingsDatastore,
+} from "$/data/repositories/entities/StepSettingsDatastore";
 import { StepSettings } from "$/domain/entities/StepSettings";
 
 export class DataQualityIssuesProgramConfigD2Repository
@@ -33,7 +37,13 @@ export class DataQualityIssuesProgramConfigD2Repository
                 dataStore,
                 configuration.selectedProgramCode,
                 configuration.defaultSettings
-            );
+            ).flatMap(() => {
+                return this.saveProgramStepsSettings(
+                    dataStore,
+                    configuration.selectedProgramCode,
+                    configuration.steps
+                );
+            });
         } else {
             return this.getProgramConfigTemplate(dataStore).flatMap(template => {
                 const datastoreProgramConfig: DatastoreProgramConfig =
@@ -305,12 +315,7 @@ export class DataQualityIssuesProgramConfigD2Repository
         programCode: Code,
         stepsSettings: DataQualityIssuesProgramConfig["steps"]
     ): FutureData<void> {
-        const datastoreStepSettings: StepSettingsDatastore[] = stepsSettings.map(step => ({
-            type: step.type,
-            programStageId: step.sectionId,
-            order: step.order,
-            disaggregations: step.disaggregations,
-        }));
+        const datastoreStepSettings = mapStepSettingsToDatastore(stepsSettings);
         return apiToFuture(dataStore.save(`steps-${programCode}`, datastoreStepSettings))
             .map(() => undefined)
             .mapError(err => new Error(`Cannot save steps settings. ${String(err)}`));
@@ -343,13 +348,7 @@ export class DataQualityIssuesProgramConfigD2Repository
                 if (!datastoreSteps) {
                     return Future.error(new Error(`No steps found for: ${programCode}`));
                 }
-                const steps: StepSettings[] = datastoreSteps.map(step => ({
-                    type: step.type,
-                    sectionId: step.programStageId,
-                    order: step.order,
-                    disaggregations: step.disaggregations ?? [],
-                }));
-
+                const steps = mapStepsDatastoreToStepSettings(datastoreSteps);
                 return Future.success(steps);
             }
         );

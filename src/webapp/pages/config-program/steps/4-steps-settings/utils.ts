@@ -1,21 +1,28 @@
 import { Id, NamedRef } from "$/domain/entities/Ref";
-import { StepSettings, StepType } from "$/domain/entities/StepSettings";
+import { SectionDisaggregation } from "$/domain/entities/SectionDisaggregation";
+import {
+    resolveStepTypeFromSectionName,
+    StepSettings,
+    StepType,
+} from "$/domain/entities/StepSettings";
 
 export type Row = {
     sectionId: Id;
     sectionName: string;
     stepType?: StepType;
+    customName: string;
+    disaggregations?: SectionDisaggregation[];
 };
 
 export function buildRows(value: StepSettings[], sections: NamedRef[]): Row[] {
     const bySection = value.reduce(
-        (map, section) => map.set(section.sectionId, section),
+        (map, step) => map.set(step.sectionId, step),
         new Map<string, StepSettings>()
     );
 
     const configuredOrderedSectionIds = [...value]
         .sort((a, b) => a.order - b.order)
-        .map(section => section.sectionId);
+        .map(step => step.sectionId);
 
     const allSectionIds = sections.map(section => section.id);
 
@@ -27,16 +34,23 @@ export function buildRows(value: StepSettings[], sections: NamedRef[]): Row[] {
 
     const sectionNameById = new Map(sections.map(section => [section.id, section.name] as const));
 
-    return sectionIdOrder
-        .map(sectionId => {
-            const found = bySection.get(sectionId);
-            return {
-                sectionId: sectionId,
-                sectionName: sectionNameById.get(sectionId) ?? sectionId,
-                stepType: found?.type,
-            };
-        })
-        .filter(row => !!row.sectionName);
+    const allRows = sectionIdOrder.map(sectionId => {
+        const found = bySection.get(sectionId);
+        const sectionName = sectionNameById.get(sectionId) ?? sectionId;
+
+        return {
+            sectionId,
+            sectionName,
+            stepType: resolveStepTypeFromSectionName(sectionName),
+            customName: found?.name ?? sectionName,
+            disaggregations: found?.disaggregations,
+        };
+    });
+
+    const configurable = allRows.filter(r => !!r.stepType);
+    const nonConfigurable = allRows.filter(r => !r.stepType);
+
+    return [...configurable, ...nonConfigurable];
 }
 
 export function rowsToValue(rows: Row[]): StepSettings[] {
@@ -46,10 +60,7 @@ export function rowsToValue(rows: Row[]): StepSettings[] {
             type: row.stepType,
             sectionId: row.sectionId,
             order: index + 1,
+            name: row.customName,
+            disaggregations: row.disaggregations,
         }));
-}
-
-export function isStepTypeDisabledForRow(stepType: StepType, row: Row, used: StepType[]): boolean {
-    if (row.stepType && stepType === row.stepType) return false;
-    return used.includes(stepType);
 }

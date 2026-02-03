@@ -10,7 +10,7 @@ import { StepType } from "$/domain/entities/StepSettings";
 const SECTION_COMPONENTS: Record<StepType, React.ComponentType<any>> = {
     OUTLIERS: OutliersStep,
     DISAGGREGATES: DisaggregatesStep,
-    DOUBLE_COUNTS_MISSING_GP: GeneralPractitionersStep,
+    DOUBLE_COUNTS_AND_MISSING_GP: GeneralPractitionersStep,
     MISSING_NURSES: NursingMidwiferyStep,
     VALIDATION: ValidationStep,
     MANUAL_ISSUES: ManualIssuesStep,
