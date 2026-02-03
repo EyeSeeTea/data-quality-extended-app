@@ -26,22 +26,22 @@ type Props = {
     value: StepSettings[];
     onChange: (steps: StepSettings[]) => void;
     sections: NamedRef[];
-    disabled: boolean;
+    isEdit: boolean;
 };
 
 export const StepsSettingsStep: React.FC<Props> = React.memo(props => {
-    const { value, onChange, sections, disabled } = props;
-    const [rows, setRows] = React.useState<Row[]>(() => buildRows(value, sections));
+    const { value, onChange, sections, isEdit } = props;
+    const [rows, setRows] = React.useState<Row[]>(() => buildRows(value, sections, { isEdit }));
 
     React.useEffect(() => {
-        const nextRows = buildRows(value, sections);
+        const nextRows = buildRows(value, sections, { isEdit });
         setRows(nextRows);
 
-        if (value.length === 0) {
+        if (!isEdit && value.length === 0) {
             const defaultValue = rowsToValue(nextRows);
             if (defaultValue.length > 0) onChange(defaultValue);
         }
-    }, [value, sections, onChange]);
+    }, [value, sections, onChange, isEdit]);
 
     const onMoveStep = useCallback(
         (index: number, direction: -1 | 1) => {
@@ -137,7 +137,7 @@ export const StepsSettingsStep: React.FC<Props> = React.memo(props => {
                                             </TextFieldWrapper>
                                         </Middle>
 
-                                        {disabled ? null : (
+                                        {isEdit ? null : (
                                             <Actions>
                                                 <IconButton
                                                     onClick={() => onMoveStep(index, -1)}

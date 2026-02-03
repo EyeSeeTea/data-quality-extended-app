@@ -242,7 +242,7 @@ export function useConfigProgram(): State {
                 key: "steps-settings",
                 label: i18n.t("Steps Configuration"),
                 props: {
-                    disabled: isEdit,
+                    isEdit: isEdit,
                     value: configProgramState.steps,
                     onChange: (steps: StepSettings[]) => updateConfig({ steps }),
                     sections: sections,

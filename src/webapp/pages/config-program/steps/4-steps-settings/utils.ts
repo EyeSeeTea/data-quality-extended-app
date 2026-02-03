@@ -14,7 +14,26 @@ export type Row = {
     disaggregations?: SectionDisaggregation[];
 };
 
-export function buildRows(value: StepSettings[], sections: NamedRef[]): Row[] {
+export function buildRows(
+    value: StepSettings[],
+    sections: NamedRef[],
+    options?: { isEdit?: boolean }
+): Row[] {
+    const { isEdit = false } = options ?? {};
+    const sectionNameById = new Map(sections.map(section => [section.id, section.name] as const));
+
+    if (isEdit) {
+        return [...value]
+            .sort((a, b) => a.order - b.order)
+            .map(step => ({
+                sectionId: step.sectionId,
+                sectionName: sectionNameById.get(step.sectionId) ?? step.sectionId,
+                stepType: step.type,
+                customName: step.name,
+                disaggregations: step.disaggregations,
+            }));
+    }
+
     const bySection = value.reduce(
         (map, step) => map.set(step.sectionId, step),
         new Map<string, StepSettings>()
@@ -31,8 +50,6 @@ export function buildRows(value: StepSettings[], sections: NamedRef[]): Row[] {
     );
 
     const sectionIdOrder = [...configuredOrderedSectionIds, ...remainingSectionIds];
-
-    const sectionNameById = new Map(sections.map(section => [section.id, section.name] as const));
 
     const allRows = sectionIdOrder.map(sectionId => {
         const found = bySection.get(sectionId);
