@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-01-30T14:06:11.999Z\n"
-"PO-Revision-Date: 2026-01-30T14:06:11.999Z\n"
+"POT-Creation-Date: 2026-02-04T08:06:49.283Z\n"
+"PO-Revision-Date: 2026-02-04T08:06:49.283Z\n"
 
 msgid "ID"
 msgstr ""
@@ -352,9 +352,6 @@ msgid "Data Quality Analysis Settings"
 msgstr ""
 
 msgid "Set up data quality analysis"
-msgstr ""
-
-msgid "Edit data quality analysis setup"
 msgstr ""
 
 msgid "Progress"

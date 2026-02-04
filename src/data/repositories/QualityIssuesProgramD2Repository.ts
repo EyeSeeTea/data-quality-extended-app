@@ -113,7 +113,7 @@ export class QualityIssuesProgramD2Repository implements QualityIssuesProgramRep
                 const apiPrograms: D2Program[] = response.objects ?? [];
                 const nextAccPrograms = [...accPrograms, ...apiPrograms];
 
-                const pager = response.pager ?? response;
+                const pager = response.pager;
                 const pageCount = pager.pageCount;
                 const nextPage = (pager.page ?? page) + 1;
 
