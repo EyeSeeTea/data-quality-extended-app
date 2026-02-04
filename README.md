@@ -42,6 +42,13 @@ If the metadata does not follow these rules, the application will not work corre
 The program **must be assigned to the Organisation Unit at level 1** (the root Organisation Unit),
 otherwise users will not be able to enroll or capture data and the app will not work correctly.
 
+**Analysis steps and Program Stages**
+
+In the application, each Program Stage represents a step in the data quality analysis workflow.
+The application presents these steps as sequential stages of the analysis and uses the events of each Program Stage to store, track, and follow up on data quality issues.
+
+The application supports the analysis steps described below and can also support custom analysis steps, as long as a corresponding application component (UI and logic) has been developed and integrated into the app.
+
 ##### Program Stage: Outliers
 
 This Program Stage is used to store **data quality issues detected through outlier analysis**,
