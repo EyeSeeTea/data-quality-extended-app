@@ -194,7 +194,7 @@ export class ModuleD2Repository implements ModuleRepository {
                 const apiDataSets: D2DataSet[] = response.objects ?? [];
                 const nextAccDataSets = [...accDataSets, ...apiDataSets];
 
-                const pager = response.pager ?? response;
+                const pager = response.pager;
                 const pageCount = pager.pageCount;
                 const nextPage = (pager.page ?? page) + 1;
 
