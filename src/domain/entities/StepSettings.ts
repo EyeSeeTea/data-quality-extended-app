@@ -12,14 +12,30 @@ export const StepTypes = [
 ] as const;
 
 export type StepType = UnionFromValues<typeof StepTypes>;
+export type StepTypeWithDisagg = "DISAGGREGATES" | "MISSING_NURSES";
+export type StepTypeWithoutDisagg = Exclude<StepType, StepTypeWithDisagg>;
 
-export type StepSettings = {
-    type: StepType;
+type StepSettingsBase = {
     sectionId: Id;
     order: number;
-    disaggregations?: SectionDisaggregation[];
     name: string;
 };
+
+type StepSettingsWithDisaggregations = StepSettingsBase & {
+    type: StepTypeWithDisagg;
+    disaggregations: SectionDisaggregation[];
+};
+
+type StepSettingsWithoutDisaggregations = StepSettingsBase & {
+    type: StepTypeWithoutDisagg;
+    disaggregations?: never;
+};
+
+export function isStepTypeWithDisagg(type: StepType): type is StepTypeWithDisagg {
+    return type === "DISAGGREGATES" || type === "MISSING_NURSES";
+}
+
+export type StepSettings = StepSettingsWithDisaggregations | StepSettingsWithoutDisaggregations;
 
 const normalizeSectionNameToKey = (name: string) => name.trim().toUpperCase().replace(/\s+/g, "_");
 

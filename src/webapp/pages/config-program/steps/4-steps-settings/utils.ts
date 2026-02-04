@@ -1,6 +1,7 @@
 import { Id, NamedRef } from "$/domain/entities/Ref";
 import { SectionDisaggregation } from "$/domain/entities/SectionDisaggregation";
 import {
+    isStepTypeWithDisagg,
     resolveStepTypeFromSectionName,
     StepSettings,
     StepType,
@@ -25,13 +26,18 @@ export function buildRows(
     if (isEdit) {
         return [...value]
             .sort((a, b) => a.order - b.order)
-            .map(step => ({
-                sectionId: step.sectionId,
-                sectionName: sectionNameById.get(step.sectionId) ?? step.sectionId,
-                stepType: step.type,
-                customName: step.name,
-                disaggregations: step.disaggregations,
-            }));
+            .map(step => {
+                const allowsDisaggregations =
+                    step.type === "DISAGGREGATES" || step.type === "MISSING_NURSES";
+
+                return {
+                    sectionId: step.sectionId,
+                    sectionName: sectionNameById.get(step.sectionId) ?? step.sectionId,
+                    stepType: step.type,
+                    customName: step.name,
+                    disaggregations: allowsDisaggregations ? step.disaggregations : undefined,
+                };
+            });
     }
 
     const bySection = value.reduce(
@@ -54,13 +60,16 @@ export function buildRows(
     const allRows = sectionIdOrder.map(sectionId => {
         const found = bySection.get(sectionId);
         const sectionName = sectionNameById.get(sectionId) ?? sectionId;
+        const stepType = resolveStepTypeFromSectionName(sectionName);
+        const requiresDisaggregations =
+            stepType === "DISAGGREGATES" || stepType === "MISSING_NURSES";
 
         return {
-            sectionId,
-            sectionName,
-            stepType: resolveStepTypeFromSectionName(sectionName),
+            sectionId: sectionId,
+            sectionName: sectionName,
+            stepType: stepType,
             customName: found?.name ?? sectionName,
-            disaggregations: found?.disaggregations,
+            disaggregations: requiresDisaggregations ? found?.disaggregations : undefined,
         };
     });
 
@@ -73,11 +82,24 @@ export function buildRows(
 export function rowsToValue(rows: Row[]): StepSettings[] {
     return rows
         .filter((row): row is Row & { stepType: StepType } => !!row.stepType)
-        .map((row, index) => ({
-            type: row.stepType,
-            sectionId: row.sectionId,
-            order: index + 1,
-            name: row.customName,
-            disaggregations: row.disaggregations,
-        }));
+        .map((row, index) => {
+            const order = index + 1;
+
+            if (isStepTypeWithDisagg(row.stepType)) {
+                return {
+                    type: row.stepType,
+                    sectionId: row.sectionId,
+                    order,
+                    name: row.customName,
+                    disaggregations: row.disaggregations ?? [],
+                };
+            }
+
+            return {
+                type: row.stepType,
+                sectionId: row.sectionId,
+                order,
+                name: row.customName,
+            };
+        });
 }

@@ -5,6 +5,7 @@ import { StepSettings, StepTypes } from "./StepSettings";
 import {
     validateAtLeastOneDisaggregation,
     validateAtLeastOneStep,
+    validateMustBeEmpty,
     validateNoDuplicateStepTypes,
     validateOneOf,
     validateRequired,
@@ -40,7 +41,14 @@ export class DataQualityWorkflowSettings extends Struct<DataQualityWorkflowSetti
                               value: step.disaggregations?.length ?? 0,
                           },
                       ]
-                    : [];
+                    : [
+                          {
+                              property: "steps" as const,
+                              errors: validateMustBeEmpty(step.disaggregations),
+                              value: step.disaggregations,
+                              fieldName: "disaggregations",
+                          },
+                      ];
 
                 return [
                     {

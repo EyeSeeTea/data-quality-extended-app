@@ -1,30 +1,69 @@
 import { SectionDisaggregation } from "$/domain/entities/SectionDisaggregation";
-import { StepSettings, StepType } from "$/domain/entities/StepSettings";
+import {
+    isStepTypeWithDisagg,
+    StepSettings,
+    StepTypeWithDisagg,
+    StepTypeWithoutDisagg,
+} from "$/domain/entities/StepSettings";
 
-export type StepSettingsDatastore = {
-    type: StepType;
+type StepSettingsDatastoreBase = {
     programStageId: string;
     order: number;
-    disaggregations?: SectionDisaggregation[];
     name: string;
 };
 
+type StepSettingsDatastoreWithDisagg = StepSettingsDatastoreBase & {
+    type: StepTypeWithDisagg;
+    disaggregations: SectionDisaggregation[];
+};
+
+type StepSettingsDatastoreWithoutDisagg = StepSettingsDatastoreBase & {
+    type: StepTypeWithoutDisagg;
+    disaggregations?: never;
+};
+
+export type StepSettingsDatastore =
+    | StepSettingsDatastoreWithDisagg
+    | StepSettingsDatastoreWithoutDisagg;
+
 export function mapStepsDatastoreToStepSettings(steps: StepSettingsDatastore[]): StepSettings[] {
-    return steps.map(step => ({
-        type: step.type,
-        sectionId: step.programStageId,
-        order: step.order,
-        disaggregations: step.disaggregations || [],
-        name: step.name,
-    }));
+    return steps.map(step => {
+        if (isStepTypeWithDisagg(step.type)) {
+            return {
+                type: step.type,
+                sectionId: step.programStageId,
+                order: step.order,
+                name: step.name,
+                disaggregations: step.disaggregations ?? [],
+            };
+        }
+
+        return {
+            type: step.type,
+            sectionId: step.programStageId,
+            order: step.order,
+            name: step.name,
+        };
+    });
 }
 
 export function mapStepSettingsToDatastore(steps: StepSettings[]): StepSettingsDatastore[] {
-    return steps.map(step => ({
-        type: step.type,
-        programStageId: step.sectionId,
-        order: step.order,
-        disaggregations: step.disaggregations,
-        name: step.name,
-    }));
+    return steps.map(step => {
+        if (isStepTypeWithDisagg(step.type)) {
+            return {
+                type: step.type,
+                programStageId: step.sectionId,
+                order: step.order,
+                name: step.name,
+                disaggregations: step.disaggregations ?? [],
+            };
+        }
+
+        return {
+            type: step.type,
+            programStageId: step.sectionId,
+            order: step.order,
+            name: step.name,
+        };
+    });
 }
