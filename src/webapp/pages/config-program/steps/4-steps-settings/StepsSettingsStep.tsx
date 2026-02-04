@@ -14,7 +14,7 @@ import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward";
 import WarningIcon from "@material-ui/icons/Warning";
 
 import i18n from "$/utils/i18n";
-import { ACCEPTED_SECTION_NAMES, StepSettings } from "$/domain/entities/StepSettings";
+import { StepSettings } from "$/domain/entities/StepSettings";
 import { NamedRef } from "$/domain/entities/Ref";
 import {
     buildRows,
@@ -109,15 +109,12 @@ export const StepsSettingsStep: React.FC<Props> = React.memo(props => {
                                         <WarningText>
                                             <div>
                                                 {i18n.t(
-                                                    "No match found for this section name, so it cannot be configured."
+                                                    "No match found for this step, so it cannot be configured."
                                                 )}
                                             </div>
                                             <div>
                                                 {i18n.t(
-                                                    `Accepted section names: ${ACCEPTED_SECTION_NAMES.join(
-                                                        ", "
-                                                    )}`,
-                                                    { nsSeparator: false }
+                                                    "Please, make sure the program stage is properly configured and try again."
                                                 )}
                                             </div>
                                         </WarningText>

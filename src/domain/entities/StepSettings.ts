@@ -23,15 +23,6 @@ export type StepSettings = {
 
 const normalizeSectionNameToKey = (name: string) => name.trim().toUpperCase().replace(/\s+/g, "_");
 
-export const ACCEPTED_SECTION_NAMES = [
-    "Outliers",
-    "Disaggregates",
-    "Double counts and missing GP",
-    "Missing Nurses",
-    "Validation",
-    "Manual Issues",
-] as const;
-
 const NAME_TO_STEP_TYPE: Record<string, StepType> = {
     OUTLIERS: "OUTLIERS",
     DISAGGREGATES: "DISAGGREGATES",
