@@ -6,8 +6,9 @@ import { ValidationStep } from "./steps/5-validation/ValidationStep";
 import { ManualIssuesStep } from "$/webapp/pages/analysis/steps/6-manual-issues/ManualIssuesStep";
 
 import { StepType } from "$/domain/entities/StepSettings";
+import { PageStepProps } from "$/webapp/pages/analysis/AnalysisPage";
 
-const SECTION_COMPONENTS: Record<StepType, React.ComponentType<any>> = {
+const SECTION_COMPONENTS: Record<StepType, React.ComponentType<PageStepProps>> = {
     OUTLIERS: OutliersStep,
     DISAGGREGATES: DisaggregatesStep,
     DOUBLE_COUNTS_AND_MISSING_GP: GeneralPractitionersStep,
@@ -16,6 +17,8 @@ const SECTION_COMPONENTS: Record<StepType, React.ComponentType<any>> = {
     MANUAL_ISSUES: ManualIssuesStep,
 };
 
-export function getComponentByStepType(stepType: StepType): React.ComponentType<any> | undefined {
+export function getComponentByStepType(
+    stepType: StepType
+): React.ComponentType<PageStepProps> | undefined {
     return SECTION_COMPONENTS[stepType];
 }

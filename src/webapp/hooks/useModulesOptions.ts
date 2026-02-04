@@ -4,9 +4,10 @@ import { useSnackbar, useLoading } from "@eyeseetea/d2-ui-components";
 import { useAppContext } from "$/webapp/contexts/app-context";
 import { ModuleBase } from "$/domain/entities/Module";
 import i18n from "$/utils/i18n";
+import { Option } from "$/webapp/entities/Option";
 
 type State = {
-    modulesOptions: { text: string; value: string }[];
+    modulesOptions: Option[];
 };
 
 export function useModulesOptions(): State {

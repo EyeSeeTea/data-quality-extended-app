@@ -7,7 +7,7 @@ import { UpdateAnalysisState } from "$/webapp/pages/analysis/AnalysisPage";
 import { Maybe } from "$/utils/ts-utils";
 import _ from "$/domain/entities/generic/Collection";
 import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
-import { Option } from "$/webapp/components/selectmulti-checkboxes/SelectMultiCheckboxes";
+import { Option } from "$/webapp/entities/Option";
 import { SectionDisaggregation } from "$/domain/entities/SectionDisaggregation";
 
 export function useNursingMidwiferyStep(props: UseNursingMidwiferyStepProps) {
@@ -18,10 +18,9 @@ export function useNursingMidwiferyStep(props: UseNursingMidwiferyStepProps) {
     const [isLoading, setLoading] = React.useState<boolean>(false);
     const [error, setError] = React.useState<Maybe<string>>(undefined);
     const [reload, refreshReload] = React.useState(0);
-    const [disaggregationOptions, setDisaggregationOptions] = React.useState<Option[]>([]);
     const [selectedDisaggregations, setSelectedDisagregations] = React.useState<string[]>([]);
 
-    const initialDisaggregations: Option[] = React.useMemo(() => {
+    const disaggregationOptions: Option[] = React.useMemo(() => {
         if (!disaggregations) return [];
         return disaggregations
             .map(disaggregation => ({
@@ -32,9 +31,8 @@ export function useNursingMidwiferyStep(props: UseNursingMidwiferyStepProps) {
     }, [disaggregations]);
 
     React.useEffect(() => {
-        setDisaggregationOptions(initialDisaggregations);
-        setSelectedDisagregations(initialDisaggregations.map(item => item.value));
-    }, [initialDisaggregations]);
+        setSelectedDisagregations(disaggregationOptions.map(item => item.value));
+    }, [disaggregationOptions]);
 
     const handleChange = React.useCallback((values: string[]) => {
         setSelectedDisagregations(values);
@@ -75,7 +73,7 @@ export function useNursingMidwiferyStep(props: UseNursingMidwiferyStepProps) {
     return {
         analysis,
         reload,
-        disaggregationOptions,
+        disaggregationOptions: disaggregationOptions,
         selectedDisaggregations,
         handleChange,
         runAnalysis,

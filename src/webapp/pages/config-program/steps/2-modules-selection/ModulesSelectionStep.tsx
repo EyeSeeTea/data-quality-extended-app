@@ -4,11 +4,12 @@ import { Select, InputLabel, MenuItem, Input, Typography } from "@material-ui/co
 
 import i18n from "$/utils/i18n";
 import { Code } from "$/domain/entities/Ref";
+import { Option } from "$/webapp/entities/Option";
 
 type Props = {
     values: Code[];
     onChange: (codes: Code[]) => void;
-    modulesOptions: { text: string; value: string }[];
+    modulesOptions: Option[];
     disabled: boolean;
 };
 

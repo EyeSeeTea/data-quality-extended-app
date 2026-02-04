@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useAppContext } from "$/webapp/contexts/app-context";
 import { Id } from "$/domain/entities/Ref";
-import { Option } from "$/webapp/components/selectmulti-checkboxes/SelectMultiCheckboxes";
+import { Option } from "$/webapp/entities/Option";
 import _ from "$/domain/entities/generic/Collection";
 import { UpdateAnalysisState } from "$/webapp/pages/analysis/AnalysisPage";
 import { QualityAnalysis } from "$/domain/entities/QualityAnalysis";
@@ -18,10 +18,9 @@ export function useDisaggregatesStep(props: UseDisaggregatesStepProps) {
     const [isLoading, setLoading] = useState<boolean>(false);
     const [error, setError] = React.useState<Maybe<string>>(undefined);
 
-    const [disaggregationOptions, setDisaggregationOptions] = React.useState<Option[]>([]);
     const [selectedDisaggregations, setSelectedDisaggregations] = React.useState<string[]>([]);
 
-    const initialDisaggregations: Option[] = React.useMemo(() => {
+    const disaggregationOptions: Option[] = React.useMemo(() => {
         if (!disaggregations) return [];
         return disaggregations
             .map(disaggregation => ({
@@ -32,9 +31,8 @@ export function useDisaggregatesStep(props: UseDisaggregatesStepProps) {
     }, [disaggregations]);
 
     React.useEffect(() => {
-        setDisaggregationOptions(initialDisaggregations);
-        setSelectedDisaggregations(initialDisaggregations.map(item => item.value));
-    }, [initialDisaggregations]);
+        setSelectedDisaggregations(disaggregationOptions.map(item => item.value));
+    }, [disaggregationOptions]);
 
     const handleChange = React.useCallback((values: string[]) => {
         setSelectedDisaggregations(values);

@@ -5,12 +5,13 @@ import styled from "styled-components";
 import i18n from "$/utils/i18n";
 import { DataQualityIssuesProgramConfigOptions } from "$/domain/usecases/SaveDataQualityIssuesProgramConfigUseCase";
 import { useCountriesByIds } from "$/webapp/hooks/useCountriesByIds";
+import { Option } from "$/webapp/entities/Option";
 
 type Props = {
     configProgramState: DataQualityIssuesProgramConfigOptions;
     onSaveConfiguration: () => void;
-    programs: { text: string; value: string }[];
-    modules: { text: string; value: string }[];
+    programs: Option[];
+    modules: Option[];
 };
 
 export const SummaryStep: React.FC<Props> = React.memo(props => {

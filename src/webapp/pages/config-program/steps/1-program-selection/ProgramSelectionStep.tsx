@@ -6,11 +6,7 @@ import i18n from "$/utils/i18n";
 import { Code } from "$/domain/entities/Ref";
 import { ProgramSelectorContainer } from "$/webapp/pages/config-program/steps/ProgramSelectorContainer";
 import { Maybe } from "$/utils/ts-utils";
-
-type Option = {
-    text: string;
-    value: string;
-};
+import { Option } from "$/webapp/entities/Option";
 
 type Props = {
     value: Code | undefined;

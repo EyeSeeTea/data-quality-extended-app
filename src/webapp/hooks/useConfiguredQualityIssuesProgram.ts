@@ -7,8 +7,8 @@ import { useLoading } from "@eyeseetea/d2-ui-components/loading";
 import { useAppContext } from "$/webapp/contexts/app-context";
 import i18n from "$/utils/i18n";
 import { Maybe } from "$/utils/ts-utils";
+import { Option } from "$/webapp/entities/Option";
 
-type Option = { text: string; value: string };
 type State = {
     selectedProgramCode: Maybe<Code>;
     configuredQualityProgramIssuesOptions: Maybe<Option[]>;

@@ -9,8 +9,7 @@ import FormControl from "@material-ui/core/FormControl";
 import styled from "styled-components";
 
 import _ from "$/domain/entities/generic/Collection";
-
-export type Option = { text: string; value: string };
+import { Option } from "$/webapp/entities/Option";
 
 type Props = {
     label: string;

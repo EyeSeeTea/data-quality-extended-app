@@ -55,7 +55,7 @@ export function useConfigProgram(): State {
         if (isEdit && qualityIssuesProgramCode) {
             loading.show(true, i18n.t("Loading..."));
 
-            compositionRoot.dataQualityIssuesProgramConfig.get
+            return compositionRoot.dataQualityIssuesProgramConfig.get
                 .execute(qualityIssuesProgramCode)
                 .run(
                     configuration => {

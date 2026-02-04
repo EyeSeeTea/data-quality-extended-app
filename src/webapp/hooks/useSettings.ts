@@ -5,19 +5,14 @@ import { QualityIssuesProgram } from "$/domain/entities/QualityIssuesProgram";
 import { useQualityIssuesPrograms } from "$/webapp/pages/config-program/hooks/useQualityIssuesPrograms";
 import { Maybe } from "$/utils/ts-utils";
 import { Code } from "$/domain/entities/Ref";
-
-type Option = {
-    id: Code;
-    label: string;
-    disabled?: boolean;
-};
+import { Item } from "$/webapp/components/menu-button/MenuButton";
 
 type State = {
     onConfigurateNewProgram: () => void;
     onEditNewProgram: (code: Code) => void;
     onBackHomePage: () => void;
     qualityIssuesPrograms: Maybe<QualityIssuesProgram[]>;
-    currentOptionsToEdit: Option[];
+    currentOptionsToEdit: Item[];
 };
 
 export function useSettings(): State {

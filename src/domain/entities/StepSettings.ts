@@ -1,5 +1,6 @@
 import { Id } from "$/domain/entities/Ref";
 import { SectionDisaggregation } from "$/domain/entities/SectionDisaggregation";
+import { UnionFromValues } from "$/utils/ts-utils";
 
 export const StepTypes = [
     "OUTLIERS",
@@ -10,7 +11,7 @@ export const StepTypes = [
     "MANUAL_ISSUES",
 ] as const;
 
-export type StepType = (typeof StepTypes)[number];
+export type StepType = UnionFromValues<typeof StepTypes>;
 
 export type StepSettings = {
     type: StepType;

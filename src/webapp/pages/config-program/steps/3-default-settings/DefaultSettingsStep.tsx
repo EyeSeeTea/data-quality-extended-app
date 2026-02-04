@@ -14,14 +14,12 @@ import { useAppContext } from "$/webapp/contexts/app-context";
 import { Id } from "$/domain/entities/Ref";
 import { CheckboxInline } from "$/webapp/components/issues/CheckboxInline";
 import { getIdFromCountriesPaths } from "$/webapp/components/configuration-form/ConfigurationForm";
+import { Option } from "$/webapp/entities/Option";
 
 type Props = {
     values: DataQualityIssuesProgramConfigOptions["defaultSettings"];
     onChange: (patch: Partial<DataQualityIssuesProgramConfigOptions["defaultSettings"]>) => void;
-    selectedModuleOptions: {
-        text: string;
-        value: string;
-    }[];
+    selectedModuleOptions: Option[];
 };
 
 const currentYear = new Date().getFullYear();

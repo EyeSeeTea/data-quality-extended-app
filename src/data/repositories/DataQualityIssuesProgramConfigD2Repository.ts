@@ -62,25 +62,28 @@ export class DataQualityIssuesProgramConfigD2Repository
                         programMetadata.code,
                         programMetadata.name,
                         configuration.selectedModuleCodes
-                    ).flatMap(() => {
-                        return this.saveProgramConfig(
-                            dataStore,
-                            programMetadata.code,
-                            datastoreProgramConfig
-                        ).flatMap(() => {
-                            return this.saveProgramSettings(
+                    )
+                        .flatMap(() =>
+                            this.saveProgramConfig(
+                                dataStore,
+                                programMetadata.code,
+                                datastoreProgramConfig
+                            )
+                        )
+                        .flatMap(() =>
+                            this.saveProgramSettings(
                                 dataStore,
                                 programMetadata.code,
                                 configuration.defaultSettings
-                            ).flatMap(() => {
-                                return this.saveProgramStepsSettings(
-                                    dataStore,
-                                    programMetadata.code,
-                                    configuration.steps
-                                );
-                            });
-                        });
-                    });
+                            )
+                        )
+                        .flatMap(() =>
+                            this.saveProgramStepsSettings(
+                                dataStore,
+                                programMetadata.code,
+                                configuration.steps
+                            )
+                        );
                 });
             });
         }

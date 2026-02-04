@@ -1,4 +1,5 @@
 import _ from "lodash";
+import _c from "$/domain/entities/generic/Collection";
 
 import { D2Api } from "$/types/d2-api";
 import { FutureData, apiToFuture } from "$/data/api-futures";
@@ -49,13 +50,15 @@ export class MetadataD2Repository implements MetadataRepository {
                         return this.getSortedProgramStagesFromDatastoreStepsSettings(
                             selectedQualityIssuesProgramCode
                         ).map(stepsSettings => {
-                            const programStagesSorted: ProgramStage[] = stepsSettings
-                                .map(stepSetting =>
+                            const programStagesSorted: ProgramStage[] = _c(
+                                stepsSettings.map(stepSetting =>
                                     metadata.programs.qualityIssues.programStages.find(
                                         ps => ps.id === stepSetting.programStageId
                                     )
                                 )
-                                .filter((ps): ps is ProgramStage => !!ps);
+                            )
+                                .compactMap<ProgramStage>(ps => ps)
+                                .toArray();
 
                             const metadataItem: MetadataItem = {
                                 ...metadata,
