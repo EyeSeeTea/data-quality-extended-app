@@ -34,6 +34,14 @@ export const ModulesSelectionStep: React.FC<Props> = React.memo(props => {
         if (!same) onChange(selection);
     }, [selection, values, onChange]);
 
+    const getOptionText = React.useCallback(
+        (code: Code) => {
+            const option = modulesOptions.find(option => option.value === code);
+            return option ? option.text : code;
+        },
+        [modulesOptions]
+    );
+
     return (
         <Container>
             {modulesOptions.length > 0 ? (
@@ -56,7 +64,11 @@ export const ModulesSelectionStep: React.FC<Props> = React.memo(props => {
                         renderValue={selected => {
                             const codes = selected as Code[];
                             if (!codes?.length) return;
-                            return i18n.t("{{count}} datasets selected", { count: codes.length });
+                            return codes?.length === 1 && codes[0]
+                                ? getOptionText(codes[0])
+                                : i18n.t("{{count}} datasets selected", {
+                                      count: codes.length,
+                                  });
                         }}
                         disabled={disabled}
                     >
