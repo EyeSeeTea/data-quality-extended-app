@@ -30,4 +30,8 @@ export class DataQualityIssuesProgramConfigTestRepository
             }).get()
         );
     }
+
+    remove(_code: Code): FutureData<void> {
+        return Future.success(undefined);
+    }
 }

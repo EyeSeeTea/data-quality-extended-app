@@ -20,6 +20,7 @@ import {
     StepSettingsDatastore,
 } from "$/data/repositories/entities/StepSettingsDatastore";
 import { StepSettings } from "$/domain/entities/StepSettings";
+import { DatastoreProgram } from "$/data/repositories/entities/DatastoreProgram";
 
 export class DataQualityIssuesProgramConfigD2Repository
     implements DataQualityIssuesProgramConfigRepository
@@ -102,6 +103,25 @@ export class DataQualityIssuesProgramConfigD2Repository
                 defaultSettings: defaultSettings,
                 steps: steps,
             }).get();
+        });
+    }
+
+    remove(programCode: Code): FutureData<void> {
+        const dataStore = this.api.dataStore(DATA_QUALITY_NAMESPACE);
+
+        return Future.sequential([
+            apiToFuture(dataStore.delete(`programs-${programCode}`)).mapError(() => undefined),
+            apiToFuture(dataStore.delete(`settings-${programCode}`)).mapError(() => undefined),
+            apiToFuture(dataStore.delete(`steps-${programCode}`)).mapError(() => undefined),
+        ]).flatMap(() => {
+            return apiToFuture(dataStore.get<DatastoreProgram[]>(dataStoreKeys.PROGRAMS)).flatMap(
+                programs => {
+                    const current = programs ?? [];
+                    const programsUpdated = current.filter(p => p.code !== programCode);
+
+                    return apiToFuture(dataStore.save(dataStoreKeys.PROGRAMS, programsUpdated));
+                }
+            );
         });
     }
 
@@ -385,9 +405,3 @@ export type D2Program = MetadataPick<{
         fields: typeof programFields;
     };
 }>["programs"][number];
-
-type DatastoreProgram = {
-    code: Code;
-    name: string;
-    dataSets: Code[];
-};

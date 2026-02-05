@@ -7,16 +7,9 @@ import { PageContainer } from "$/webapp/components/page-container/PageContainer"
 import styled from "styled-components";
 import { useSettings } from "$/webapp/hooks/useSettings";
 import { ModulesTable } from "$/webapp/components/modules-table/ModulesTable";
-import { MenuButton } from "$/webapp/components/menu-button/MenuButton";
 
 export const SettingsPage: React.FC = React.memo(() => {
-    const {
-        onConfigurateNewProgram,
-        onBackHomePage,
-        qualityIssuesPrograms,
-        onEditNewProgram,
-        currentOptionsToEdit,
-    } = useSettings();
+    const { onConfigurateNewProgram, onBackHomePage } = useSettings();
 
     return (
         <PageContainer>
@@ -26,31 +19,18 @@ export const SettingsPage: React.FC = React.memo(() => {
             />
 
             <RowContainer>
-                <RowContainer>
-                    <Button
-                        aria-controls="simple-menu"
-                        aria-haspopup="true"
-                        variant="contained"
-                        color="primary"
-                        onClick={onConfigurateNewProgram}
-                    >
-                        {i18n.t("Set up data quality analysis")}
-                    </Button>
-                </RowContainer>
-
-                {currentOptionsToEdit.length > 0 && (
-                    <MenuButton
-                        label={i18n.t("Edit data quality analysis setup")}
-                        items={currentOptionsToEdit}
-                        onItemSelected={onEditNewProgram}
-                        buttonVariant="outlined"
-                    />
-                )}
+                <Button
+                    aria-controls="simple-menu"
+                    aria-haspopup="true"
+                    variant="contained"
+                    color="primary"
+                    onClick={onConfigurateNewProgram}
+                >
+                    {i18n.t("Set up data quality analysis")}
+                </Button>
             </RowContainer>
 
-            {qualityIssuesPrograms && (
-                <ModulesTable qualityIssuesPrograms={qualityIssuesPrograms} />
-            )}
+            <ModulesTable />
         </PageContainer>
     );
 });

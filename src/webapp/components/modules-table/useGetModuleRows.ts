@@ -6,38 +6,27 @@ import { QualityIssuesProgram } from "$/domain/entities/QualityIssuesProgram";
 import i18n from "$/utils/i18n";
 import { useAppContext } from "$/webapp/contexts/app-context";
 import { ModuleBaseViewModel } from "$/webapp/components/modules-table/ModuleBaseViewModel";
+import { Future } from "$/domain/entities/generic/Future";
 
-export function useGetModuleRows(
-    qualityIssuesPrograms: QualityIssuesProgram[],
-    paginated: boolean
-): {
+type State = {
     getRows: GetRows<ModuleBaseViewModel>;
     loading: boolean;
-} {
+    allModuleViewsRef: React.MutableRefObject<ModuleBaseViewModel[]>;
+};
+
+export function useGetModuleRows(paginated: boolean, reloadKey: number): State {
     const { compositionRoot } = useAppContext();
 
     const [loading, setLoading] = React.useState(false);
-
-    const buildViewModel = React.useCallback(
-        (moduleBase: ModuleBase): ModuleBaseViewModel => {
-            const program = qualityIssuesPrograms.find(program =>
-                program.modules.includes(moduleBase.code)
-            );
-            return {
-                ...moduleBase,
-                dataQualityIssuesProgramCode: program?.code,
-                dataQualityIssuesProgramName: program?.name || i18n.t("No configured"),
-            };
-        },
-        [qualityIssuesPrograms]
-    );
+    const allModuleViewsRef = React.useRef<ModuleBaseViewModel[]>([]);
 
     const getRows = React.useCallback<GetRows<ModuleBaseViewModel>>(
         (search, pagination, sorting) => {
+            console.debug(reloadKey);
             return new Promise((resolve, reject) => {
                 setLoading(true);
-                return compositionRoot.modules.getAllBase
-                    .execute({
+                return Future.joinObj({
+                    modulesResponse: compositionRoot.modules.getAllBase.execute({
                         sorting:
                             sorting.field === "dataQualityIssuesProgramName"
                                 ? undefined
@@ -45,42 +34,47 @@ export function useGetModuleRows(
                         filters: {
                             name: search,
                         },
-                    })
-                    .run(
-                        response => {
-                            setLoading(false);
-                            const objectsMapped = response.map(buildViewModel);
-                            const objectsSorted =
-                                sorting.field === "dataQualityIssuesProgramName"
-                                    ? sortByAssignedProgramAndName(objectsMapped, sorting.order)
-                                    : objectsMapped;
+                    }),
+                    qualityIssuesPrograms: compositionRoot.qualityIssuesProgram.getAll.execute(),
+                }).run(
+                    ({ modulesResponse, qualityIssuesPrograms }) => {
+                        setLoading(false);
+                        const objectsMapped = !qualityIssuesPrograms
+                            ? []
+                            : buildViewModels(modulesResponse, qualityIssuesPrograms);
+                        const objectsSorted =
+                            sorting.field === "dataQualityIssuesProgramName"
+                                ? sortByAssignedProgramAndName(objectsMapped, sorting.order)
+                                : objectsMapped;
+                        allModuleViewsRef.current = objectsSorted;
 
-                            resolve({
-                                pager: {
-                                    page: 1,
-                                    pageSize: objectsSorted.length,
-                                    pageCount: 1,
-                                    total: objectsSorted.length,
-                                },
-                                objects: objectsSorted,
-                            });
-                        },
-                        err => {
-                            setLoading(false);
-                            reject(new Error(err.message));
-                        }
-                    );
+                        resolve({
+                            pager: {
+                                page: 1,
+                                pageSize: objectsSorted.length,
+                                pageCount: 1,
+                                total: objectsSorted.length,
+                            },
+                            objects: objectsSorted,
+                        });
+                    },
+                    err => {
+                        setLoading(false);
+                        reject(new Error(err.message));
+                    }
+                );
             });
         },
-        [buildViewModel, compositionRoot.modules.getAllBase]
+        [compositionRoot.modules.getAllBase, compositionRoot.qualityIssuesProgram.getAll, reloadKey]
     );
 
     const getRowsPaginated = React.useCallback<GetRows<ModuleBaseViewModel>>(
         (search, pagination, sorting) => {
+            console.debug(reloadKey);
             return new Promise((resolve, reject) => {
                 setLoading(true);
-                return compositionRoot.modules.getPaginated
-                    .execute({
+                return Future.joinObj({
+                    modulesResponse: compositionRoot.modules.getPaginated.execute({
                         pagination: {
                             page: pagination.page,
                             pageSize: pagination.pageSize,
@@ -89,26 +83,40 @@ export function useGetModuleRows(
                         filters: {
                             name: search,
                         },
-                    })
-                    .run(
-                        response => {
-                            setLoading(false);
-                            resolve({
-                                pager: response.pagination,
-                                objects: response.rows.map(buildViewModel),
-                            });
-                        },
-                        err => {
-                            setLoading(false);
-                            reject(new Error(err.message));
-                        }
-                    );
+                    }),
+                    qualityIssuesPrograms: compositionRoot.qualityIssuesProgram.getAll.execute(),
+                }).run(
+                    ({ modulesResponse, qualityIssuesPrograms }) => {
+                        setLoading(false);
+                        const rows = !qualityIssuesPrograms
+                            ? []
+                            : buildViewModels(modulesResponse.rows, qualityIssuesPrograms);
+
+                        allModuleViewsRef.current = rows;
+                        resolve({
+                            pager: modulesResponse.pagination,
+                            objects: rows,
+                        });
+                    },
+                    err => {
+                        setLoading(false);
+                        reject(new Error(err.message));
+                    }
+                );
             });
         },
-        [buildViewModel, compositionRoot.modules.getPaginated]
+        [
+            compositionRoot.modules.getPaginated,
+            compositionRoot.qualityIssuesProgram.getAll,
+            reloadKey,
+        ]
     );
 
-    return { getRows: paginated ? getRowsPaginated : getRows, loading };
+    return {
+        getRows: paginated ? getRowsPaginated : getRows,
+        loading: loading,
+        allModuleViewsRef: allModuleViewsRef,
+    };
 }
 
 const sortByAssignedProgramAndName = (objects: ModuleBaseViewModel[], order: "asc" | "desc") => {
@@ -124,5 +132,21 @@ const sortByAssignedProgramAndName = (objects: ModuleBaseViewModel[], order: "as
         }
 
         return (a.name ?? "").localeCompare(b.name ?? "");
+    });
+};
+
+const buildViewModels = (
+    modules: ModuleBase[],
+    qualityIssuesPrograms: QualityIssuesProgram[]
+): ModuleBaseViewModel[] => {
+    return modules.map(moduleBase => {
+        const program = qualityIssuesPrograms.find(program =>
+            program.modules.includes(moduleBase.code)
+        );
+        return {
+            ...moduleBase,
+            dataQualityIssuesProgramCode: program?.code,
+            dataQualityIssuesProgramName: program?.name || i18n.t("No configured"),
+        };
     });
 };
