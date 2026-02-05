@@ -10,10 +10,8 @@ export class RemoveDataQualityAnalysisConfigUseCase {
     ) {}
 
     execute(analysisProgramCode: Code): FutureData<void> {
-        return this.qualityAnalysisRepository
-            .removeAll(analysisProgramCode)
-            .flatMap(() => {
-                return this.dataQualityIssuesProgramConfigRepository.remove(analysisProgramCode);
-            });
+        return this.qualityAnalysisRepository.removeAll(analysisProgramCode).flatMap(() => {
+            return this.dataQualityIssuesProgramConfigRepository.remove(analysisProgramCode);
+        });
     }
 }
