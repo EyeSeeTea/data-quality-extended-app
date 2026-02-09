@@ -49,6 +49,16 @@ The application presents these steps as sequential stages of the analysis and us
 
 The application supports the analysis steps described below and can also support custom analysis steps, as long as a corresponding application component (UI and logic) has been developed and integrated into the app.
 
+> **Note**
+>
+> The configuration of analysis steps is stored in the DHIS2 DataStore in namespace `data-quality` under the key: `steps-PROGRAM_CODE`
+> where `PROGRAM_CODE` corresponds to the code of the Data Quality Tracker Program
+> (for example: `steps_TEST_DQI_001`).
+> For custom analysis steps, users must ensure that all steps are correctly configured in this key.
+>
+> If the configuration in this DataStore entry is incorrect,
+> custom analysis steps will not be displayed or executed correctly.
+
 ##### Program Stage: Outliers
 
 This Program Stage is used to store **data quality issues detected through outlier analysis**,
@@ -230,6 +240,20 @@ the application will not be able to recognize or configure the program and will 
     }
 }
 ```
+
+> **Note**
+>
+> After completing the Data Quality Analysis setup in the application,
+> users must ensure that the configuration stored in the DHIS2 DataStore
+> under the key `programs-PROGRAM_CODE` is correctly defined,
+> where `PROGRAM_CODE` corresponds to the code of the Data Quality Tracker Program
+> (for example: `steps_TEST_DQI_001`).
+>
+> The **Contact Emails auto-fill** feature relies on the configuration stored in the DHIS2 DataStore
+> under the key `programs-PROGRAM_CODE`.
+> To enable this feature, the `userGroups` property must be correctly defined in this configuration.
+> If the `userGroups` configuration is missing or incorrect,
+> the Contact Emails auto-fill feature will not work.
 
 ## Setup
 
