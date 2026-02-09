@@ -28,11 +28,14 @@ type StepSettingsWithDisaggregations = StepSettingsBase & {
 
 type StepSettingsWithoutDisaggregations = StepSettingsBase & {
     type: StepTypeWithoutDisagg;
-    disaggregations?: never;
 };
 
 export function isStepTypeWithDisagg(type: StepType): type is StepTypeWithDisagg {
     return type === "DISAGGREGATES" || type === "MISSING_NURSES";
+}
+
+export function isStepWithDisagg(step: StepSettings): step is StepSettingsWithDisaggregations {
+    return isStepTypeWithDisagg(step.type);
 }
 
 export type StepSettings = StepSettingsWithDisaggregations | StepSettingsWithoutDisaggregations;

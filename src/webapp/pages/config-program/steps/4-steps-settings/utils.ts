@@ -2,6 +2,7 @@ import { Id, NamedRef } from "$/domain/entities/Ref";
 import { SectionDisaggregation } from "$/domain/entities/SectionDisaggregation";
 import {
     isStepTypeWithDisagg,
+    isStepWithDisagg,
     resolveStepTypeFromSectionName,
     StepSettings,
     StepType,
@@ -61,15 +62,13 @@ export function buildRows(
         const found = bySection.get(sectionId);
         const sectionName = sectionNameById.get(sectionId) ?? sectionId;
         const stepType = resolveStepTypeFromSectionName(sectionName);
-        const requiresDisaggregations =
-            stepType === "DISAGGREGATES" || stepType === "MISSING_NURSES";
 
         return {
             sectionId: sectionId,
             sectionName: sectionName,
             stepType: stepType,
             customName: found?.name ?? sectionName,
-            disaggregations: requiresDisaggregations ? found?.disaggregations : undefined,
+            disaggregations: found && isStepWithDisagg(found) ? found?.disaggregations : undefined,
         };
     });
 

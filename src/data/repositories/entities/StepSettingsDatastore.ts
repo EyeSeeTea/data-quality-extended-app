@@ -1,6 +1,7 @@
 import { SectionDisaggregation } from "$/domain/entities/SectionDisaggregation";
 import {
     isStepTypeWithDisagg,
+    isStepWithDisagg,
     StepSettings,
     StepTypeWithDisagg,
     StepTypeWithoutDisagg,
@@ -19,16 +20,21 @@ type StepSettingsDatastoreWithDisagg = StepSettingsDatastoreBase & {
 
 type StepSettingsDatastoreWithoutDisagg = StepSettingsDatastoreBase & {
     type: StepTypeWithoutDisagg;
-    disaggregations?: never;
 };
 
 export type StepSettingsDatastore =
     | StepSettingsDatastoreWithDisagg
     | StepSettingsDatastoreWithoutDisagg;
 
+function isDatastoreStepWithDisagg(
+    step: StepSettingsDatastore
+): step is StepSettingsDatastoreWithDisagg {
+    return isStepTypeWithDisagg(step.type);
+}
+
 export function mapStepsDatastoreToStepSettings(steps: StepSettingsDatastore[]): StepSettings[] {
     return steps.map(step => {
-        if (isStepTypeWithDisagg(step.type)) {
+        if (isDatastoreStepWithDisagg(step)) {
             return {
                 type: step.type,
                 sectionId: step.programStageId,
@@ -48,8 +54,8 @@ export function mapStepsDatastoreToStepSettings(steps: StepSettingsDatastore[]):
 }
 
 export function mapStepSettingsToDatastore(steps: StepSettings[]): StepSettingsDatastore[] {
-    return steps.map(step => {
-        if (isStepTypeWithDisagg(step.type)) {
+    return steps.map((step: StepSettings) => {
+        if (isStepWithDisagg(step)) {
             return {
                 type: step.type,
                 programStageId: step.sectionId,

@@ -16,6 +16,7 @@ import { Maybe } from "$/utils/ts-utils";
 import { ConfigurationStep } from "$/webapp/pages/analysis/steps/ConfigurationStep";
 import { SummaryStep } from "$/webapp/pages/analysis/SummaryStep";
 import { DataQualityWorkflowSettings } from "$/domain/entities/DataQualityWorkflowSettings";
+import { isStepWithDisagg } from "$/domain/entities/StepSettings";
 
 export const useStyles = makeStyles(() => ({
     circle: {
@@ -98,6 +99,10 @@ export function buildStepsFromSections(options: {
             const StepComponent = getComponentByStepType(stepType);
             if (!StepComponent) return undefined;
 
+            const disaggregations = isStepWithDisagg(stepSettings)
+                ? stepSettings.disaggregations
+                : undefined;
+
             const index = analysis.sections.findIndex(s => s.id === section.id) + 1;
             const isPending = QualityAnalysisSection.isPending(section);
             const hasIssues = section.status === "success_with_issues";
@@ -125,7 +130,7 @@ export function buildStepsFromSections(options: {
                         updateAnalysis={updateAnalysis}
                         qualityFilters={filters}
                         updateQualityFilters={onFilterChange}
-                        disaggregations={stepSettings.disaggregations}
+                        disaggregations={disaggregations}
                     />
                 ),
             };

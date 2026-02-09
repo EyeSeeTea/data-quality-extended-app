@@ -1,11 +1,10 @@
 import { Either } from "$/domain/entities/generic/Either";
 import { Struct } from "$/domain/entities/generic/Struct";
 import { ValidationError } from "$/domain/entities/generic/Errors";
-import { StepSettings, StepTypes } from "./StepSettings";
+import { isStepWithDisagg, StepSettings, StepTypes } from "./StepSettings";
 import {
     validateAtLeastOneDisaggregation,
     validateAtLeastOneStep,
-    validateMustBeEmpty,
     validateNoDuplicateStepTypes,
     validateOneOf,
     validateRequired,
@@ -25,10 +24,7 @@ export class DataQualityWorkflowSettings extends Struct<DataQualityWorkflowSetti
 
         const stepFieldsErrors: ValidationError<DataQualityWorkflowSettings>[] =
             entity.steps.flatMap(step => {
-                const requiresDisaggregations =
-                    step.type === "DISAGGREGATES" || step.type === "MISSING_NURSES";
-
-                const disaggErrors = requiresDisaggregations
+                const disaggErrors = isStepWithDisagg(step)
                     ? [
                           {
                               property: "steps" as const,
@@ -41,14 +37,7 @@ export class DataQualityWorkflowSettings extends Struct<DataQualityWorkflowSetti
                               value: step.disaggregations?.length ?? 0,
                           },
                       ]
-                    : [
-                          {
-                              property: "steps" as const,
-                              errors: validateMustBeEmpty(step.disaggregations),
-                              value: step.disaggregations,
-                              fieldName: "disaggregations",
-                          },
-                      ];
+                    : [];
 
                 return [
                     {
