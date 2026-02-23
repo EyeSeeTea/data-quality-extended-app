@@ -1,9 +1,10 @@
 import _ from "lodash";
+import _c from "$/domain/entities/generic/Collection";
 
 import { D2Api } from "$/types/d2-api";
 import { FutureData, apiToFuture } from "$/data/api-futures";
 import { MetadataRepository } from "$/domain/repositories/MetadataRepository";
-import { MetadataItem } from "$/domain/entities/MetadataItem";
+import { MetadataItem, ProgramStage } from "$/domain/entities/MetadataItem";
 import { Future } from "$/domain/entities/generic/Future";
 import { Code, NamedCodeRef } from "$/domain/entities/Ref";
 import { DATA_QUALITY_NAMESPACE } from "$/data/common/DataStoreConfig";
@@ -44,13 +45,35 @@ export class MetadataD2Repository implements MetadataRepository {
     get(selectedQualityIssuesProgramCode: Code): FutureData<MetadataItem> {
         return this.getMetadataCodes(selectedQualityIssuesProgramCode).flatMap(metadataCodes => {
             return this.getGlobalOrgUnit().flatMap((globalOrgUnit: NamedCodeRef) => {
-                return this.getIndexedMetadata(metadataCodes).map(
+                return this.getIndexedMetadata(metadataCodes).flatMap(
                     (metadata: MetadataItemWithoutOrgUnits) => {
-                        const metadataItem: MetadataItem = {
-                            ...metadata,
-                            organisationUnits: { global: globalOrgUnit },
-                        };
-                        return metadataItem;
+                        return this.getSortedProgramStagesFromDatastoreStepsSettings(
+                            selectedQualityIssuesProgramCode
+                        ).map(stepsSettings => {
+                            const programStagesSorted: ProgramStage[] = _c(
+                                stepsSettings.map(stepSetting =>
+                                    metadata.programs.qualityIssues.programStages.find(
+                                        ps => ps.id === stepSetting.programStageId
+                                    )
+                                )
+                            )
+                                .compactMap<ProgramStage>(ps => ps)
+                                .toArray();
+
+                            const metadataItem: MetadataItem = {
+                                ...metadata,
+                                programs: {
+                                    ...metadata.programs,
+                                    qualityIssues: {
+                                        ...metadata.programs.qualityIssues,
+                                        programStages: programStagesSorted,
+                                    },
+                                },
+                                organisationUnits: { global: globalOrgUnit },
+                            };
+
+                            return metadataItem;
+                        });
                     }
                 );
             });
@@ -177,6 +200,25 @@ export class MetadataD2Repository implements MetadataRepository {
             });
         });
     }
+
+    private getSortedProgramStagesFromDatastoreStepsSettings(
+        selectedQualityIssuesProgramCode: Code
+    ): FutureData<StepSettingsDatastore[]> {
+        const dataStore = this.api.dataStore(DATA_QUALITY_NAMESPACE);
+
+        return apiToFuture(
+            dataStore.get<StepSettingsDatastore[]>(`steps-${selectedQualityIssuesProgramCode}`)
+        ).flatMap(stepsDatastore => {
+            if (!stepsDatastore)
+                return Future.error(
+                    new Error(
+                        `Cannot found ${DATA_QUALITY_NAMESPACE}/${`steps-${selectedQualityIssuesProgramCode}`} in datastore`
+                    )
+                );
+
+            return Future.success(stepsDatastore.sort((a, b) => a.order - b.order));
+        });
+    }
 }
 
 type MetadataItemWithoutOrgUnits = Omit<MetadataItem, "organisationUnits">;
@@ -217,4 +259,9 @@ type MetadataCodes = {
         dataCaptureModule1: Code;
         dataCaptureModule2And4: Code;
     };
+};
+
+type StepSettingsDatastore = {
+    programStageId: string;
+    order: number;
 };

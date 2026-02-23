@@ -4,16 +4,17 @@ import { Select, InputLabel, MenuItem, Input, Typography } from "@material-ui/co
 
 import i18n from "$/utils/i18n";
 import { Code } from "$/domain/entities/Ref";
+import { Option } from "$/webapp/entities/Option";
 
 type Props = {
     values: Code[];
     onChange: (codes: Code[]) => void;
-    modulesOptions: { text: string; value: string }[];
+    modulesOptions: Option[];
+    disabled: boolean;
 };
 
 export const ModulesSelectionStep: React.FC<Props> = React.memo(props => {
-    const { values, onChange, modulesOptions } = props;
-
+    const { values, onChange, modulesOptions, disabled } = props;
     const [selection, setSelection] = React.useState<Code[]>(values);
     const [open, setOpen] = React.useState(false);
 
@@ -32,6 +33,14 @@ export const ModulesSelectionStep: React.FC<Props> = React.memo(props => {
         const same = selection.length === values.length && selection.every(v => values.includes(v));
         if (!same) onChange(selection);
     }, [selection, values, onChange]);
+
+    const getOptionText = React.useCallback(
+        (code: Code) => {
+            const option = modulesOptions.find(option => option.value === code);
+            return option ? option.text : code;
+        },
+        [modulesOptions]
+    );
 
     return (
         <Container>
@@ -55,8 +64,13 @@ export const ModulesSelectionStep: React.FC<Props> = React.memo(props => {
                         renderValue={selected => {
                             const codes = selected as Code[];
                             if (!codes?.length) return;
-                            return i18n.t("{{count}} datasets selected", { count: codes.length });
+                            return codes?.length === 1 && codes[0]
+                                ? getOptionText(codes[0])
+                                : i18n.t("{{count}} datasets selected", {
+                                      count: codes.length,
+                                  });
                         }}
+                        disabled={disabled}
                     >
                         {modulesOptions.map(option => (
                             <MenuItem key={option.text} value={option.value}>

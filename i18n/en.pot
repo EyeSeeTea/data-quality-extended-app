@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-02-04T08:06:49.283Z\n"
-"PO-Revision-Date: 2026-02-04T08:06:49.283Z\n"
+"POT-Creation-Date: 2026-02-05T11:05:05.516Z\n"
+"PO-Revision-Date: 2026-02-05T11:05:05.516Z\n"
 
 msgid "ID"
 msgstr ""
@@ -63,6 +63,24 @@ msgid "Cannot be blank: {{fieldName}}"
 msgstr ""
 
 msgid "Start date must be before end date"
+msgstr ""
+
+msgid "Must be empty: {{fieldName}}"
+msgstr ""
+
+msgid "Must be a number: {{fieldName}}"
+msgstr ""
+
+msgid "At least one step is required"
+msgstr ""
+
+msgid "Duplicate step types are not allowed"
+msgstr ""
+
+msgid "Invalid value: {{fieldName}}"
+msgstr ""
+
+msgid "At least one disaggregation is required"
 msgstr ""
 
 msgid "No disaggregations selected"
@@ -169,10 +187,34 @@ msgstr ""
 msgid "Extend Follow-Up + Contact Emails"
 msgstr ""
 
+msgid "Removing..."
+msgstr ""
+
+msgid "Data quality analysis configuration removed successfully"
+msgstr ""
+
+msgid "Delete data quality analysis configuration"
+msgstr ""
+
+msgid "This action will permanently delete the data quality analysis configuration."
+msgstr ""
+
+msgid "This action cannot be undone. Are you sure you want to proceed?"
+msgstr ""
+
+msgid "Yes, delete"
+msgstr ""
+
 msgid "No configured"
 msgstr ""
 
 msgid "Data Quality Analysis Location"
+msgstr ""
+
+msgid "Edit data quality analysis setup"
+msgstr ""
+
+msgid "Delete data quality analysis"
 msgstr ""
 
 msgid "Dataset Name"
@@ -205,9 +247,6 @@ msgstr ""
 msgid "Quality Analysis created"
 msgstr ""
 
-msgid "Removing..."
-msgstr ""
-
 msgid "Quality Analysis deleted"
 msgstr ""
 
@@ -226,13 +265,13 @@ msgstr ""
 msgid "Data Quality Analysis"
 msgstr ""
 
+msgid "You must save the Analysis configuration before running any step"
+msgstr ""
+
 msgid "Configuration"
 msgstr ""
 
 msgid "Summary"
-msgstr ""
-
-msgid "You must save the Analysis configuration before running any step"
 msgstr ""
 
 msgid "Algorithm"
@@ -286,6 +325,9 @@ msgstr ""
 msgid "Default Analysis Settings"
 msgstr ""
 
+msgid "Steps Configuration"
+msgstr ""
+
 msgid "Select a location where data quality analysis issues will be created"
 msgstr ""
 
@@ -301,6 +343,9 @@ msgstr ""
 msgid "Select an end date"
 msgstr ""
 
+msgid "At least one step must be configured"
+msgstr ""
+
 msgid "Select where data quality analysis issues will be created"
 msgstr ""
 
@@ -313,6 +358,18 @@ msgid "Select datasets for data quality analysis"
 msgstr ""
 
 msgid "No datasets are available for data quality analysis."
+msgstr ""
+
+msgid "Use previous year for start and end dates"
+msgstr ""
+
+msgid "No match found for this step, so it cannot be configured."
+msgstr ""
+
+msgid "Please, make sure the program stage is properly configured and try again."
+msgstr ""
+
+msgid "Custom name"
 msgstr ""
 
 msgid "Data Quality Analysis Location: "
@@ -336,6 +393,9 @@ msgstr ""
 msgid "Organisation Units: "
 msgstr ""
 
+msgid "Steps: "
+msgstr ""
+
 msgid "Save setup"
 msgstr ""
 
@@ -345,7 +405,10 @@ msgstr ""
 msgid "Yes, {{actionButton}}"
 msgstr ""
 
-msgid "Data Quality Issues Programs"
+msgid "No Data Quality Analysis Locations have been configured yet."
+msgstr ""
+
+msgid "Data Quality Analysis Locations"
 msgstr ""
 
 msgid "Data Quality Analysis Settings"

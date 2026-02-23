@@ -6,6 +6,7 @@ import { QualityIssuesProgramRepository } from "$/domain/repositories/QualityIss
 import { QualityIssuesProgram } from "$/domain/entities/QualityIssuesProgram";
 import { DATA_QUALITY_NAMESPACE, dataStoreKeys } from "$/data/common/DataStoreConfig";
 import { Code } from "$/domain/entities/Ref";
+import { DatastoreProgram } from "$/data/repositories/entities/DatastoreProgram";
 
 const DEFAULT_CHUNK_SIZE = 100;
 const DEFAULT_PAGE_SIZE = 100;
@@ -16,9 +17,7 @@ export class QualityIssuesProgramD2Repository implements QualityIssuesProgramRep
     getAllConfigured(): FutureData<QualityIssuesProgram[]> {
         return this.getProgramsFromDatastore().flatMap(qualityIssuesProgramDatastore => {
             return this.getProgramsByChunkedCodes(
-                qualityIssuesProgramDatastore.map(
-                    (program: QualityIssuesProgramDatastore): Code => program.code
-                )
+                qualityIssuesProgramDatastore.map((program): Code => program.code)
             ).flatMap(programs => {
                 return Future.success(
                     this.buildQualityIssuesPrograms(programs, qualityIssuesProgramDatastore)
@@ -39,36 +38,43 @@ export class QualityIssuesProgramD2Repository implements QualityIssuesProgramRep
 
     private buildQualityIssuesPrograms(
         programs: D2Program[],
-        qualityIssuesProgramDatastore: QualityIssuesProgramDatastore[]
+        qualityIssuesProgramDatastore: DatastoreProgram[]
     ): QualityIssuesProgram[] {
         return programs.map(program => {
             const modules =
                 qualityIssuesProgramDatastore.find(
-                    (programDatastore: QualityIssuesProgramDatastore) =>
-                        programDatastore.code === program.code
+                    (programDatastore: DatastoreProgram) => programDatastore.code === program.code
                 )?.dataSets || [];
+
+            const sections = program.programStages.map(stage => ({
+                id: stage.id,
+                name: stage.name,
+            }));
             return {
                 id: program.id,
                 name: program.name,
                 code: program.code,
                 modules: modules,
+                sections: sections,
             };
         });
     }
 
-    private getProgramsFromDatastore(): FutureData<QualityIssuesProgramDatastore[]> {
+    private getProgramsFromDatastore(): FutureData<DatastoreProgram[]> {
         const dataStore = this.api.dataStore(DATA_QUALITY_NAMESPACE);
-        return apiToFuture(
-            dataStore.get<QualityIssuesProgramDatastore[]>(dataStoreKeys.PROGRAMS)
-        ).flatMap(qualityIssuesProgramDatastore => {
-            if (!qualityIssuesProgramDatastore)
-                return Future.error(
-                    new Error(
-                        `Cannot found ${DATA_QUALITY_NAMESPACE}/${dataStoreKeys.PROGRAMS} in datastore`
-                    )
-                );
-            return Future.success(qualityIssuesProgramDatastore);
-        });
+
+        return apiToFuture(dataStore.get<DatastoreProgram[]>(dataStoreKeys.PROGRAMS)).flatMap(
+            programs => {
+                if (programs) return Future.success(programs);
+
+                const empty: DatastoreProgram[] = [];
+                return apiToFuture(dataStore.save(dataStoreKeys.PROGRAMS, empty))
+                    .map(() => empty)
+                    .mapError(
+                        err => new Error(`Cannot init programs in datastore. ${String(err)}`)
+                    );
+            }
+        );
     }
 
     private getProgramsByChunkedCodes(codes: Code[]): FutureData<D2Program[]> {
@@ -133,14 +139,12 @@ const programFields = {
     id: true,
     code: true,
     name: true,
+    programStages: {
+        id: true,
+        name: true,
+    },
 } as const;
 
 type D2Program = MetadataPick<{
     programs: { fields: typeof programFields };
 }>["programs"][number];
-
-export type QualityIssuesProgramDatastore = {
-    name: string;
-    code: string;
-    dataSets: Code[];
-};

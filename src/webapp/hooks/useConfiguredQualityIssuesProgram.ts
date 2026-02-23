@@ -7,11 +7,13 @@ import { useLoading } from "@eyeseetea/d2-ui-components/loading";
 import { useAppContext } from "$/webapp/contexts/app-context";
 import i18n from "$/utils/i18n";
 import { Maybe } from "$/utils/ts-utils";
+import { Option } from "$/webapp/entities/Option";
 
 type State = {
     selectedProgramCode: Maybe<Code>;
-    configuredQualityProgramIssuesOptions: { text: string; value: string }[];
+    configuredQualityProgramIssuesOptions: Maybe<Option[]>;
     onSelectQualityProgramIssues: (code: Maybe<string>) => void;
+    qualityIssuesPrograms: Maybe<QualityIssuesProgram[]>;
 };
 
 export function useConfiguredQualityIssuesProgram(): State {
@@ -56,12 +58,10 @@ export function useConfiguredQualityIssuesProgram(): State {
     }, [qualityIssuesPrograms, history]);
 
     const configuredQualityProgramIssuesOptions = useMemo(() => {
-        return (
-            qualityIssuesPrograms?.map(program => ({
-                text: program.name,
-                value: program.code,
-            })) || []
-        );
+        return qualityIssuesPrograms?.map(program => ({
+            text: program.name,
+            value: program.code,
+        }));
     }, [qualityIssuesPrograms]);
 
     const onSelectQualityProgramIssues = useCallback(
@@ -76,5 +76,6 @@ export function useConfiguredQualityIssuesProgram(): State {
         selectedProgramCode: selectedProgramCode,
         configuredQualityProgramIssuesOptions: configuredQualityProgramIssuesOptions,
         onSelectQualityProgramIssues: onSelectQualityProgramIssues,
+        qualityIssuesPrograms: qualityIssuesPrograms,
     };
 }

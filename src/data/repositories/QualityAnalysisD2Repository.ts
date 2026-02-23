@@ -4,6 +4,7 @@ import {
     D2TrackerEvent,
     D2Api,
     D2TrackerTrackedEntity,
+    TrackedEntitiesGetResponse,
 } from "$/types/d2-api";
 import {
     QualityAnalysisOptions,
@@ -12,7 +13,7 @@ import {
 } from "$/domain/repositories/QualityAnalysisRepository";
 import { FutureData, apiToFuture } from "$/data/api-futures";
 import { QualityAnalysis } from "$/domain/entities/QualityAnalysis";
-import { Id } from "$/domain/entities/Ref";
+import { Code, Id } from "$/domain/entities/Ref";
 import _ from "$/domain/entities/generic/Collection";
 import { HashMap } from "$/domain/entities/generic/HashMap";
 import { Maybe } from "$/utils/ts-utils";
@@ -35,6 +36,10 @@ import { getUid } from "$/utils/uid";
 import { getDefaultModules } from "$/data/common/D2Module";
 import { buildTrackerResponse, getProgramStageIndexById } from "$/data/common/utils";
 import { DATA_QUALITY_NAMESPACE } from "$/data/common/DataStoreConfig";
+import { DataStore } from "@eyeseetea/d2-api/api";
+
+const DEFAULT_PAGE_SIZE = 150;
+const DEFAULT_DELETE_CHUNK_SIZE = 300;
 
 export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
     d2DataElement: D2DataElement;
@@ -166,6 +171,126 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
                     });
                 }
             });
+        });
+    }
+
+    removeAll(analysisProgramCode: Code): FutureData<void> {
+        return Future.joinObj({
+            programId: this.getProgramIdByCode(analysisProgramCode),
+            globalOrgUnitId: this.getGlobalOrgUnitId(),
+        }).flatMap(({ programId, globalOrgUnitId }) => {
+            return this.getAllD2TrackerTrackedEntities(programId, globalOrgUnitId).flatMap(teis => {
+                if (teis.length === 0) return Future.success(undefined);
+                const dataStore = this.api.dataStore(DATA_QUALITY_NAMESPACE);
+
+                return Future.sequential(
+                    _(teis)
+                        .chunk(DEFAULT_DELETE_CHUNK_SIZE)
+                        .map(chunk => this.deleteFromProgramAndDatastore(chunk, dataStore))
+                        .value()
+                ).map(() => undefined);
+            });
+        });
+    }
+
+    private getAllD2TrackerTrackedEntities(
+        programId: Id,
+        orgUnit: Id
+    ): FutureData<D2TrackerTrackedEntity[]> {
+        const teis: D2TrackerTrackedEntity[] = [];
+        const pageSize = DEFAULT_PAGE_SIZE;
+        const firstPage = 1;
+
+        const fetchPage = (
+            page: number,
+            accTeis: D2TrackerTrackedEntity[]
+        ): FutureData<D2TrackerTrackedEntity[]> => {
+            return apiToFuture(
+                this.api.tracker.trackedEntities.get({
+                    ouMode: "SELECTED",
+                    fields: {
+                        trackedEntity: true,
+                    },
+                    program: programId,
+                    orgUnit: orgUnit,
+                    page: page,
+                    pageSize: pageSize,
+                    totalPages: true,
+                })
+            ).flatMap((response: TrackedEntitiesGetResponse) => {
+                const apiTeis: D2TrackerTrackedEntity[] = buildTrackerResponse(response).instances;
+                const nextAccTeis = [...accTeis, ...apiTeis];
+
+                // @ts-ignore. The d2-api types should be updated to reflect that pageCount is always returned when totalPages is true
+                const pageCount = response.pageCount;
+                const nextPage = (response.page ?? page) + 1;
+
+                if (pageCount !== undefined && nextPage <= pageCount) {
+                    return fetchPage(nextPage, nextAccTeis);
+                }
+
+                return Future.success(nextAccTeis);
+            });
+        };
+
+        return fetchPage(firstPage, teis);
+    }
+
+    private getProgramIdByCode(programCode: Code): FutureData<Id> {
+        return apiToFuture(
+            this.api.models.programs.get({
+                fields: {
+                    id: true,
+                },
+                filter: {
+                    code: { eq: programCode },
+                },
+                programStatus: "ACTIVE",
+                skipPaging: true,
+            })
+        ).flatMap(programsResponse => {
+            const program = programsResponse.objects?.[0];
+            if (!program) {
+                return Future.error(new Error(`Program with code ${programCode} not found.`));
+            }
+            return Future.success(program.id);
+        });
+    }
+
+    private getGlobalOrgUnitId(): FutureData<Id> {
+        return apiToFuture(
+            this.api.models.organisationUnits.get({
+                fields: { id: true },
+                filter: { level: { eq: "1" } },
+            })
+        ).flatMap(d2Response => {
+            const d2OrgUnit = d2Response.objects[0];
+            if (!d2OrgUnit) return Future.error(new Error(`Global organisation unit not found`));
+
+            return Future.success(d2OrgUnit.id);
+        });
+    }
+
+    private deleteFromProgramAndDatastore(
+        teis: D2TrackerTrackedEntity[],
+        dataStore: DataStore
+    ): FutureData<void> {
+        return apiToFuture(
+            this.api.tracker.post({ importStrategy: "DELETE" }, { trackedEntities: teis })
+        ).flatMap(d2Response => {
+            if (d2Response?.status === "ERROR") {
+                return Future.error(new Error(d2Response.message));
+            }
+
+            const idsDeleted: Id[] =
+                d2Response?.bundleReport?.typeReportMap?.TRACKED_ENTITY?.objectReports?.map(
+                    r => r.uid
+                ) ?? [];
+            if (idsDeleted.length === 0) return Future.success(undefined);
+
+            return Future.sequential(idsDeleted.map(id => apiToFuture(dataStore.delete(id)))).map(
+                () => undefined
+            );
         });
     }
 

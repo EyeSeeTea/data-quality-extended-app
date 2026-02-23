@@ -5,12 +5,13 @@ import styled from "styled-components";
 import i18n from "$/utils/i18n";
 import { DataQualityIssuesProgramConfigOptions } from "$/domain/usecases/SaveDataQualityIssuesProgramConfigUseCase";
 import { useCountriesByIds } from "$/webapp/hooks/useCountriesByIds";
+import { Option } from "$/webapp/entities/Option";
 
 type Props = {
     configProgramState: DataQualityIssuesProgramConfigOptions;
     onSaveConfiguration: () => void;
-    programs: { text: string; value: string }[];
-    modules: { text: string; value: string }[];
+    programs: Option[];
+    modules: Option[];
 };
 
 export const SummaryStep: React.FC<Props> = React.memo(props => {
@@ -29,6 +30,13 @@ export const SummaryStep: React.FC<Props> = React.memo(props => {
             moduleCode => modules.find(m => m.value === moduleCode)?.text || moduleCode
         );
     }, [configProgramState.selectedModuleCodes, modules]);
+
+    const defaultModule = React.useMemo(() => {
+        return (
+            modules.find(m => m.value === configProgramState.defaultSettings.dataSet)?.text ||
+            configProgramState.defaultSettings.dataSet
+        );
+    }, [configProgramState.defaultSettings.dataSet, modules]);
 
     if (isLoading) {
         return <CircularProgress />;
@@ -57,23 +65,26 @@ export const SummaryStep: React.FC<Props> = React.memo(props => {
                     <li>
                         {i18n.t("Default analysis settings: ", { nsSeparator: false })}
                         <ul>
-                            <li key={configProgramState.defaultSettings.dataSet}>
-                                {i18n.t("Dataset: ", { nsSeparator: false })}{" "}
-                                {configProgramState.defaultSettings.dataSet}
+                            <li key={defaultModule}>
+                                {i18n.t("Dataset: ", { nsSeparator: false })} {defaultModule}
                             </li>
 
-                            {configProgramState.defaultSettings.startDate && (
-                                <li key={configProgramState.defaultSettings.startDate}>
-                                    {i18n.t("Start date: ", { nsSeparator: false })}
-                                    {configProgramState.defaultSettings.startDate}
-                                </li>
-                            )}
-
-                            {configProgramState.defaultSettings.endDate && (
+                            {configProgramState.defaultSettings.usePreviousYear ? (
                                 <li key={configProgramState.defaultSettings.endDate}>
-                                    {i18n.t("End date: ", { nsSeparator: false })}{" "}
-                                    {configProgramState.defaultSettings.endDate}
+                                    {i18n.t("Use previous year for start and end dates")}
                                 </li>
+                            ) : (
+                                <>
+                                    <li key={configProgramState.defaultSettings.startDate}>
+                                        {i18n.t("Start date: ", { nsSeparator: false })}
+                                        {configProgramState.defaultSettings.startDate}
+                                    </li>
+
+                                    <li key={configProgramState.defaultSettings.endDate}>
+                                        {i18n.t("End date: ", { nsSeparator: false })}{" "}
+                                        {configProgramState.defaultSettings.endDate}
+                                    </li>
+                                </>
                             )}
 
                             {configProgramState.defaultSettings.orgUnits.length > 0 && (
@@ -82,6 +93,19 @@ export const SummaryStep: React.FC<Props> = React.memo(props => {
                                     {countries?.map(country => country.name).join(", ")}
                                 </li>
                             )}
+                        </ul>
+                    </li>
+
+                    <li key={configProgramState.selectedProgramCode}>
+                        {i18n.t("Steps: ", { nsSeparator: false })}
+                        <ul>
+                            {configProgramState.steps
+                                .sort((a, b) => a.order - b.order)
+                                .map(step => (
+                                    <li key={step.type}>
+                                        {step.order}. {step.name}
+                                    </li>
+                                ))}
                         </ul>
                     </li>
                 </ul>

@@ -4,6 +4,7 @@ import { Either } from "$/domain/entities/generic/Either";
 import { getErrors, ValidationError } from "$/domain/entities/generic/Errors";
 import { Future } from "$/domain/entities/generic/Future";
 import { Code, Id } from "$/domain/entities/Ref";
+import { StepSettings } from "$/domain/entities/StepSettings";
 import { DataQualityIssuesProgramConfigRepository } from "$/domain/repositories/DataQualityIssuesProgramConfigRepository";
 import { Maybe } from "$/utils/ts-utils";
 
@@ -20,7 +21,9 @@ export class SaveDataQualityIssuesProgramConfigUseCase {
                 return Future.error(new Error(errorMessages));
             },
             success: configuration => {
-                return this.dataQualityIssuesProgramConfigRepository.save(configuration);
+                return this.dataQualityIssuesProgramConfigRepository.save(configuration, {
+                    isEdit: configurationOptions.isEdit,
+                });
             },
         });
     }
@@ -33,10 +36,14 @@ export type DataQualityIssuesProgramConfigOptions = {
         dataSet: Maybe<Code>;
         endDate: Maybe<string>;
         startDate: Maybe<string>;
+        usePreviousYear: boolean;
         orgUnits: Id[];
         orgUnitPaths: string[];
     };
+    steps: StepSettings[];
+    isEdit: boolean;
 };
+
 export const initialState: DataQualityIssuesProgramConfigOptions = {
     selectedProgramCode: undefined,
     selectedModuleCodes: [],
@@ -44,9 +51,12 @@ export const initialState: DataQualityIssuesProgramConfigOptions = {
         dataSet: undefined,
         endDate: undefined,
         startDate: undefined,
+        usePreviousYear: false,
         orgUnits: [],
         orgUnitPaths: [],
     },
+    steps: [],
+    isEdit: false,
 };
 
 function mapToDataQualityIssuesProgramConfig(
@@ -60,6 +70,8 @@ function mapToDataQualityIssuesProgramConfig(
             startDate: selectedOptions.defaultSettings.startDate as string,
             endDate: selectedOptions.defaultSettings.endDate as string,
             orgUnits: selectedOptions.defaultSettings.orgUnits,
+            usePreviousYear: selectedOptions.defaultSettings.usePreviousYear,
         },
+        steps: selectedOptions.steps,
     });
 }

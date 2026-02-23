@@ -1,7 +1,7 @@
 import { FutureData } from "$/data/api-futures";
 import { Maybe } from "$/utils/ts-utils";
 import { QualityAnalysis } from "$/domain/entities/QualityAnalysis";
-import { Id } from "$/domain/entities/Ref";
+import { Code, Id } from "$/domain/entities/Ref";
 import { MetadataItem } from "$/domain/entities/MetadataItem";
 
 export interface QualityAnalysisRepository {
@@ -9,6 +9,7 @@ export interface QualityAnalysisRepository {
     getById(id: Id, metadata: MetadataItem): FutureData<QualityAnalysis>;
     save(qualityAnalysis: QualityAnalysis[], metadata: MetadataItem): FutureData<void>;
     remove(id: Id): FutureData<void>;
+    removeAll(analysisProgramCode: Code): FutureData<void>;
 }
 
 export type Pagination = {

@@ -9,7 +9,7 @@ import { useSettings } from "$/webapp/hooks/useSettings";
 import { ModulesTable } from "$/webapp/components/modules-table/ModulesTable";
 
 export const SettingsPage: React.FC = React.memo(() => {
-    const { onConfigurateNewProgram, onBackHomePage, qualityIssuesPrograms } = useSettings();
+    const { onConfigurateNewProgram, onBackHomePage } = useSettings();
 
     return (
         <PageContainer>
@@ -19,22 +19,18 @@ export const SettingsPage: React.FC = React.memo(() => {
             />
 
             <RowContainer>
-                <RowContainer>
-                    <Button
-                        aria-controls="simple-menu"
-                        aria-haspopup="true"
-                        variant="contained"
-                        color="primary"
-                        onClick={onConfigurateNewProgram}
-                    >
-                        {i18n.t("Set up data quality analysis")}
-                    </Button>
-                </RowContainer>
+                <Button
+                    aria-controls="simple-menu"
+                    aria-haspopup="true"
+                    variant="contained"
+                    color="primary"
+                    onClick={onConfigurateNewProgram}
+                >
+                    {i18n.t("Set up data quality analysis")}
+                </Button>
             </RowContainer>
 
-            {qualityIssuesPrograms && (
-                <ModulesTable qualityIssuesPrograms={qualityIssuesPrograms} />
-            )}
+            <ModulesTable />
         </PageContainer>
     );
 });

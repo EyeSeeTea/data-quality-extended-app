@@ -50,9 +50,7 @@ import { DataValueD2Repository } from "./data/repositories/DataValueD2Repository
 import { DataValueTestRepository } from "./data/repositories/DataValueTestRepository";
 import { GetDisaggregationsUseCase } from "$/domain/usecases/GetDisaggregationsUseCase";
 import { GetMissingDisaggregatesUseCase } from "./domain/usecases/GetMissingDisaggregatesUseCase";
-import { GetCategoryDesaggregationsUseCase } from "$/domain/usecases/GetCategoryDesaggregationsUseCase";
 import { ValidateMidwiferyAndPersonnelUseCase } from "./domain/usecases/ValidateMidwiferyAndPersonnelUseCase";
-import { GetMidwiferyPersonnelDisaggregationsUseCase } from "$/domain/usecases/GetMidwiferyPersonnelDisaggregationsUseCase";
 import { ValidationRuleD2Repository } from "./data/repositories/ValidationRuleGroupD2Repository";
 import { ValidationRuleTestRepository } from "./data/repositories/ValidationRuleGroupTestRepository";
 import { GetValidationRuleGroupUseCase } from "./domain/usecases/GetValidationRuleGroupUseCase";
@@ -78,6 +76,12 @@ import { DataQualityIssuesProgramConfigRepository } from "$/domain/repositories/
 import { DataQualityIssuesProgramConfigD2Repository } from "$/data/repositories/DataQualityIssuesProgramConfigD2Repository";
 import { SaveDataQualityIssuesProgramConfigUseCase } from "$/domain/usecases/SaveDataQualityIssuesProgramConfigUseCase";
 import { DataQualityIssuesProgramConfigTestRepository } from "$/data/repositories/DataQualityIssuesProgramConfigTestRepository";
+import { GetDataQualityWorkflowSettingsUseCase } from "$/domain/usecases/GetDataQualityWorkflowSettingsUseCase";
+import { DataQualityWorkflowSettingsRepository } from "$/domain/repositories/DataQualityWorkflowSettingsRepository";
+import { DataQualityWorkflowSettingsD2Repository } from "$/data/repositories/DataQualityWorkflowSettingsD2Repository";
+import { DataQualityWorkflowSettingsTestRepository } from "$/data/repositories/DataQualityWorkflowSettingsTestRepository";
+import { GetDataQualityIssuesProgramConfigUseCase } from "$/domain/usecases/GetDataQualityIssuesProgramConfigUseCase";
+import { RemoveDataQualityAnalysisConfigUseCase } from "$/domain/usecases/RemoveDataQualityAnalysisConfigUseCase";
 
 export type CompositionRoot = ReturnType<typeof getCompositionRoot>;
 
@@ -98,6 +102,7 @@ type Repositories = {
     issueExportRepository: IssueExportRepository;
     qualityIssuesProgramRepository: QualityIssuesProgramRepository;
     dataQualityIssuesProgramConfigRepository: DataQualityIssuesProgramConfigRepository;
+    dataQualityWorkflowSettingsRepository: DataQualityWorkflowSettingsRepository;
 };
 
 function getCompositionRoot(repositories: Repositories) {
@@ -146,18 +151,12 @@ function getCompositionRoot(repositories: Repositories) {
                 repositories.issueRepository
             ),
         },
-        disaggregates: {
-            getCategoriesCombos: new GetCategoryDesaggregationsUseCase(
-                repositories.settingsRepository
-            ),
-        },
         missingDisaggregates: {
             get: new GetMissingDisaggregatesUseCase(
                 repositories.qualityAnalysisRepository,
                 repositories.moduleRepository,
                 repositories.dataValueRepository,
-                repositories.issueRepository,
-                repositories.settingsRepository
+                repositories.issueRepository
             ),
         },
         issues: {
@@ -184,15 +183,11 @@ function getCompositionRoot(repositories: Repositories) {
             get: new GetAllIssuesUseCase(repositories.issueRepository),
         },
         nursingMidwifery: {
-            getDisaggregations: new GetMidwiferyPersonnelDisaggregationsUseCase(
-                repositories.settingsRepository
-            ),
             validate: new ValidateMidwiferyAndPersonnelUseCase(
                 repositories.qualityAnalysisRepository,
                 repositories.issueRepository,
                 repositories.dataValueRepository,
-                repositories.moduleRepository,
-                repositories.settingsRepository
+                repositories.moduleRepository
             ),
         },
         validationRules: {
@@ -220,6 +215,18 @@ function getCompositionRoot(repositories: Repositories) {
             save: new SaveDataQualityIssuesProgramConfigUseCase(
                 repositories.dataQualityIssuesProgramConfigRepository
             ),
+            get: new GetDataQualityIssuesProgramConfigUseCase(
+                repositories.dataQualityIssuesProgramConfigRepository
+            ),
+            remove: new RemoveDataQualityAnalysisConfigUseCase(
+                repositories.dataQualityIssuesProgramConfigRepository,
+                repositories.qualityAnalysisRepository
+            ),
+        },
+        dataQualityWorkflowSettings: {
+            get: new GetDataQualityWorkflowSettingsUseCase(
+                repositories.dataQualityWorkflowSettingsRepository
+            ),
         },
     };
 }
@@ -244,6 +251,7 @@ export function getWebappCompositionRoot(api: D2Api) {
         dataQualityIssuesProgramConfigRepository: new DataQualityIssuesProgramConfigD2Repository(
             api
         ),
+        dataQualityWorkflowSettingsRepository: new DataQualityWorkflowSettingsD2Repository(api),
     };
 
     return getCompositionRoot(repositories);
@@ -268,6 +276,7 @@ export function getTestCompositionRoot() {
         qualityIssuesProgramRepository: new QualityIssuesProgramTestRepository(),
         dataQualityIssuesProgramConfigRepository:
             new DataQualityIssuesProgramConfigTestRepository(),
+        dataQualityWorkflowSettingsRepository: new DataQualityWorkflowSettingsTestRepository(),
     };
 
     return getCompositionRoot(repositories);
