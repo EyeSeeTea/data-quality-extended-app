@@ -18,10 +18,14 @@ import { Maybe } from "$/utils/ts-utils";
 import CloudDownload from "@material-ui/icons/CloudDownload";
 import { useTableUtils } from "$/webapp/hooks/useTable";
 import { useIssueColumns } from "./IssueColumns";
+import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
+import { hasUserGroups } from "$/webapp/components/issues/utils";
 
 export function useCopyContactEmails(props: UseCopyContactEmailsProps) {
     const { onSuccess } = props;
     const { compositionRoot } = useAppContext();
+    const { metadataItem } = useMetadataItemContext();
+
     const loading = useLoading();
     const snackbar = useSnackbar();
 
@@ -32,6 +36,8 @@ export function useCopyContactEmails(props: UseCopyContactEmailsProps) {
             sectionId: Maybe<Id>,
             filters: GetIssuesOptions["filters"]
         ) => {
+            if (!hasUserGroups(metadataItem.userGroups)) return;
+
             loading.show(true, i18n.t("Copying Contact Emails and marking for Follow-Up"));
             compositionRoot.issues.copyEmails
                 .execute({
@@ -39,6 +45,7 @@ export function useCopyContactEmails(props: UseCopyContactEmailsProps) {
                     sectionId: sectionId,
                     issueId: issueId,
                     filters,
+                    metadata: metadataItem,
                 })
                 .run(
                     () => {
@@ -52,7 +59,7 @@ export function useCopyContactEmails(props: UseCopyContactEmailsProps) {
                     }
                 );
         },
-        [compositionRoot.issues.copyEmails, loading, snackbar, onSuccess]
+        [compositionRoot.issues.copyEmails, loading, snackbar, onSuccess, metadataItem]
     );
 
     return copyContactEmails;
@@ -60,24 +67,28 @@ export function useCopyContactEmails(props: UseCopyContactEmailsProps) {
 
 export function useExportIssues() {
     const { compositionRoot } = useAppContext();
+    const { metadataItem } = useMetadataItemContext();
+
     const loading = useLoading();
     const snackbar = useSnackbar();
 
     const exportIssues = React.useCallback(
         (analysisId: Id, filters: GetIssuesOptions["filters"]) => {
             loading.show(true, i18n.t("Exporting Issues..."));
-            compositionRoot.issues.export.execute({ analysisId: analysisId, filters }).run(
-                () => {
-                    snackbar.success(i18n.t("Issues exported"));
-                    loading.hide();
-                },
-                error => {
-                    snackbar.error(error.message);
-                    loading.hide();
-                }
-            );
+            compositionRoot.issues.export
+                .execute({ analysisId: analysisId, filters, metadata: metadataItem })
+                .run(
+                    () => {
+                        snackbar.success(i18n.t("Issues exported"));
+                        loading.hide();
+                    },
+                    error => {
+                        snackbar.error(error.message);
+                        loading.hide();
+                    }
+                );
         },
-        [compositionRoot.issues.export, loading, snackbar]
+        [compositionRoot.issues.export, loading, snackbar, metadataItem]
     );
 
     return exportIssues;
@@ -86,6 +97,7 @@ export function useExportIssues() {
 export function useTableConfig(props: UseTableConfigProps) {
     const { analysisId, filters, sectionId, showExport } = props;
     const { issueColumns, refresh, setRefresh } = useIssueColumns();
+    const { metadataItem } = useMetadataItemContext();
 
     const { saveColumns, columnsToShow } = useTableUtils<QualityAnalysisIssue>({
         storageId: "issues",
@@ -114,18 +126,20 @@ export function useTableConfig(props: UseTableConfigProps) {
                   ]
                 : undefined,
             stickyHeader: true,
-            actions: [
-                {
-                    name: "Extend Contact Emails",
-                    text: i18n.t("Extend Follow-Up + Contact Emails"),
-                    primary: false,
-                    onClick(selectedIds) {
-                        const issueId = selectedIds[0];
-                        if (!issueId) return false;
-                        copyContactEmails(issueId, analysisId, sectionId, filters);
-                    },
-                },
-            ],
+            actions: hasUserGroups(metadataItem.userGroups)
+                ? [
+                      {
+                          name: "Extend Contact Emails",
+                          text: i18n.t("Extend Follow-Up + Contact Emails"),
+                          primary: false,
+                          onClick(selectedIds) {
+                              const issueId = selectedIds[0];
+                              if (!issueId) return false;
+                              copyContactEmails(issueId, analysisId, sectionId, filters);
+                          },
+                      },
+                  ]
+                : [],
             columns: columnsToShow,
             initialSorting: { field: "number", order: "asc" },
             paginationOptions: {
@@ -136,14 +150,15 @@ export function useTableConfig(props: UseTableConfigProps) {
             onReorderColumns: saveColumns,
         };
     }, [
-        columnsToShow,
-        filters,
-        analysisId,
-        sectionId,
-        copyContactEmails,
-        exportIssues,
         showExport,
+        metadataItem.userGroups,
+        columnsToShow,
         saveColumns,
+        exportIssues,
+        analysisId,
+        filters,
+        copyContactEmails,
+        sectionId,
     ]);
 
     return { tableConfig, refresh };
@@ -157,6 +172,8 @@ export function useGetRows(
     refreshIssue: number
 ) {
     const { compositionRoot } = useAppContext();
+    const { metadataItem } = useMetadataItemContext();
+
     const [loading, setLoading] = React.useState(false);
     const getRows = React.useCallback<GetRows<QualityAnalysisIssue>>(
         (_search, pagination, sorting) => {
@@ -185,6 +202,7 @@ export function useGetRows(
                             step: filters.step,
                             search: filters.search,
                         },
+                        metadata: metadataItem,
                     })
                     .run(
                         response => {
@@ -211,6 +229,7 @@ export function useGetRows(
             filters.search,
             analysisId,
             sectionId,
+            metadataItem,
         ]
     );
 

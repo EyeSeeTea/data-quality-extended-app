@@ -8,6 +8,7 @@ import { UCAnalysis } from "$/domain/usecases/common/UCAnalysis";
 import { QualityAnalysisRepository } from "$/domain/repositories/QualityAnalysisRepository";
 import { QualityAnalysis } from "$/domain/entities/QualityAnalysis";
 import { Maybe } from "$/utils/ts-utils";
+import { MetadataItem } from "$/domain/entities/MetadataItem";
 
 export type IssueTemplate = {
     categoryOptionComboId: Maybe<Id>;
@@ -30,15 +31,16 @@ export class CreateIssueUseCase {
     }
 
     execute(options: CreateIssueUseCaseOptions): FutureData<Maybe<QualityAnalysis>> {
-        const { qualityAnalysisId, sectionId, issues } = options;
+        const { qualityAnalysisId, sectionId, issues, metadata } = options;
 
         if (issues.length <= 0) return Future.success(undefined);
 
-        return this.fetchAnalysisAndTotalIssues(qualityAnalysisId, sectionId).flatMap(
+        return this.fetchAnalysisAndTotalIssues(qualityAnalysisId, sectionId, metadata).flatMap(
             analysisAndTotalIssues => {
                 const issuesToCreate = this.buildIssues({
                     issues,
                     sectionId,
+                    metadata: options.metadata,
                     ...analysisAndTotalIssues,
                 });
                 const analysisUpdate = this.analysisUseCase.updateAnalysis(
@@ -46,20 +48,25 @@ export class CreateIssueUseCase {
                     sectionId,
                     issues.length + analysisAndTotalIssues.totalIssues
                 );
-                return this.saveIssuesAndUpdateAnalysis(issuesToCreate, analysisUpdate);
+                return this.saveIssuesAndUpdateAnalysis(
+                    issuesToCreate,
+                    analysisUpdate,
+                    options.metadata
+                );
             }
         );
     }
 
     private fetchAnalysisAndTotalIssues(
         qualityAnalysisId: Id,
-        sectionId: Id
+        sectionId: Id,
+        metadata: MetadataItem
     ): FutureData<AnalysisAndTotalIssues> {
         return this.analysisUseCase
-            .getById(qualityAnalysisId)
+            .getById(qualityAnalysisId, metadata)
             .flatMap(analysis =>
                 this.issueUseCase
-                    .getTotalIssuesBySection(analysis, sectionId)
+                    .getTotalIssuesBySection(analysis, sectionId, metadata)
                     .map(totalIssues => ({ analysis, totalIssues }))
             );
     }
@@ -92,11 +99,12 @@ export class CreateIssueUseCase {
 
     private saveIssuesAndUpdateAnalysis(
         issues: QualityAnalysisIssue[],
-        analysis: QualityAnalysis
+        analysis: QualityAnalysis,
+        metadata: MetadataItem
     ): FutureData<QualityAnalysis> {
         return this.issueUseCase
-            .save(issues, analysis.id)
-            .flatMap(() => this.analysisRepository.save([analysis]).map(() => analysis));
+            .save(issues, analysis.id, metadata)
+            .flatMap(() => this.analysisRepository.save([analysis], metadata).map(() => analysis));
     }
 }
 
@@ -104,6 +112,7 @@ type CreateIssueUseCaseOptions = {
     issues: IssueTemplate[];
     qualityAnalysisId: Id;
     sectionId: Id;
+    metadata: MetadataItem;
 };
 
 type AnalysisAndTotalIssues = { analysis: QualityAnalysis; totalIssues: number };

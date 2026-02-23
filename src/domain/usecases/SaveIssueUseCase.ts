@@ -2,7 +2,7 @@ import { FutureData } from "$/data/api-futures";
 import { User } from "$/domain/entities/User";
 import { IssueAction } from "$/domain/entities/IssueAction";
 import { IssueStatus } from "$/domain/entities/IssueStatus";
-import { MetadataItem } from "$/domain/entities/MetadataItem";
+import { MetadataItem, NHWAUserGroups } from "$/domain/entities/MetadataItem";
 import { QualityAnalysis } from "$/domain/entities/QualityAnalysis";
 import { IssuePropertyName, QualityAnalysisIssue } from "$/domain/entities/QualityAnalysisIssue";
 import { QualityAnalysisSection } from "$/domain/entities/QualityAnalysisSection";
@@ -18,46 +18,59 @@ export class SaveIssueUseCase {
     constructor(
         private analysisRepository: QualityAnalysisRepository,
         private issueRepository: IssueRepository,
-        private userRepository: UserRepository,
-        private metadata: MetadataItem
+        private userRepository: UserRepository
     ) {}
 
     execute(options: SaveIssueOptions): FutureData<SaveIssueResponse> {
         return Future.joinObj({
             analysis: this.getAnalysis(options),
-            issue: this.getIssueById(options.issue.id),
+            issue: this.getIssueById(options.issue.id, options.metadata),
         }).flatMap(({ analysis, issue }) => {
-            return this.generateContactEmails(analysis, options, issue).flatMap(contactEmails => {
-                const issueToUpdate = this.buildIssueWithNewValue(options, issue, contactEmails);
-                const analysisUpdate = QualityAnalysis.build({
-                    ...analysis,
-                    sections: analysis.sections.map(section => {
-                        if (section.id !== issue.type) return section;
-                        return QualityAnalysisSection.create({
-                            ...section,
-                            issues: [issueToUpdate],
-                        });
-                    }),
-                }).get();
+            return this.generateContactEmails(analysis, options, issue, options.metadata).flatMap(
+                contactEmails => {
+                    const issueToUpdate = this.buildIssueWithNewValue(
+                        options,
+                        issue,
+                        contactEmails,
+                        options.metadata
+                    );
+                    const analysisUpdate = QualityAnalysis.build({
+                        ...analysis,
+                        sections: analysis.sections.map(section => {
+                            if (section.id !== issue.type) return section;
+                            return QualityAnalysisSection.create({
+                                ...section,
+                                issues: [issueToUpdate],
+                            });
+                        }),
+                    }).get();
 
-                return this.analysisRepository.save([analysisUpdate]).flatMap(() => {
-                    return Future.success({ contactEmailsChanged: Boolean(contactEmails) });
-                });
-            });
+                    return this.analysisRepository
+                        .save([analysisUpdate], options.metadata)
+                        .flatMap(() => {
+                            return Future.success({ contactEmailsChanged: Boolean(contactEmails) });
+                        });
+                }
+            );
         });
     }
 
-    private getIssueById(issueId: Id): FutureData<QualityAnalysisIssue> {
-        return this.issueRepository.getById(issueId);
+    private getIssueById(issueId: Id, metadata: MetadataItem): FutureData<QualityAnalysisIssue> {
+        return this.issueRepository.getById(issueId, metadata);
     }
 
     private generateContactEmails(
         analysis: QualityAnalysis,
         options: SaveIssueOptions,
-        issue: QualityAnalysisIssue
+        issue: QualityAnalysisIssue,
+        metadata: MetadataItem
     ): FutureData<Maybe<ContactEmailsUsers>> {
         if (options.propertyToUpdate === "followUp" && options.valueToUpdate === true) {
-            const usersIds = this.getUsersIdsFromGroup(analysis);
+            const userGroups = metadata.userGroups;
+            if (!userGroups || Object.keys(userGroups).length === 0)
+                return Future.success(undefined);
+
+            const usersIds = this.getUsersIdsFromGroup(analysis, userGroups);
             if (usersIds.length === 0) return Future.success(undefined);
 
             return this.getUsersByIds(usersIds, issue).flatMap(users => {
@@ -131,11 +144,11 @@ export class SaveIssueUseCase {
             .value();
     }
 
-    private getUsersIdsFromGroup(analysis: QualityAnalysis): Id[] {
+    private getUsersIdsFromGroup(analysis: QualityAnalysis, userGroups: NHWAUserGroups): Id[] {
         if (analysis.module.name.toLocaleLowerCase().includes("module 1")) {
-            return this.metadata.userGroups.dataCaptureModule1.users.map(user => user.id);
+            return userGroups.dataCaptureModule1.users.map(user => user.id);
         } else if (analysis.module.name.toLocaleLowerCase().includes("module 2")) {
-            return this.metadata.userGroups.dataCaptureModule2And4.users.map(user => user.id);
+            return userGroups.dataCaptureModule2And4.users.map(user => user.id);
         } else {
             return [];
         }
@@ -144,7 +157,8 @@ export class SaveIssueUseCase {
     private buildIssueWithNewValue(
         options: SaveIssueOptions,
         issue: QualityAnalysisIssue,
-        contactEmails: Maybe<ContactEmailsUsers>
+        contactEmails: Maybe<ContactEmailsUsers>,
+        metadata: MetadataItem
     ): QualityAnalysisIssue {
         switch (options.propertyToUpdate) {
             case "azureUrl": {
@@ -165,7 +179,7 @@ export class SaveIssueUseCase {
                 return this.setNewValue(issue, options);
             }
             case "status": {
-                const actionSelected = this.metadata.optionSets.nhwaStatus.options.find(
+                const actionSelected = metadata.optionSets.status.options.find(
                     option => option.code === options.valueToUpdate
                 );
                 if (!actionSelected) return issue;
@@ -176,7 +190,7 @@ export class SaveIssueUseCase {
                 });
             }
             case "action": {
-                const actionSelected = this.metadata.optionSets.nhwaAction.options.find(
+                const actionSelected = metadata.optionSets.action.options.find(
                     option => option.code === options.valueToUpdate
                 );
                 if (!actionSelected) return options.issue;
@@ -219,7 +233,7 @@ export class SaveIssueUseCase {
     }
 
     private getAnalysis(options: SaveIssueOptions): FutureData<QualityAnalysis> {
-        return this.analysisRepository.getById(options.analysisId);
+        return this.analysisRepository.getById(options.analysisId, options.metadata);
     }
 
     private isUrl(value: string): boolean {
@@ -237,6 +251,7 @@ type SaveIssueOptions = {
     issue: QualityAnalysisIssue;
     propertyToUpdate: IssuePropertyName;
     valueToUpdate: string | boolean;
+    metadata: MetadataItem;
 };
 
 type ContactEmailsUsers = { to: User; cc: User[] };

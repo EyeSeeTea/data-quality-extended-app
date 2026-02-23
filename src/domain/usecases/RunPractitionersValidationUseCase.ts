@@ -17,6 +17,7 @@ import { UCIssue } from "./common/UCIssue";
 import { UCAnalysis } from "./common/UCAnalysis";
 import i18n from "$/utils/i18n";
 import { UCDataValue } from "$/domain/usecases/common/UCDataValue";
+import { MetadataItem } from "$/domain/entities/MetadataItem";
 
 export class RunPractitionersValidationUseCase {
     issueUseCase: UCIssue;
@@ -43,83 +44,98 @@ export class RunPractitionersValidationUseCase {
     private validatePractitionersValues(
         options: PractitionersValidationOptions
     ): FutureData<QualityAnalysis> {
-        return this.analysysUseCase.getById(options.analysisId).flatMap(analysis => {
-            if (!analysis.module.name.toLowerCase().includes("module 1")) {
-                return Future.error(
-                    new Error(i18n.t("This analysis is not available for this module"))
-                );
-            }
-            return this.getDataElementsByDisaggregationIds(
-                analysis.module.id,
-                options.dissagregationsIds
-            ).flatMap(dataElements => {
-                const practitionerDataElements = this.groupDataElements(dataElements);
+        return this.analysysUseCase
+            .getById(options.analysisId, options.metadata)
+            .flatMap(analysis => {
+                if (!analysis.module.name.toLowerCase().includes("module 1")) {
+                    return Future.error(
+                        new Error(i18n.t("This analysis is not available for this module"))
+                    );
+                }
+                return this.getDataElementsByDisaggregationIds(
+                    analysis.module.id,
+                    options.dissagregationsIds
+                ).flatMap(dataElements => {
+                    const practitionerDataElements = this.groupDataElements(dataElements);
 
-                return this.issueUseCase
-                    .getTotalIssuesBySection(analysis, options.sectionId)
-                    .flatMap(totalIssues => {
-                        return this.getDataValues(analysis).flatMap(dataValues => {
-                            const practitionerDataValues = this.getPractitionerDataValues(
-                                dataValues,
-                                dataElements
-                            );
+                    return this.issueUseCase
+                        .getTotalIssuesBySection(analysis, options.sectionId, options.metadata)
+                        .flatMap(totalIssues => {
+                            return this.getDataValues(analysis).flatMap(dataValues => {
+                                const practitionerDataValues = this.getPractitionerDataValues(
+                                    dataValues,
+                                    dataElements
+                                );
 
-                            const dvCountryPeriod =
-                                this.getDataValuesByCountryAndPeriod(practitionerDataValues);
+                                const dvCountryPeriod =
+                                    this.getDataValuesByCountryAndPeriod(practitionerDataValues);
 
-                            const keyDataValues = _(dvCountryPeriod).keys().value();
+                                const keyDataValues = _(dvCountryPeriod).keys().value();
 
-                            const dataElementsWithValues = _(keyDataValues)
-                                .map((keyDataValue): Maybe<DataElementsLevelWithValues[]> => {
-                                    const dataValuesOrgPeriod = dvCountryPeriod[keyDataValue];
-                                    const [orgUnit, period] = keyDataValue.split(".");
-                                    if (!orgUnit || !period) {
-                                        throw Error("Cannot found orgUnit or period");
-                                    }
-                                    if (!dataValuesOrgPeriod) return [];
-                                    const dataElementsWithDv = this.buildDataElementsWithDataValues(
-                                        orgUnit,
-                                        period,
-                                        practitionerDataElements,
-                                        dataValuesOrgPeriod,
-                                        practitionerDataValues
-                                    );
-                                    return dataElementsWithDv;
-                                })
-                                .compact()
-                                .flatten()
-                                .value();
+                                const dataElementsWithValues = _(keyDataValues)
+                                    .map((keyDataValue): Maybe<DataElementsLevelWithValues[]> => {
+                                        const dataValuesOrgPeriod = dvCountryPeriod[keyDataValue];
+                                        const [orgUnit, period] = keyDataValue.split(".");
+                                        if (!orgUnit || !period) {
+                                            throw Error("Cannot found orgUnit or period");
+                                        }
+                                        if (!dataValuesOrgPeriod) return [];
+                                        const dataElementsWithDv =
+                                            this.buildDataElementsWithDataValues(
+                                                orgUnit,
+                                                period,
+                                                practitionerDataElements,
+                                                dataValuesOrgPeriod,
+                                                practitionerDataValues
+                                            );
+                                        return dataElementsWithDv;
+                                    })
+                                    .compact()
+                                    .flatten()
+                                    .value();
 
-                            const issues = this.buildIssuesFromDataElements(
-                                dataElementsWithValues,
-                                options,
-                                analysis,
-                                totalIssues
-                            );
+                                const issues = this.buildIssuesFromDataElements(
+                                    dataElementsWithValues,
+                                    options,
+                                    analysis,
+                                    totalIssues
+                                );
 
-                            const analysisToUpdate = this.analysysUseCase.updateAnalysis(
-                                analysis,
-                                options.sectionId,
-                                issues.length
-                            );
+                                const analysisToUpdate = this.analysysUseCase.updateAnalysis(
+                                    analysis,
+                                    options.sectionId,
+                                    issues.length
+                                );
 
-                            return this.saveIssues(issues, analysisToUpdate, options.sectionId);
+                                return this.saveIssues(
+                                    issues,
+                                    analysisToUpdate,
+                                    options.sectionId,
+                                    options.metadata
+                                );
+                            });
                         });
-                    });
+                });
             });
-        });
     }
 
     private saveIssues(
         issues: QualityAnalysisIssue[],
         analysis: QualityAnalysis,
-        sectionId: Id
+        sectionId: Id,
+        metadata: MetadataItem
     ): FutureData<QualityAnalysis> {
-        return this.issueUseCase.getRelatedIssues(issues, sectionId).flatMap(dismissedIssues => {
-            return this.issueUseCase.save(dismissedIssues, analysis.id).flatMap(() => {
-                return this.analysisRepository.save([analysis]).map(() => analysis);
+        return this.issueUseCase
+            .getRelatedIssues(issues, sectionId, metadata)
+            .flatMap(dismissedIssues => {
+                return this.issueUseCase
+                    .save(dismissedIssues, analysis.id, metadata)
+                    .flatMap(() => {
+                        return this.analysisRepository
+                            .save([analysis], metadata)
+                            .map(() => analysis);
+                    });
             });
-        });
     }
 
     private buildIssuesFromDataElements(
@@ -517,6 +533,7 @@ type PractitionersValidationOptions = {
     dissagregationsIds: Id[];
     sectionId: Id;
     threshold: number;
+    metadata: MetadataItem;
 };
 
 type DataElementsLevel = {

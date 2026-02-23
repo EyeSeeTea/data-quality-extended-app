@@ -1,4 +1,5 @@
-import { Id, NamedCodeRef, NamedRef, Ref } from "./Ref";
+import { Maybe } from "$/utils/ts-utils";
+import { Id, NamedCodeRef, Ref } from "./Ref";
 
 export interface OptionSet extends NamedCodeRef {
     options: Array<{ id: Id; name: string; code: string }>;
@@ -13,8 +14,8 @@ export interface ProgramStage extends NamedCodeRef {
 export interface MetadataItem {
     trackedEntityTypes: { dataQuality: NamedCodeRef };
     organisationUnits: { global: NamedCodeRef };
-    dataSets: { module1: NamedCodeRef; module2: NamedCodeRef };
-    optionSets: { nhwaAction: OptionSet; nhwaStatus: OptionSet };
+    dataSets: NamedCodeRef[];
+    optionSets: { action: OptionSet; status: OptionSet };
     trackedEntityAttributes: {
         endDate: NamedCodeRef;
         module: NamedCodeRef;
@@ -42,9 +43,11 @@ export interface MetadataItem {
         correlative: NamedCodeRef;
         sectionNumber: NamedCodeRef;
     };
-    programs: { qualityIssues: NamedRef & { programStages: ProgramStage[] } };
-    userGroups: {
-        dataCaptureModule1: NamedCodeRef & { users: Ref[] };
-        dataCaptureModule2And4: NamedCodeRef & { users: Ref[] };
-    };
+    programs: { qualityIssues: NamedCodeRef & { programStages: ProgramStage[] } };
+    userGroups: Maybe<NHWAUserGroups>;
 }
+
+export type NHWAUserGroups = {
+    dataCaptureModule1: NamedCodeRef & { users: Ref[] };
+    dataCaptureModule2And4: NamedCodeRef & { users: Ref[] };
+};

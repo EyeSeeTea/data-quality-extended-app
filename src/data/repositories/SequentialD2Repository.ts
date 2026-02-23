@@ -7,10 +7,10 @@ import { MetadataItem } from "$/domain/entities/MetadataItem";
 import { DateISOString, Id } from "$/domain/entities/Ref";
 
 export class SequentialD2Repository implements SequentialRepository {
-    constructor(private api: D2Api, private metadata: MetadataItem) {}
+    constructor(private api: D2Api) {}
 
-    get(): FutureData<Sequential> {
-        const url = `/trackedEntityAttributes/${this.metadata.trackedEntityAttributes.sequential.id}/generate`;
+    get(metadata: MetadataItem): FutureData<Sequential> {
+        const url = `/trackedEntityAttributes/${metadata.trackedEntityAttributes.sequential.id}/generate`;
         return apiToFuture<D2SequentialResponse>(
             this.api.request({
                 method: "get",

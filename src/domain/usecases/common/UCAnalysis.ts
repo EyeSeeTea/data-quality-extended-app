@@ -1,4 +1,5 @@
 import { FutureData } from "$/data/api-futures";
+import { MetadataItem } from "$/domain/entities/MetadataItem";
 import { QualityAnalysis } from "$/domain/entities/QualityAnalysis";
 import { QualityAnalysisSection } from "$/domain/entities/QualityAnalysisSection";
 import { Id } from "$/domain/entities/Ref";
@@ -7,8 +8,8 @@ import { QualityAnalysisRepository } from "$/domain/repositories/QualityAnalysis
 export class UCAnalysis {
     constructor(private analysisRepository: QualityAnalysisRepository) {}
 
-    getById(id: Id): FutureData<QualityAnalysis> {
-        return this.analysisRepository.getById(id);
+    getById(id: Id, metadata: MetadataItem): FutureData<QualityAnalysis> {
+        return this.analysisRepository.getById(id, metadata);
     }
 
     updateAnalysis(analysis: QualityAnalysis, sectionId: Id, totalIssues: number): QualityAnalysis {

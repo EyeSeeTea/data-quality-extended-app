@@ -9,16 +9,16 @@ import { PageStepProps } from "$/webapp/pages/analysis/AnalysisPage";
 import { UserFeedbackContainer } from "$/webapp/components/user-feedback-container/UserFeedbackContainer";
 
 export const NursingMidwiferyStep: React.FC<PageStepProps> = React.memo(props => {
-    const { analysis, section, title, updateAnalysis } = props;
+    const { analysis, section, title, updateAnalysis, disaggregations } = props;
     const {
-        disaggregations,
+        disaggregationOptions,
         selectedDisaggregations,
         handleChange,
         reload,
         runAnalysis,
         isLoading,
         error,
-    } = useNursingMidwiferyStep({ analysis, section, updateAnalysis });
+    } = useNursingMidwiferyStep({ analysis, section, updateAnalysis, disaggregations });
 
     return (
         <UserFeedbackContainer isLoading={isLoading} error={error}>
@@ -30,7 +30,7 @@ export const NursingMidwiferyStep: React.FC<PageStepProps> = React.memo(props =>
                 onRun={runAnalysis}
             >
                 <SelectMultiCheckboxes
-                    options={disaggregations}
+                    options={disaggregationOptions}
                     onChange={handleChange}
                     value={selectedDisaggregations}
                     label={i18n.t("CatCombos")}

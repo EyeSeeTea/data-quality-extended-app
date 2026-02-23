@@ -12,15 +12,20 @@ import { IssueAction } from "$/domain/entities/IssueAction";
 import { QualityAnalysisSection } from "$/domain/entities/QualityAnalysisSection";
 import { DismissedAnalysis } from "$/domain/entities/DismissedAnalysis";
 import { Maybe } from "$/utils/ts-utils";
+import { MetadataItem } from "$/domain/entities/MetadataItem";
 
 export class UCIssue {
     constructor(private issueRepository: IssueRepository) {}
 
-    save(issues: QualityAnalysisIssue[], qualityAnalysisId: Id): FutureData<void> {
+    save(
+        issues: QualityAnalysisIssue[],
+        qualityAnalysisId: Id,
+        metadata: MetadataItem
+    ): FutureData<void> {
         if (issues.length === 0) return Future.success(undefined);
         const $requests = Future.sequential(
             _(issues)
-                .map(issue => this.issueRepository.create(issue, qualityAnalysisId))
+                .map(issue => this.issueRepository.create(issue, qualityAnalysisId, metadata))
                 .value()
         );
 
@@ -77,7 +82,11 @@ export class UCIssue {
         return issueNumber;
     }
 
-    getTotalIssuesBySection(analysis: QualityAnalysis, sectionId: string): FutureData<number> {
+    getTotalIssuesBySection(
+        analysis: QualityAnalysis,
+        sectionId: string,
+        metadata: MetadataItem
+    ): FutureData<number> {
         return this.issueRepository
             .get({
                 filters: {
@@ -95,6 +104,7 @@ export class UCIssue {
                 },
                 pagination: { page: 1, pageSize: 10 },
                 sorting: { field: "number", order: "asc" },
+                metadata: metadata,
             })
             .map(response => {
                 return response.pagination.total;
@@ -103,30 +113,37 @@ export class UCIssue {
 
     getAllIssues(
         filters: GetIssuesOptions["filters"],
-        state: { initialPage: number; issues: QualityAnalysisIssue[] }
+        state: { initialPage: number; issues: QualityAnalysisIssue[] },
+        metadata: MetadataItem
     ): FutureData<QualityAnalysisIssue[]> {
         const { initialPage, issues } = state;
-        return this.getIssues(filters, initialPage).flatMap(response => {
+        return this.getIssues(filters, initialPage, metadata).flatMap(response => {
             const newIssues = [...issues, ...response.rows];
             if (response.pagination.page >= response.pagination.pageCount) {
                 return Future.success(newIssues);
             } else {
-                return this.getAllIssues(filters, {
-                    initialPage: initialPage + 1,
-                    issues: newIssues,
-                });
+                return this.getAllIssues(
+                    filters,
+                    {
+                        initialPage: initialPage + 1,
+                        issues: newIssues,
+                    },
+                    metadata
+                );
             }
         });
     }
 
     private getIssues(
         filters: GetIssuesOptions["filters"],
-        page: number
+        page: number,
+        metadata: MetadataItem
     ): FutureData<RowsPaginated<QualityAnalysisIssue>> {
         return this.issueRepository.get({
             filters: filters,
             pagination: { page: page, pageSize: 100 },
             sorting: { field: "number", order: "asc" },
+            metadata: metadata,
         });
     }
 
@@ -149,7 +166,8 @@ export class UCIssue {
 
     getRelatedIssues(
         issues: QualityAnalysisIssue[],
-        sectionId: Id
+        sectionId: Id,
+        metadata: MetadataItem
     ): FutureData<QualityAnalysisIssue[]> {
         return this.getAllIssues(
             {
@@ -165,7 +183,8 @@ export class UCIssue {
                 step: undefined,
                 search: undefined,
             },
-            { initialPage: 1, issues: [] }
+            { initialPage: 1, issues: [] },
+            metadata
         ).map(existingIssues => {
             const dimissedAnalysis = new DismissedAnalysis({
                 existingIssues: existingIssues,

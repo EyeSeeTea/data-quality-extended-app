@@ -1,32 +1,17 @@
-import { Maybe } from "$/utils/ts-utils";
 import { Either } from "./generic/Either";
 import { ValidationError } from "./generic/Errors";
 import { Struct } from "./generic/Struct";
-import { validateRequired } from "./generic/validations";
-import { Module } from "./Module";
+import { validateDateRange, validateRequired } from "./generic/validations";
+import { ModuleBase } from "./Module";
 import { Id } from "./Ref";
 
 export interface SettingsAttrs {
     endDate: string;
-    module: Module;
+    module: ModuleBase;
     startDate: string;
     countryIds: Id[];
-    sections: SectionSetting[];
+    usePreviousYear: boolean;
 }
-
-export type SectionSetting = {
-    id: Id;
-    disaggregations: SectionDisaggregation[];
-};
-
-export type SectionDisaggregation = {
-    id: Id;
-    disaggregationId: Id;
-    name: string;
-    type: "combos" | "key_occupations" | "edu_occupations";
-    combinations: string[];
-    nursingMidwifery: Maybe<string[][]>;
-};
 
 export class Settings extends Struct<SettingsAttrs>() {
     static build(attrs: SettingsAttrs): Either<ValidationError<Settings>[], Settings> {
@@ -34,20 +19,29 @@ export class Settings extends Struct<SettingsAttrs>() {
 
         const errors: ValidationError<Settings>[] = [
             {
-                property: "endDate" as const,
-                errors: validateRequired(settings.endDate),
-                value: settings.endDate,
-            },
-            {
                 property: "module" as const,
                 errors: validateRequired(settings.module.id),
                 value: settings.module.id,
             },
-            {
-                property: "startDate" as const,
-                errors: validateRequired(settings.startDate),
-                value: settings.startDate,
-            },
+            ...(settings.usePreviousYear
+                ? []
+                : [
+                      {
+                          property: "startDate" as const,
+                          errors: validateRequired(settings.startDate),
+                          value: settings.startDate,
+                      },
+                      {
+                          property: "endDate" as const,
+                          errors: validateRequired(settings.endDate),
+                          value: settings.endDate,
+                      },
+                      {
+                          property: "startDate" as const,
+                          errors: validateDateRange(settings.startDate, settings.endDate),
+                          value: { startDate: settings.startDate, endDate: settings.endDate },
+                      },
+                  ]),
         ].filter(validation => validation.errors.length > 0);
 
         if (errors.length === 0) {
@@ -57,6 +51,3 @@ export class Settings extends Struct<SettingsAttrs>() {
         }
     }
 }
-
-export const DATA_QUALITY_NAMESPACE = "data-quality";
-export const DATA_QUALITY_SETTINGS_KEY = "settings";

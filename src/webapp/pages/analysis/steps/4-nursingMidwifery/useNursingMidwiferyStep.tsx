@@ -1,40 +1,42 @@
 import React from "react";
-import { Id } from "$/domain/entities/Ref";
+
 import { useAppContext } from "$/webapp/contexts/app-context";
 import { QualityAnalysis } from "$/domain/entities/QualityAnalysis";
 import { QualityAnalysisSection } from "$/domain/entities/QualityAnalysisSection";
 import { UpdateAnalysisState } from "$/webapp/pages/analysis/AnalysisPage";
 import { Maybe } from "$/utils/ts-utils";
 import _ from "$/domain/entities/generic/Collection";
+import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
+import { Option } from "$/webapp/entities/Option";
+import { SectionDisaggregation } from "$/domain/entities/SectionDisaggregation";
 
 export function useNursingMidwiferyStep(props: UseNursingMidwiferyStepProps) {
-    const { analysis, section, updateAnalysis } = props;
+    const { analysis, section, updateAnalysis, disaggregations } = props;
     const { compositionRoot } = useAppContext();
+    const { metadataItem } = useMetadataItemContext();
+
     const [isLoading, setLoading] = React.useState<boolean>(false);
     const [error, setError] = React.useState<Maybe<string>>(undefined);
     const [reload, refreshReload] = React.useState(0);
-    const [disaggregations, setDisaggregations] = React.useState<{ value: Id; text: string }[]>([]);
-    const [selectedDisaggregations, setSelectedDissagregations] = React.useState<string[]>([]);
+    const [selectedDisaggregations, setSelectedDisagregations] = React.useState<string[]>([]);
+
+    const disaggregationOptions: Option[] = React.useMemo(() => {
+        if (!disaggregations) return [];
+        return disaggregations
+            .map(disaggregation => ({
+                text: disaggregation.name,
+                value: disaggregation.id,
+            }))
+            .sort((a, b) => a.text.localeCompare(b.text));
+    }, [disaggregations]);
 
     React.useEffect(() => {
-        compositionRoot.nursingMidwifery.getDisaggregations.execute(section.id).run(
-            result => {
-                const selectedDisaggregations = result.map(item => ({
-                    value: item.id,
-                    text: item.name,
-                }));
-                setDisaggregations(selectedDisaggregations);
-                setSelectedDissagregations(selectedDisaggregations.map(item => item.value));
-            },
-            error => {
-                setError(error.message);
-            }
-        );
-    }, [section.id, compositionRoot.nursingMidwifery.getDisaggregations]);
+        setSelectedDisagregations(disaggregationOptions.map(item => item.value));
+    }, [disaggregationOptions]);
 
-    const handleChange = (values: string[]) => {
-        setSelectedDissagregations(values);
-    };
+    const handleChange = React.useCallback((values: string[]) => {
+        setSelectedDisagregations(values);
+    }, []);
 
     const runAnalysis = React.useCallback(() => {
         setLoading(true);
@@ -43,6 +45,8 @@ export function useNursingMidwiferyStep(props: UseNursingMidwiferyStepProps) {
                 analysisId: analysis.id,
                 disaggregationsIds: selectedDisaggregations,
                 sectionId: section.id,
+                metadata: metadataItem,
+                sectionDisaggregations: disaggregations || [],
             })
             .run(
                 analysis => {
@@ -62,12 +66,14 @@ export function useNursingMidwiferyStep(props: UseNursingMidwiferyStepProps) {
         updateAnalysis,
         selectedDisaggregations,
         section.id,
+        metadataItem,
+        disaggregations,
     ]);
 
     return {
         analysis,
         reload,
-        disaggregations,
+        disaggregationOptions: disaggregationOptions,
         selectedDisaggregations,
         handleChange,
         runAnalysis,
@@ -80,4 +86,5 @@ type UseNursingMidwiferyStepProps = {
     analysis: QualityAnalysis;
     section: QualityAnalysisSection;
     updateAnalysis: UpdateAnalysisState;
+    disaggregations: Maybe<SectionDisaggregation[]>;
 };
