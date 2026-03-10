@@ -54,6 +54,12 @@ export class D2User {
         );
     }
 
+    getByIdentifiable(identifiable: string): FutureData<User[]> {
+        return apiToFuture(
+            this.api.models.users.get({ fields: userFields, query: identifiable })
+        ).flatMap(({ objects }) => Future.success(objects.map(d2User => this.buildUser(d2User))));
+    }
+
     private buildUser(d2User: D2UserEntity) {
         const readAccessCountries = d2User.teiSearchOrganisationUnits.map(d2OrgUnit => {
             return { ...d2OrgUnit, writeAccess: false };

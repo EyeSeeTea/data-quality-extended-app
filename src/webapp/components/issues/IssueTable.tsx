@@ -6,6 +6,7 @@ import {
     useObjectsTable,
     useSnackbar,
     ObjectsTable,
+    TableAction,
 } from "@eyeseetea/d2-ui-components";
 import { useAppContext } from "$/webapp/contexts/app-context";
 import { QualityAnalysisIssue } from "$/domain/entities/QualityAnalysisIssue";
@@ -20,6 +21,10 @@ import { useTableUtils } from "$/webapp/hooks/useTable";
 import { useIssueColumns } from "./IssueColumns";
 import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
 import { hasUserGroups } from "$/webapp/components/issues/utils";
+import {
+    NotificationModal,
+    useIssueNotification,
+} from "$/webapp/components/issues/NotificationModal";
 
 export function useCopyContactEmails(props: UseCopyContactEmailsProps) {
     const { onSuccess } = props;
@@ -95,7 +100,7 @@ export function useExportIssues() {
 }
 
 export function useTableConfig(props: UseTableConfigProps) {
-    const { analysisId, filters, sectionId, showExport } = props;
+    const { analysisId, filters, sectionId, showExport, openNotificationModal } = props;
     const { issueColumns, refresh, setRefresh } = useIssueColumns();
     const { metadataItem } = useMetadataItemContext();
 
@@ -110,6 +115,54 @@ export function useTableConfig(props: UseTableConfigProps) {
 
     const copyContactEmails = useCopyContactEmails({ onSuccess: onSuccess });
     const exportIssues = useExportIssues();
+
+    const actions: TableAction<QualityAnalysisIssue>[] = React.useMemo(() => {
+        const allActions: TableAction<QualityAnalysisIssue>[] = [
+            {
+                name: "Send new notification",
+                text: i18n.t("Send new notification"),
+                primary: false,
+                onClick(selectedIds) {
+                    const issueId = selectedIds[0];
+                    if (!issueId) return false;
+                    openNotificationModal(issueId);
+                },
+            },
+            {
+                name: "View notification history",
+                text: i18n.t("View notification history"),
+                primary: false,
+                onClick(selectedIds) {
+                    const issueId = selectedIds[0];
+                    if (!issueId) return false;
+                },
+            },
+        ];
+
+        const extendContactEmailActions: TableAction<QualityAnalysisIssue>[] = [
+            {
+                name: "Extend Contact Emails",
+                text: i18n.t("Extend Follow-Up + Contact Emails"),
+                primary: false,
+                onClick(selectedIds) {
+                    const issueId = selectedIds[0];
+                    if (!issueId) return false;
+                    copyContactEmails(issueId, analysisId, sectionId, filters);
+                },
+            },
+        ];
+
+        return hasUserGroups(metadataItem.userGroups)
+            ? [...allActions, ...extendContactEmailActions]
+            : allActions;
+    }, [
+        metadataItem.userGroups,
+        openNotificationModal,
+        copyContactEmails,
+        analysisId,
+        sectionId,
+        filters,
+    ]);
 
     const tableConfig = React.useMemo<TableConfig<QualityAnalysisIssue>>(() => {
         return {
@@ -126,20 +179,7 @@ export function useTableConfig(props: UseTableConfigProps) {
                   ]
                 : undefined,
             stickyHeader: true,
-            actions: hasUserGroups(metadataItem.userGroups)
-                ? [
-                      {
-                          name: "Extend Contact Emails",
-                          text: i18n.t("Extend Follow-Up + Contact Emails"),
-                          primary: false,
-                          onClick(selectedIds) {
-                              const issueId = selectedIds[0];
-                              if (!issueId) return false;
-                              copyContactEmails(issueId, analysisId, sectionId, filters);
-                          },
-                      },
-                  ]
-                : [],
+            actions: actions,
             columns: columnsToShow,
             initialSorting: { field: "number", order: "asc" },
             paginationOptions: {
@@ -149,17 +189,7 @@ export function useTableConfig(props: UseTableConfigProps) {
             },
             onReorderColumns: saveColumns,
         };
-    }, [
-        showExport,
-        metadataItem.userGroups,
-        columnsToShow,
-        saveColumns,
-        exportIssues,
-        analysisId,
-        filters,
-        copyContactEmails,
-        sectionId,
-    ]);
+    }, [actions, showExport, columnsToShow, saveColumns, exportIssues, analysisId, filters]);
 
     return { tableConfig, refresh };
 }
@@ -207,7 +237,16 @@ export function useGetRows(
                     .run(
                         response => {
                             setLoading(false);
-                            resolve({ pager: response.pagination, objects: response.rows });
+                            resolve({
+                                pager: response.pagination,
+                                objects: response.rows.map(
+                                    row =>
+                                        new QualityAnalysisIssue({
+                                            ...row,
+                                            id: `${row.id}:${row.number}`,
+                                        })
+                                ),
+                            });
                         },
                         err => {
                             setLoading(false);
@@ -239,6 +278,7 @@ export function useGetRows(
 export const IssueTable: React.FC<IssueTableProps> = React.memo(props => {
     const { analysisId, reload, sectionId, showExport, showStepFilter } = props;
     const [filters, setFilters] = React.useState(initialFilters);
+    const { openNotificationModal, ...issueNotification } = useIssueNotification();
 
     const { tableConfig, refresh } = useTableConfig({
         filters,
@@ -246,6 +286,7 @@ export const IssueTable: React.FC<IssueTableProps> = React.memo(props => {
         sectionId: sectionId,
         showExport: showExport,
         showStepFilter: showStepFilter,
+        openNotificationModal: openNotificationModal,
     });
     const { getRows, loading } = useGetRows(filters, reload, analysisId, sectionId, refresh);
     const config = useObjectsTable(tableConfig, getRows);
@@ -261,12 +302,15 @@ export const IssueTable: React.FC<IssueTableProps> = React.memo(props => {
     }, [filters, showStepFilter]);
 
     return (
-        <ObjectsTable
-            loading={loading}
-            {...config}
-            filterComponents={filterComponents}
-            onChangeSearch={undefined}
-        />
+        <>
+            <NotificationModal {...issueNotification} />
+            <ObjectsTable
+                loading={loading}
+                {...config}
+                filterComponents={filterComponents}
+                onChangeSearch={undefined}
+            />
+        </>
     );
 });
 
@@ -284,6 +328,7 @@ type UseTableConfigProps = {
     sectionId: Maybe<Id>;
     showExport?: boolean;
     showStepFilter?: boolean;
+    openNotificationModal: (issueId: string) => void;
 };
 
 type UseCopyContactEmailsProps = { onSuccess?: () => void };

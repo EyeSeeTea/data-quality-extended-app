@@ -5,4 +5,5 @@ export interface UserRepository {
     getCurrent(): FutureData<User>;
     getByIds(ids: string[]): FutureData<User[]>;
     getByUsernames(usernames: string[]): FutureData<User[]>;
+    getByIdentifiable(identifiable: string): FutureData<User[]>;
 }

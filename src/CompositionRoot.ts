@@ -82,6 +82,14 @@ import { DataQualityWorkflowSettingsD2Repository } from "$/data/repositories/Dat
 import { DataQualityWorkflowSettingsTestRepository } from "$/data/repositories/DataQualityWorkflowSettingsTestRepository";
 import { GetDataQualityIssuesProgramConfigUseCase } from "$/domain/usecases/GetDataQualityIssuesProgramConfigUseCase";
 import { RemoveDataQualityAnalysisConfigUseCase } from "$/domain/usecases/RemoveDataQualityAnalysisConfigUseCase";
+import { SendNotificationUseCase } from "$/domain/usecases/SendNotificationUseCase";
+import { NotificationRepository } from "$/domain/repositories/NotificationRepository";
+import { NotificationD2Repository } from "$/data/repositories/NotificationD2Repository";
+import { NotificationTestRepository } from "$/data/repositories/NotificationTestRepository";
+import { GetUserByIdentifiableUseCase } from "$/domain/usecases/GetUserByIdentiableUseCase";
+import { UserGroupRepository } from "$/domain/repositories/UserGroupRepository";
+import { UserGroupD2Repository } from "$/data/repositories/UserGroupD2Repository";
+import { UserGroupTestRepository } from "$/data/repositories/UserGroupTestRepository";
 
 export type CompositionRoot = ReturnType<typeof getCompositionRoot>;
 
@@ -103,6 +111,8 @@ type Repositories = {
     qualityIssuesProgramRepository: QualityIssuesProgramRepository;
     dataQualityIssuesProgramConfigRepository: DataQualityIssuesProgramConfigRepository;
     dataQualityWorkflowSettingsRepository: DataQualityWorkflowSettingsRepository;
+    notificationRepository: NotificationRepository;
+    userGroupRepository: UserGroupRepository;
 };
 
 function getCompositionRoot(repositories: Repositories) {
@@ -176,6 +186,11 @@ function getCompositionRoot(repositories: Repositories) {
             create: new CreateIssueUseCase(
                 repositories.qualityAnalysisRepository,
                 repositories.issueRepository
+            ),
+            sendNotification: new SendNotificationUseCase(repositories.notificationRepository),
+            searchUserAndUserGroup: new GetUserByIdentifiableUseCase(
+                repositories.usersRepository,
+                repositories.userGroupRepository
             ),
         },
         settings: { get: new GetSettingsUseCase(repositories.settingsRepository) },
@@ -252,6 +267,8 @@ export function getWebappCompositionRoot(api: D2Api) {
             api
         ),
         dataQualityWorkflowSettingsRepository: new DataQualityWorkflowSettingsD2Repository(api),
+        notificationRepository: new NotificationD2Repository(api),
+        userGroupRepository: new UserGroupD2Repository(api),
     };
 
     return getCompositionRoot(repositories);
@@ -277,6 +294,8 @@ export function getTestCompositionRoot() {
         dataQualityIssuesProgramConfigRepository:
             new DataQualityIssuesProgramConfigTestRepository(),
         dataQualityWorkflowSettingsRepository: new DataQualityWorkflowSettingsTestRepository(),
+        notificationRepository: new NotificationTestRepository(),
+        userGroupRepository: new UserGroupTestRepository(),
     };
 
     return getCompositionRoot(repositories);
