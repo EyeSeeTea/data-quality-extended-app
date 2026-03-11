@@ -57,7 +57,8 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
     get(options: QualityAnalysisOptions): FutureData<QualityAnalysisPaginated> {
         return apiToFuture(
             this.api.tracker.trackedEntities.get({
-                ouMode: "ALL",
+                ouMode: "SELECTED",
+                orgUnit: options.metadata.organisationUnits.global.id,
                 fields: { orgUnit: true, trackedEntity: true, attributes: true, enrollments: true },
                 program: this.getIdOrThrow(options.metadata.programs.qualityIssues?.id),
                 page: options.pagination.page,
@@ -366,7 +367,8 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
     ) {
         return apiToFuture(
             this.api.tracker.trackedEntities.get({
-                ouMode: "ALL",
+                ouMode: "SELECTED",
+                orgUnit: metadata.organisationUnits.global.id,
                 program: metadata.programs.qualityIssues.id,
                 fields: { $all: true },
                 trackedEntity: qaIds.join(";"),
