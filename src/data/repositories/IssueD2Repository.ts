@@ -148,7 +148,8 @@ export class IssueD2Repository implements IssueRepository {
 
         return apiToFuture(
             this.api.tracker.trackedEntities.get({
-                ouMode: "ALL",
+                ouMode: "SELECTED",
+                orgUnit: metadata.organisationUnits.global.id,
                 fields: { trackedEntity: true, enrollments: true },
                 program: metadata.programs.qualityIssues.id,
                 trackedEntity: analysisId,
