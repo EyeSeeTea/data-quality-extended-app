@@ -1,13 +1,27 @@
 import { FutureData } from "$/data/api-futures";
-import { Ref } from "$/domain/entities/Ref";
+import { IssueNotification } from "$/data/repositories/IssueNotificationD2Repository";
+import { MetadataItem } from "$/domain/entities/MetadataItem";
+import { Id } from "$/domain/entities/Ref";
+import { User } from "$/domain/entities/User";
+import { SearchResult } from "$/domain/usecases/GetUserByIdentifierUseCase";
+import { Maybe } from "$/utils/ts-utils";
 
 export interface IssueNotificationRepository {
-    // get(issueId: string): FutureData<void>;
+    get(notificationOptions: GetIssueNotificationsOptions): FutureData<IssueNotification>;
     send(notificationOptions: IssueNotificationOptions): FutureData<void>;
 }
 
-export type IssueNotificationOptions = {
-    issueId: string;
-    users: Ref[];
-    userGroups: Ref[];
+export type GetIssueNotificationsOptions = {
+    analysisId: Id;
+    sectionId: Maybe<Id>;
+    issueId: Id;
+    metadata: MetadataItem;
+};
+
+export type IssueNotificationOptions = GetIssueNotificationsOptions & {
+    issueNumber: string;
+    message: string;
+    searchResults: SearchResult[];
+    sender: User;
+    subject: string;
 };

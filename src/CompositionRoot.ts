@@ -90,6 +90,7 @@ import { GetUserByIdentifierUseCase } from "$/domain/usecases/GetUserByIdentifie
 import { UserGroupRepository } from "$/domain/repositories/UserGroupRepository";
 import { UserGroupD2Repository } from "$/data/repositories/UserGroupD2Repository";
 import { UserGroupTestRepository } from "$/data/repositories/UserGroupTestRepository";
+import { GetIssueNotificationsUseCase } from "$/domain/usecases/GetIssueNotificationsUseCase";
 
 export type CompositionRoot = ReturnType<typeof getCompositionRoot>;
 
@@ -186,6 +187,9 @@ function getCompositionRoot(repositories: Repositories) {
             create: new CreateIssueUseCase(
                 repositories.qualityAnalysisRepository,
                 repositories.issueRepository
+            ),
+            getNotifications: new GetIssueNotificationsUseCase(
+                repositories.issueNotificationRepository
             ),
             sendNotification: new SendNotificationUseCase(repositories.issueNotificationRepository),
             searchUserAndUserGroup: new GetUserByIdentifierUseCase(

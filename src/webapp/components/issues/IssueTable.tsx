@@ -25,6 +25,10 @@ import {
     NotificationModal,
     useIssueNotification,
 } from "$/webapp/components/issues/NotificationModal";
+import {
+    NotificationHistoryModal,
+    useIssueNotificationHistory,
+} from "$/webapp/components/issues/NotificationHistoryModal";
 
 export function useCopyContactEmails(props: UseCopyContactEmailsProps) {
     const { onSuccess } = props;
@@ -100,7 +104,14 @@ export function useExportIssues() {
 }
 
 export function useTableConfig(props: UseTableConfigProps) {
-    const { analysisId, filters, sectionId, showExport, openNotificationModal } = props;
+    const {
+        analysisId,
+        filters,
+        sectionId,
+        showExport,
+        openNotificationModal,
+        openNotificationHistoryModal,
+    } = props;
     const { issueColumns, refresh, setRefresh } = useIssueColumns();
     const { metadataItem } = useMetadataItemContext();
 
@@ -117,11 +128,12 @@ export function useTableConfig(props: UseTableConfigProps) {
     const exportIssues = useExportIssues();
 
     const actions: TableAction<QualityAnalysisIssue>[] = React.useMemo(() => {
-        const allActions: TableAction<QualityAnalysisIssue>[] = [
+        const notificationActions: TableAction<QualityAnalysisIssue>[] = [
             {
                 name: "Send new notification",
                 text: i18n.t("Send new notification"),
                 primary: false,
+                isActive: rows => rows.every(row => row.conversationId === ""),
                 onClick(selectedIds) {
                     const issueId = selectedIds[0];
                     if (!issueId) return false;
@@ -132,9 +144,12 @@ export function useTableConfig(props: UseTableConfigProps) {
                 name: "View notification history",
                 text: i18n.t("View notification history"),
                 primary: false,
+                isActive: rows => rows.some(row => row.conversationId !== ""),
                 onClick(selectedIds) {
                     const issueId = selectedIds[0];
                     if (!issueId) return false;
+
+                    openNotificationHistoryModal(issueId);
                 },
             },
         ];
@@ -153,11 +168,12 @@ export function useTableConfig(props: UseTableConfigProps) {
         ];
 
         return hasUserGroups(metadataItem.userGroups)
-            ? [...allActions, ...extendContactEmailActions]
-            : allActions;
+            ? [...notificationActions, ...extendContactEmailActions]
+            : notificationActions;
     }, [
         metadataItem.userGroups,
         openNotificationModal,
+        openNotificationHistoryModal,
         copyContactEmails,
         analysisId,
         sectionId,
@@ -278,7 +294,15 @@ export function useGetRows(
 export const IssueTable: React.FC<IssueTableProps> = React.memo(props => {
     const { analysisId, reload, sectionId, showExport, showStepFilter } = props;
     const [filters, setFilters] = React.useState(initialFilters);
-    const { openNotificationModal, ...issueNotification } = useIssueNotification();
+
+    const { openNotificationModal, ...issueNotification } = useIssueNotification({
+        analysisId,
+        sectionId,
+    });
+    const { openNotificationHistoryModal, ...notificationHistory } = useIssueNotificationHistory({
+        analysisId,
+        sectionId,
+    });
 
     const { tableConfig, refresh } = useTableConfig({
         filters,
@@ -287,6 +311,7 @@ export const IssueTable: React.FC<IssueTableProps> = React.memo(props => {
         showExport: showExport,
         showStepFilter: showStepFilter,
         openNotificationModal: openNotificationModal,
+        openNotificationHistoryModal: openNotificationHistoryModal,
     });
     const { getRows, loading } = useGetRows(filters, reload, analysisId, sectionId, refresh);
     const config = useObjectsTable(tableConfig, getRows);
@@ -304,6 +329,7 @@ export const IssueTable: React.FC<IssueTableProps> = React.memo(props => {
     return (
         <>
             <NotificationModal {...issueNotification} />
+            <NotificationHistoryModal {...notificationHistory} />
             <ObjectsTable
                 loading={loading}
                 {...config}
@@ -329,6 +355,7 @@ type UseTableConfigProps = {
     showExport?: boolean;
     showStepFilter?: boolean;
     openNotificationModal: (issueId: string) => void;
+    openNotificationHistoryModal: (issueId: string) => void;
 };
 
 type UseCopyContactEmailsProps = { onSuccess?: () => void };

@@ -176,6 +176,10 @@ export class IssueD2Repository implements IssueRepository {
                             value: issue.correlative,
                         },
                         {
+                            id: metadata.dataElements.conversationId.id,
+                            value: issue.conversationId,
+                        },
+                        {
                             id: metadata.dataElements.status.id,
                             value: issue.status?.code || "",
                         },
@@ -289,8 +293,6 @@ export class IssueD2Repository implements IssueRepository {
                     dataElement => dataElement.id === dataElementId
                 );
 
-                console.log({ dataValuesById, metadata });
-
                 return new QualityAnalysisIssue({
                     action: issueAction,
                     actionDescription: this.getDataValue(
@@ -312,6 +314,7 @@ export class IssueD2Repository implements IssueRepository {
                     comments: this.getDataValue(dataValuesById, "comments", metadata),
                     contactEmails: this.getDataValue(dataValuesById, "contactEmails", metadata),
                     correlative: this.getDataValue(dataValuesById, "correlative", metadata),
+                    conversationId: this.getDataValue(dataValuesById, "conversationId", metadata),
                 });
             })
             .compact()

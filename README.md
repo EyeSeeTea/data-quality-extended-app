@@ -160,6 +160,7 @@ The Tracker Program stages must include Data Elements with the following codes:
 -   `PREFIX_DQI_Period` — **TEXT**
 -   `PREFIX_DQI_Section_Number` — **NUMBER**
 -   `PREFIX_DQI_Status` — **Option Set:** `PREFIX_DQI_Status`
+-   `PREFIX_DQI_Conversation_ID` - **TEXT**
 
 #### Option Sets
 
@@ -207,6 +208,7 @@ the application will not be able to recognize or configure the program and will 
         "categoryOption": "PREFIX_DQI_Category_Option",
         "comments": "PREFIX_DQI_Comments",
         "contactEmails": "PREFIX_DQI_Contact_Emails",
+        "conversationId": "PREFIX_DQI_Conversation_ID",
         "correlative": "PREFIX_DQI_Issue_Correlative_Number",
         "country": "PREFIX_DQI_Country",
         "dataElement": "PREFIX_DQI_DataElement",

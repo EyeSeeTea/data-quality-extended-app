@@ -521,6 +521,10 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
                 value: this.getValueOrDefault(issue.correlative),
             },
             {
+                dataElement: metadata.dataElements.conversationId.id,
+                value: this.getValueOrDefault(issue.conversationId),
+            },
+            {
                 dataElement: metadata.dataElements.action.id,
                 value: this.getValueOrDefault(issue.action?.code),
             },

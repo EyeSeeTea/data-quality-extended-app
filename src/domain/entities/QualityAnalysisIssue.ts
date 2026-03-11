@@ -24,6 +24,7 @@ export interface QualityAnalysisIssueAttrs {
     comments: string;
     contactEmails: string;
     correlative: string;
+    conversationId: string;
 }
 
 export class QualityAnalysisIssue extends Struct<QualityAnalysisIssueAttrs>() {}
