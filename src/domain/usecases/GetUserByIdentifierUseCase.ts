@@ -6,23 +6,29 @@ import { UserGroupRepository } from "$/domain/repositories/UserGroupRepository";
 import { UserRepository } from "$/domain/repositories/UserRepository";
 import { NamedRef } from "@eyeseetea/d2-logger/domain/entities/Base";
 
-export class GetUserByIdentifiableUseCase {
+export class GetUserByIdentifierUseCase {
     constructor(
         private userRepository: UserRepository,
         private userGroupRepository: UserGroupRepository
     ) {}
 
-    execute(identifiable: string): FutureData<SearchResult[]> {
+    execute(identifier: string, sender: User): FutureData<SearchResult[]> {
         return Future.join2(
-            this.userRepository.getByIdentifiable(identifiable),
-            this.userGroupRepository.getByIdentifiable(identifiable)
-        ).flatMap(([users, userGroups]) => Future.success(mapSearchResults(users, userGroups)));
+            this.userRepository.getByIdentifiable(identifier),
+            this.userGroupRepository.getByIdentifiable(identifier)
+        ).flatMap(([users, userGroups]) =>
+            Future.success(mapSearchResults(users, userGroups, sender))
+        );
     }
 }
 
 export type SearchResult = NamedRef & { type: "user" | "userGroup" };
 
-export const mapSearchResults = (users: User[], userGroups: UserGroup[]): SearchResult[] => {
+export const mapSearchResults = (
+    users: User[],
+    userGroups: UserGroup[],
+    sender: User
+): SearchResult[] => {
     const userResults = users.map(user => ({
         id: user.id,
         name: user.username || user.name,
@@ -33,5 +39,6 @@ export const mapSearchResults = (users: User[], userGroups: UserGroup[]): Search
         name: userGroup.name,
         type: "userGroup" as const,
     }));
-    return [...userResults, ...userGroupResults];
+
+    return [...userResults, ...userGroupResults].filter(user => user.id !== sender.id);
 };

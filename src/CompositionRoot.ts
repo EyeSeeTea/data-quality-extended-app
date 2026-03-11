@@ -83,10 +83,10 @@ import { DataQualityWorkflowSettingsTestRepository } from "$/data/repositories/D
 import { GetDataQualityIssuesProgramConfigUseCase } from "$/domain/usecases/GetDataQualityIssuesProgramConfigUseCase";
 import { RemoveDataQualityAnalysisConfigUseCase } from "$/domain/usecases/RemoveDataQualityAnalysisConfigUseCase";
 import { SendNotificationUseCase } from "$/domain/usecases/SendNotificationUseCase";
-import { NotificationRepository } from "$/domain/repositories/NotificationRepository";
-import { NotificationD2Repository } from "$/data/repositories/NotificationD2Repository";
-import { NotificationTestRepository } from "$/data/repositories/NotificationTestRepository";
-import { GetUserByIdentifiableUseCase } from "$/domain/usecases/GetUserByIdentiableUseCase";
+import { IssueNotificationRepository } from "$/domain/repositories/IssueNotificationRepository";
+import { IssueNotificationD2Repository } from "$/data/repositories/IssueNotificationD2Repository";
+import { IssueNotificationTestRepository } from "$/data/repositories/IssueNotificationTestRepository";
+import { GetUserByIdentifierUseCase } from "$/domain/usecases/GetUserByIdentifierUseCase";
 import { UserGroupRepository } from "$/domain/repositories/UserGroupRepository";
 import { UserGroupD2Repository } from "$/data/repositories/UserGroupD2Repository";
 import { UserGroupTestRepository } from "$/data/repositories/UserGroupTestRepository";
@@ -111,7 +111,7 @@ type Repositories = {
     qualityIssuesProgramRepository: QualityIssuesProgramRepository;
     dataQualityIssuesProgramConfigRepository: DataQualityIssuesProgramConfigRepository;
     dataQualityWorkflowSettingsRepository: DataQualityWorkflowSettingsRepository;
-    notificationRepository: NotificationRepository;
+    issueNotificationRepository: IssueNotificationRepository;
     userGroupRepository: UserGroupRepository;
 };
 
@@ -187,8 +187,8 @@ function getCompositionRoot(repositories: Repositories) {
                 repositories.qualityAnalysisRepository,
                 repositories.issueRepository
             ),
-            sendNotification: new SendNotificationUseCase(repositories.notificationRepository),
-            searchUserAndUserGroup: new GetUserByIdentifiableUseCase(
+            sendNotification: new SendNotificationUseCase(repositories.issueNotificationRepository),
+            searchUserAndUserGroup: new GetUserByIdentifierUseCase(
                 repositories.usersRepository,
                 repositories.userGroupRepository
             ),
@@ -267,7 +267,7 @@ export function getWebappCompositionRoot(api: D2Api) {
             api
         ),
         dataQualityWorkflowSettingsRepository: new DataQualityWorkflowSettingsD2Repository(api),
-        notificationRepository: new NotificationD2Repository(api),
+        issueNotificationRepository: new IssueNotificationD2Repository(api),
         userGroupRepository: new UserGroupD2Repository(api),
     };
 
@@ -294,7 +294,7 @@ export function getTestCompositionRoot() {
         dataQualityIssuesProgramConfigRepository:
             new DataQualityIssuesProgramConfigTestRepository(),
         dataQualityWorkflowSettingsRepository: new DataQualityWorkflowSettingsTestRepository(),
-        notificationRepository: new NotificationTestRepository(),
+        issueNotificationRepository: new IssueNotificationTestRepository(),
         userGroupRepository: new UserGroupTestRepository(),
     };
 

@@ -54,9 +54,9 @@ export class D2User {
         );
     }
 
-    getByIdentifiable(identifiable: string): FutureData<User[]> {
+    getByIdentifiable(identifier: string): FutureData<User[]> {
         return apiToFuture(
-            this.api.models.users.get({ fields: userFields, query: identifiable })
+            this.api.models.users.get({ fields: userFields, query: identifier })
         ).flatMap(({ objects }) => Future.success(objects.map(d2User => this.buildUser(d2User))));
     }
 

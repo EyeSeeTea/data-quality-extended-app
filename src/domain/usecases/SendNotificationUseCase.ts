@@ -1,13 +1,13 @@
 import { FutureData } from "$/data/api-futures";
 import {
-    NotificationOptions,
-    NotificationRepository,
-} from "$/domain/repositories/NotificationRepository";
+    IssueNotificationOptions,
+    IssueNotificationRepository,
+} from "$/domain/repositories/IssueNotificationRepository";
 
 export class SendNotificationUseCase {
-    constructor(private notificationRepository: NotificationRepository) {}
+    constructor(private issueNotificationRepository: IssueNotificationRepository) {}
 
-    execute(options: NotificationOptions): FutureData<void> {
-        return this.notificationRepository.send(options);
+    execute(options: IssueNotificationOptions): FutureData<void> {
+        return this.issueNotificationRepository.send(options);
     }
 }

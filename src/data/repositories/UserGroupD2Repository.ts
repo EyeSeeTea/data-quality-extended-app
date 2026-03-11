@@ -7,12 +7,12 @@ import { D2Api } from "@eyeseetea/d2-api/2.36";
 export class UserGroupD2Repository implements UserGroupRepository {
     constructor(private api: D2Api) {}
 
-    getByIdentifiable(identifiable: string): FutureData<UserGroup[]> {
+    getByIdentifiable(identifier: string): FutureData<UserGroup[]> {
         return apiToFuture(
             this.api.models.userGroups.get({
                 filter: {
                     displayName: {
-                        token: identifiable,
+                        token: identifier,
                     },
                 },
                 fields: {

@@ -289,6 +289,8 @@ export class IssueD2Repository implements IssueRepository {
                     dataElement => dataElement.id === dataElementId
                 );
 
+                console.log({ dataValuesById, metadata });
+
                 return new QualityAnalysisIssue({
                     action: issueAction,
                     actionDescription: this.getDataValue(

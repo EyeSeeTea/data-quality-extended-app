@@ -14,8 +14,8 @@ export class UserD2Repository implements UserRepository {
         return this.d2User.getByIds(ids);
     }
 
-    getByIdentifiable(identifiable: string): FutureData<User[]> {
-        return this.d2User.getByIdentifiable(identifiable);
+    getByIdentifiable(identifier: string): FutureData<User[]> {
+        return this.d2User.getByIdentifiable(identifier);
     }
 
     public getCurrent(): FutureData<User> {

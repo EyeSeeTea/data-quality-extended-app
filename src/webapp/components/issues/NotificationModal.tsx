@@ -18,7 +18,7 @@ import {
     CircularProgress,
 } from "@material-ui/core";
 import { Close as CloseIcon, People as GroupIcon, Person as PersonIcon } from "@material-ui/icons";
-import { SearchResult } from "$/domain/usecases/GetUserByIdentiableUseCase";
+import { SearchResult } from "$/domain/usecases/GetUserByIdentifierUseCase";
 
 type NotificationModalProps = {
     filteredResults: SearchResult[];
@@ -28,9 +28,9 @@ type NotificationModalProps = {
     searchText: string;
     selectedUsers: SearchResult[];
     closeNotificationModal: () => void;
-    confirmNotification: () => void;
+    sendNotification: () => void;
     hideList: () => void;
-    removeSelectedUser: (index: number) => void;
+    removeSelectedUser: (id: Id) => void;
     updateSearchText: (value: string) => void;
     updateSelectedUsers: (user: SearchResult) => void;
     loading: boolean;
@@ -48,7 +48,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = React.memo(pr
         selectedUsers,
         sending,
         closeNotificationModal,
-        confirmNotification,
+        sendNotification,
         hideList,
         removeSelectedUser,
         updateSearchText,
@@ -61,7 +61,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = React.memo(pr
             title={i18n.t(`New notification for issue ${notificationModal.issueNumber}`)}
             description={i18n.t("Select users and user groups to notify about this issue")}
             onCancel={closeNotificationModal}
-            onSave={confirmNotification}
+            onSave={sendNotification}
             saveText={i18n.t("Send notification")}
             cancelText={i18n.t("Cancel")}
             maxWidth="lg"
@@ -109,10 +109,10 @@ export const NotificationModal: React.FC<NotificationModalProps> = React.memo(pr
                         }}
                     >
                         <List>
-                            {filteredResults.map((result, index) => (
+                            {filteredResults.map(result => (
                                 <ListItem
                                     button
-                                    key={index}
+                                    key={result.id}
                                     onClick={() => updateSelectedUsers(result)}
                                 >
                                     {result.type === "user" ? (
@@ -130,11 +130,11 @@ export const NotificationModal: React.FC<NotificationModalProps> = React.memo(pr
 
             {selectedUsers.length > 0 && (
                 <Box display="flex" flexWrap="wrap" mt={1} mb={1} style={{ gap: 8 }}>
-                    {selectedUsers.map((user, index) => (
+                    {selectedUsers.map(user => (
                         <Chip
-                            key={index}
+                            key={user.id}
                             label={user.name}
-                            onDelete={() => removeSelectedUser(index)}
+                            onDelete={() => removeSelectedUser(user.id)}
                         />
                     ))}
                 </Box>
@@ -150,13 +150,14 @@ type NotificationModalState = {
 };
 
 export function useIssueNotification() {
-    const { compositionRoot } = useAppContext();
+    const { compositionRoot, currentUser } = useAppContext();
     const snackbar = useSnackbar();
 
     const [notificationModal, updateNotificationModal] = useState<NotificationModalState>(
         emptyNotificationModalState
     );
     const [searchText, updateSearchText] = useState("");
+    const [hasSearched, setHasSearched] = useState(false);
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [selectedUsers, setSelectedUsers] = useState<SearchResult[]>([]);
     const [isListOpen, setIsListOpen] = useState(true);
@@ -185,40 +186,36 @@ export function useIssueNotification() {
         updateNotificationModal({ isOpen: false, issueId: "", issueNumber: "" });
     }, []);
 
-    const sendNotification = useCallback(
-        (issueId: Id) => {
-            setSending(true);
-            compositionRoot.issues.sendNotification
-                .execute({
-                    issueId,
-                    users: selectedUsers,
-                    userGroups: [],
-                })
-                .run(
-                    () => {
-                        setSending(false);
-                        snackbar.success(i18n.t("Notification sent successfully"));
-                        closeNotificationModal();
-                    },
-                    error => {
-                        setSending(false);
-                        snackbar.error(error.message);
-                        closeNotificationModal();
-                    }
-                );
-        },
-        [closeNotificationModal, compositionRoot.issues.sendNotification, selectedUsers, snackbar]
-    );
-
-    const confirmNotification = useCallback(() => {
-        if (!notificationModal.issueId) return;
-
-        sendNotification(notificationModal.issueId);
-        closeNotificationModal();
-    }, [notificationModal.issueId, sendNotification, closeNotificationModal]);
+    const sendNotification = useCallback(() => {
+        setSending(true);
+        compositionRoot.issues.sendNotification
+            .execute({
+                issueId: notificationModal.issueNumber,
+                users: selectedUsers,
+                userGroups: [],
+            })
+            .run(
+                () => {
+                    setSending(false);
+                    snackbar.success(i18n.t("Notification sent successfully"));
+                    closeNotificationModal();
+                },
+                error => {
+                    setSending(false);
+                    snackbar.error(error.message);
+                    closeNotificationModal();
+                }
+            );
+    }, [
+        closeNotificationModal,
+        compositionRoot.issues.sendNotification,
+        notificationModal.issueNumber,
+        selectedUsers,
+        snackbar,
+    ]);
 
     const removeSelectedUser = useCallback(
-        (index: number) => setSelectedUsers(selectedUsers.filter((_, i) => i !== index)),
+        (id: string) => setSelectedUsers(selectedUsers.filter(user => user.id !== id)),
         [selectedUsers]
     );
 
@@ -232,26 +229,29 @@ export function useIssueNotification() {
             _.debounce((query: string) => {
                 if (query.trim()) {
                     setLoading(true);
-                    compositionRoot.issues.searchUserAndUserGroup.execute(query).run(
+                    compositionRoot.issues.searchUserAndUserGroup.execute(query, currentUser).run(
                         results => {
                             setSearchResults(results);
                             setIsListOpen(true);
                             setLoading(false);
+                            setHasSearched(true);
                         },
                         error => {
                             console.error("Error searching users:", error.message);
                             setSearchResults([]);
                             setIsListOpen(true);
                             setLoading(false);
+                            setHasSearched(true);
                         }
                     );
                 } else {
                     setSearchResults([]);
                     setIsListOpen(true);
                     setLoading(false);
+                    setHasSearched(false);
                 }
             }, 500),
-        [compositionRoot.issues.searchUserAndUserGroup]
+        [compositionRoot.issues.searchUserAndUserGroup, currentUser]
     );
 
     useEffect(() => {
@@ -280,8 +280,8 @@ export function useIssueNotification() {
     );
 
     const noUsers = useMemo(
-        () => isListOpen && searchText !== "" && searchResults.length === 0,
-        [isListOpen, searchText, searchResults]
+        () => isListOpen && hasSearched && searchResults.length === 0,
+        [isListOpen, hasSearched, searchResults]
     );
 
     return {
@@ -292,15 +292,15 @@ export function useIssueNotification() {
         selectedUsers: selectedUsers,
         searchResults: searchResults,
         displaySearchResults: displaySearchResults,
+        loading: loading,
+        sending: sending,
         closeNotificationModal: closeNotificationModal,
-        confirmNotification: confirmNotification,
+        sendNotification: sendNotification,
         hideList: hideList,
         openNotificationModal: openNotificationModal,
         removeSelectedUser: removeSelectedUser,
         updateSearchText: updateSearchText,
         updateSelectedUsers: updateSelectedUsers,
-        loading: loading,
-        sending: sending,
     };
 }
 
