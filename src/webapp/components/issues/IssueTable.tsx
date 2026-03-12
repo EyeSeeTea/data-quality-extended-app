@@ -322,8 +322,6 @@ export const IssueTable: React.FC<IssueTableProps> = React.memo(props => {
     );
     const config = useObjectsTable(tableConfig, getRows);
 
-    console.log({ config });
-
     const filterComponents = React.useMemo(() => {
         return (
             <IssueFilters

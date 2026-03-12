@@ -5,7 +5,6 @@ import { Id } from "$/domain/entities/Ref";
 import { useAppContext } from "$/webapp/contexts/app-context";
 import _ from "lodash";
 import {
-    Box,
     Chip,
     List,
     ListItem,
@@ -21,6 +20,7 @@ import { Close as CloseIcon, People as GroupIcon, Person as PersonIcon } from "@
 import { SearchResult } from "$/domain/usecases/GetUserByIdentifierUseCase";
 import { Maybe } from "$/utils/ts-utils";
 import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
+import styled from "styled-components";
 
 type NotificationModalProps = {
     filteredResults: SearchResult[];
@@ -40,7 +40,7 @@ type NotificationModalProps = {
     updateMessage: (value: string) => void;
     updateSelectedUsers: (user: SearchResult) => void;
     loading: boolean;
-    sending: boolean;
+    disableSave: boolean;
 };
 
 export const NotificationModal: React.FC<NotificationModalProps> = React.memo(props => {
@@ -54,7 +54,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = React.memo(pr
         subject,
         message,
         selectedUsers,
-        sending,
+        disableSave,
         closeNotificationModal,
         sendNotification,
         hideList,
@@ -75,14 +75,12 @@ export const NotificationModal: React.FC<NotificationModalProps> = React.memo(pr
             saveText={i18n.t("Send notification")}
             cancelText={i18n.t("Cancel")}
             maxWidth="lg"
-            disableSave={
-                sending || selectedUsers.length === 0 || !subject.trim() || !message.trim()
-            }
+            disableSave={disableSave}
             fullWidth
         >
-            <Box position="relative" mb={2}>
+            <SearchBox>
                 {selectedUsers.length > 0 && (
-                    <Box display="flex" flexWrap="wrap" style={{ gap: 6 }} mb={1}>
+                    <SelectedUsersContainer>
                         {selectedUsers.map(user => (
                             <Chip
                                 key={user.id}
@@ -91,7 +89,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = React.memo(pr
                                 onDelete={() => removeSelectedUser(user.id)}
                             />
                         ))}
-                    </Box>
+                    </SelectedUsersContainer>
                 )}
 
                 <TextField
@@ -118,19 +116,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = React.memo(pr
 
                 {(displaySearchResults || noUsers) && (
                     <ClickAwayListener onClickAway={hideList}>
-                        <Paper
-                            elevation={4}
-                            style={{
-                                maxHeight: 200,
-                                overflow: "auto",
-                                position: "absolute",
-                                top: "100%",
-                                left: 0,
-                                right: 0,
-                                zIndex: 10,
-                                marginTop: 4,
-                            }}
-                        >
+                        <StyledPaper elevation={4}>
                             {displaySearchResults && (
                                 <List>
                                     {filteredResults.map(result => (
@@ -154,19 +140,14 @@ export const NotificationModal: React.FC<NotificationModalProps> = React.memo(pr
                             )}
 
                             {noUsers && (
-                                <Box
-                                    p={2}
-                                    display="flex"
-                                    justifyContent="space-between"
-                                    alignItems="center"
-                                >
+                                <NoUsersContainer>
                                     {i18n.t("No users or user groups found")}
-                                </Box>
+                                </NoUsersContainer>
                             )}
-                        </Paper>
+                        </StyledPaper>
                     </ClickAwayListener>
                 )}
-            </Box>
+            </SearchBox>
 
             <TextField
                 fullWidth
@@ -215,21 +196,24 @@ export function useIssueNotification(props: { analysisId: Id; sectionId: Maybe<I
     const [sending, setSending] = useState(false);
     const [reload, refreshReload] = useState(0);
 
-    const openNotificationModal = useCallback((compositeId: Id) => {
-        const [issueId, issueNumber] = compositeId.split(":");
-        if (!issueId || !issueNumber) {
-            console.error(`Invalid issue id format: ${compositeId}`);
-            return;
-        }
+    const openNotificationModal = useCallback(
+        (compositeId: Id) => {
+            const [issueId, issueNumber] = compositeId.split(":");
+            if (!issueId || !issueNumber) {
+                snackbar.error(`Invalid issue id format: ${compositeId}`);
+                return;
+            }
 
-        updateNotificationModal({
-            isOpen: true,
-            issueId: issueId,
-            issueNumber: issueNumber,
-        });
-        updateSubject(generateIssueSubject(issueNumber));
-        updateMessage("");
-    }, []);
+            updateNotificationModal({
+                isOpen: true,
+                issueId: issueId,
+                issueNumber: issueNumber,
+            });
+            updateSubject(generateIssueSubject(issueNumber));
+            updateMessage("");
+        },
+        [snackbar]
+    );
 
     const closeNotificationModal = useCallback(() => {
         updateSearchText("");
@@ -266,7 +250,6 @@ export function useIssueNotification(props: { analysisId: Id; sectionId: Maybe<I
                 error => {
                     setSending(false);
                     snackbar.error(error.message);
-                    closeNotificationModal();
                 }
             );
     }, [
@@ -308,7 +291,7 @@ export function useIssueNotification(props: { analysisId: Id; sectionId: Maybe<I
                             setHasSearched(true);
                         },
                         error => {
-                            console.error("Error searching users:", error.message);
+                            snackbar.error(`Error searching users: ${error.message}`);
                             setSearchResults([]);
                             setIsListOpen(true);
                             setLoading(false);
@@ -322,7 +305,7 @@ export function useIssueNotification(props: { analysisId: Id; sectionId: Maybe<I
                     setHasSearched(false);
                 }
             }, 500),
-        [compositionRoot.issues.searchUserAndUserGroup, currentUser]
+        [compositionRoot.issues.searchUserAndUserGroup, currentUser, snackbar]
     );
 
     useEffect(() => {
@@ -355,6 +338,11 @@ export function useIssueNotification(props: { analysisId: Id; sectionId: Maybe<I
         [isListOpen, hasSearched, searchResults]
     );
 
+    const disableSave = useMemo(
+        () => sending || selectedUsers.length === 0 || !subject.trim() || !message.trim(),
+        [sending, selectedUsers, subject, message]
+    );
+
     return {
         filteredResults: filteredResults,
         notificationModal: notificationModal,
@@ -366,7 +354,7 @@ export function useIssueNotification(props: { analysisId: Id; sectionId: Maybe<I
         searchResults: searchResults,
         displaySearchResults: displaySearchResults,
         loading: loading,
-        sending: sending,
+        disableSave: disableSave,
         reload: reload,
         closeNotificationModal: closeNotificationModal,
         sendNotification: sendNotification,
@@ -391,3 +379,33 @@ const emptyNotificationModalState = {
     issueId: "",
     issueNumber: "",
 };
+
+const SearchBox = styled.div`
+    position: relative;
+    margin-block-end: 16px;
+`;
+
+const SelectedUsersContainer = styled.div`
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-block-end: 8px;
+`;
+
+const NoUsersContainer = styled.div`
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+`;
+
+const StyledPaper = styled(Paper)`
+    max-height: 200px;
+    overflow: auto;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    margin-block-start: 4px;
+`;

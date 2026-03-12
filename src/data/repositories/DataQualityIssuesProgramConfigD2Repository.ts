@@ -208,16 +208,6 @@ export class DataQualityIssuesProgramConfigD2Repository
             const wrongStatusOptionSet =
                 statusOptionSet !== datastoreProgramConfig.optionSets.status;
 
-            console.log({
-                stage,
-                stageDEs,
-                missingDEs,
-                actionOptionSet,
-                statusOptionSet,
-                wrongActionOptionSet,
-                wrongStatusOptionSet,
-            });
-
             if (missingDEs.length === 0 && !wrongActionOptionSet && !wrongStatusOptionSet)
                 return [];
 
@@ -248,8 +238,6 @@ export class DataQualityIssuesProgramConfigD2Repository
                 },
             ];
         });
-
-        console.log({ wrongProgramStages });
 
         return wrongProgramStages.length === 0;
     }
