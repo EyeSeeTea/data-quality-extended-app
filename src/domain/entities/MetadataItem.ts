@@ -42,7 +42,7 @@ export interface MetadataItem {
         comments: NamedCodeRef;
         correlative: NamedCodeRef;
         sectionNumber: NamedCodeRef;
-        conversationId: NamedCodeRef;
+        conversationId?: NamedCodeRef;
     };
     programs: { qualityIssues: NamedCodeRef & { programStages: ProgramStage[] } };
     userGroups: Maybe<NHWAUserGroups>;

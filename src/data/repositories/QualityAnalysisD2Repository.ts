@@ -514,15 +514,20 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
         metadata: MetadataItem
     ): DataValue[] {
         const programStageIndex = getProgramStageIndexById(issue.type, metadata);
+        const conversationIdDataValueMessage = metadata.dataElements.conversationId
+            ? [
+                  {
+                      dataElement: metadata.dataElements.conversationId.id,
+                      value: this.getValueOrDefault(issue.conversationId),
+                  },
+              ]
+            : [];
 
         const currentDataValues = [
+            ...conversationIdDataValueMessage,
             {
                 dataElement: metadata.dataElements.correlative.id,
                 value: this.getValueOrDefault(issue.correlative),
-            },
-            {
-                dataElement: metadata.dataElements.conversationId.id,
-                value: this.getValueOrDefault(issue.conversationId),
             },
             {
                 dataElement: metadata.dataElements.action.id,

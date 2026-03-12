@@ -144,11 +144,11 @@ export function useTableConfig(props: UseTableConfigProps) {
                 name: "View notification history",
                 text: i18n.t("View notification history"),
                 primary: false,
-                isActive: rows => rows.some(row => row.conversationId !== ""),
+                isActive: rows =>
+                    rows.every(row => row.conversationId && row.conversationId !== ""),
                 onClick(selectedIds) {
                     const issueId = selectedIds[0];
                     if (!issueId) return false;
-
                     openNotificationHistoryModal(issueId);
                 },
             },

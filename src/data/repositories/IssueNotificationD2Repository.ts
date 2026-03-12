@@ -53,11 +53,13 @@ export class IssueNotificationD2Repository implements IssueNotificationRepositor
             .flatMap(response => {
                 const dataValues = buildTrackerEventsResponse(response).instances[0]?.dataValues;
                 const conversationId = dataValues?.find(
-                    dataValue => dataValue.dataElement === metadata.dataElements.conversationId.id
+                    dataValue => dataValue.dataElement === metadata.dataElements.conversationId?.id
                 )?.value;
 
                 if (!conversationId)
-                    return Future.error(new Error("Conversation ID not found in data values"));
+                    return Future.error(
+                        new Error("Conversation ID not found. No notifications sent yet.")
+                    );
                 return Future.success(conversationId);
             })
             .flatMap(conversationId => {
@@ -161,6 +163,14 @@ export class IssueNotificationD2Repository implements IssueNotificationRepositor
     }): D2TrackerTrackedEntity[] {
         const { conversationId, metadata, programStage, eventId, existingTei } = options;
         const firstEnrollment = _c(existingTei?.enrollments || []).first();
+        const conversationIdDataElement = metadata.dataElements.conversationId;
+
+        if (!conversationIdDataElement) {
+            console.warn(
+                "Conversation ID data element is not defined in metadata. Cannot link the conversation to the issue."
+            );
+            return [];
+        }
 
         return [
             {
@@ -195,7 +205,7 @@ export class IssueNotificationD2Repository implements IssueNotificationRepositor
                                 occurredAt: new Date().toISOString(),
                                 dataValues: [
                                     {
-                                        dataElement: metadata.dataElements.conversationId.id,
+                                        dataElement: conversationIdDataElement.id,
                                         value: conversationId,
                                     },
                                 ],

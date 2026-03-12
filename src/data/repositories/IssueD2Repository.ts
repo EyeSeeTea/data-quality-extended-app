@@ -162,6 +162,14 @@ export class IssueD2Repository implements IssueRepository {
                 return Future.error(new Error(`Cannot found Enrollment in TEI: ${tei}`));
 
             const programStageIndex = getProgramStageIndexById(issue.type, metadata);
+            const conversationIdDataValueMessage = metadata.dataElements.conversationId
+                ? [
+                      {
+                          id: metadata.dataElements.conversationId.id,
+                          value: issue.conversationId || "",
+                      },
+                  ]
+                : [];
 
             return Future.fromPromise(
                 logger.info({
@@ -171,13 +179,10 @@ export class IssueD2Repository implements IssueRepository {
                         enrollmentId: enrollment.enrollment,
                     },
                     messages: [
+                        ...conversationIdDataValueMessage,
                         {
                             id: metadata.dataElements.correlative.id,
                             value: issue.correlative,
-                        },
-                        {
-                            id: metadata.dataElements.conversationId.id,
-                            value: issue.conversationId,
                         },
                         {
                             id: metadata.dataElements.status.id,
@@ -314,7 +319,7 @@ export class IssueD2Repository implements IssueRepository {
                     comments: this.getDataValue(dataValuesById, "comments", metadata),
                     contactEmails: this.getDataValue(dataValuesById, "contactEmails", metadata),
                     correlative: this.getDataValue(dataValuesById, "correlative", metadata),
-                    conversationId: this.getDataValue(dataValuesById, "conversationId", metadata),
+                    conversationId: dataValuesById.get("conversationId") || undefined,
                 });
             })
             .compact()
