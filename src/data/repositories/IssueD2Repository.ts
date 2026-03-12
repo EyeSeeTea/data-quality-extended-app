@@ -319,7 +319,9 @@ export class IssueD2Repository implements IssueRepository {
                     comments: this.getDataValue(dataValuesById, "comments", metadata),
                     contactEmails: this.getDataValue(dataValuesById, "contactEmails", metadata),
                     correlative: this.getDataValue(dataValuesById, "correlative", metadata),
-                    conversationId: dataValuesById.get("conversationId") || undefined,
+                    conversationId: metadata.dataElements.conversationId
+                        ? dataValuesById.get(metadata.dataElements.conversationId.id) || ""
+                        : undefined,
                 });
             })
             .compact()

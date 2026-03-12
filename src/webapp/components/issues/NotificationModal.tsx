@@ -213,6 +213,7 @@ export function useIssueNotification(props: { analysisId: Id; sectionId: Maybe<I
     const [isListOpen, setIsListOpen] = useState(true);
     const [loading, setLoading] = useState(false);
     const [sending, setSending] = useState(false);
+    const [reload, refreshReload] = useState(0);
 
     const openNotificationModal = useCallback((compositeId: Id) => {
         const [issueId, issueNumber] = compositeId.split(":");
@@ -260,6 +261,7 @@ export function useIssueNotification(props: { analysisId: Id; sectionId: Maybe<I
                     setSending(false);
                     snackbar.success(i18n.t("Notification sent successfully"));
                     closeNotificationModal();
+                    refreshReload(reload + 1);
                 },
                 error => {
                     setSending(false);
@@ -268,6 +270,7 @@ export function useIssueNotification(props: { analysisId: Id; sectionId: Maybe<I
                 }
             );
     }, [
+        reload,
         compositionRoot.issues.sendNotification,
         analysisId,
         sectionId,
@@ -364,6 +367,7 @@ export function useIssueNotification(props: { analysisId: Id; sectionId: Maybe<I
         displaySearchResults: displaySearchResults,
         loading: loading,
         sending: sending,
+        reload: reload,
         closeNotificationModal: closeNotificationModal,
         sendNotification: sendNotification,
         hideList: hideList,
