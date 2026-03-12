@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-02-05T11:05:05.516Z\n"
-"PO-Revision-Date: 2026-02-05T11:05:05.516Z\n"
+"POT-Creation-Date: 2026-03-12T10:00:21.379Z\n"
+"PO-Revision-Date: 2026-03-12T10:00:21.379Z\n"
 
 msgid "ID"
 msgstr ""
@@ -48,6 +48,9 @@ msgid "Comments"
 msgstr ""
 
 msgid "Contact Emails"
+msgstr ""
+
+msgid "Conversation ID"
 msgstr ""
 
 msgid "Yes"
@@ -181,10 +184,49 @@ msgstr ""
 msgid "Issues exported"
 msgstr ""
 
-msgid "Export"
+msgid "Send new notification"
+msgstr ""
+
+msgid "View notification history"
 msgstr ""
 
 msgid "Extend Follow-Up + Contact Emails"
+msgstr ""
+
+msgid "Export"
+msgstr ""
+
+msgid "Notification History"
+msgstr ""
+
+msgid "Sent by: {{sender}}"
+msgstr ""
+
+msgid "No notifications found for this issue."
+msgstr ""
+
+msgid "Select users and user groups to notify about this issue"
+msgstr ""
+
+msgid "Send notification"
+msgstr ""
+
+msgid "To"
+msgstr ""
+
+msgid "No users or user groups found"
+msgstr ""
+
+msgid "Subject"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid "Notification sent successfully"
+msgstr ""
+
+msgid "Data Quality Issue detected: {{issueNumber}}"
 msgstr ""
 
 msgid "Removing..."

@@ -160,7 +160,17 @@ The Tracker Program stages must include Data Elements with the following codes:
 -   `PREFIX_DQI_Period` — **TEXT**
 -   `PREFIX_DQI_Section_Number` — **NUMBER**
 -   `PREFIX_DQI_Status` — **Option Set:** `PREFIX_DQI_Status`
--   `PREFIX_DQI_Conversation_ID` - **TEXT**
+-   `PREFIX_DQI_Conversation_ID` - **TEXT** (Optional)
+
+The `PREFIX_DQI_Conversation_ID` data element is **optional**.
+
+-   **If provided:** The application enables notification functionality, allowing users to:
+    -   Send notifications to other users about specific data quality issues
+    -   View the history of notifications sent for an issue
+-   **If NOT provided:** The notification actions ("Send new notification" and "View notification history") will not be displayed in the issues table, and users cannot send notifications.
+
+To enable notifications, ensure the `conversationId` data element is included in your metadata configuration
+and is assigned to all Program Stages with the required code `PREFIX_DQI_Conversation_ID`.
 
 #### Option Sets
 

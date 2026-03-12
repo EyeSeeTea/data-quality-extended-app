@@ -38,6 +38,7 @@ export const NotificationHistoryModal: React.FC<NotificationHistoryModalProps> =
                                         primary={message.name}
                                         secondary={i18n.t("Sent by: {{sender}}", {
                                             sender: message.sender.displayName,
+                                            nsSeparator: false,
                                         })}
                                     />
                                 </ListItem>

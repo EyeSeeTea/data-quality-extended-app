@@ -381,7 +381,10 @@ export function useIssueNotification(props: { analysisId: Id; sectionId: Maybe<I
 }
 
 const generateIssueSubject = (issueNumber: string): string =>
-    i18n.t("Data Quality Issue detected: {{issueNumber}}", { issueNumber });
+    i18n.t("Data Quality Issue detected: {{issueNumber}}", {
+        issueNumber: issueNumber,
+        nsSeparator: false,
+    });
 
 const emptyNotificationModalState = {
     isOpen: false,
