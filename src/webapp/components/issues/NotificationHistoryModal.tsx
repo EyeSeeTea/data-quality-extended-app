@@ -2,14 +2,14 @@ import { ConfirmationDialog } from "@eyeseetea/d2-ui-components";
 import React, { useCallback, useState } from "react";
 import i18n from "$/utils/i18n";
 import { List, ListItem, ListItemText, Typography } from "@material-ui/core";
-import { IssueNotification } from "$/data/repositories/IssueNotificationD2Repository";
 import { useAppContext } from "$/webapp/contexts/app-context";
 import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
 import { Maybe } from "$/utils/ts-utils";
+import { IssueNotification } from "$/domain/entities/IssueNotification";
 
 type NotificationHistoryModalProps = {
     isOpen: boolean;
-    issueNotification: IssueNotification | undefined;
+    issueNotification: Maybe<IssueNotification>;
     closeNotificationHistoryModal: () => void;
 };
 

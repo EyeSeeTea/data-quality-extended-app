@@ -1,5 +1,5 @@
 import { FutureData } from "$/data/api-futures";
-import { IssueNotification } from "$/data/repositories/IssueNotificationD2Repository";
+import { IssueNotification } from "$/domain/entities/IssueNotification";
 import { MetadataItem } from "$/domain/entities/MetadataItem";
 import { Id } from "$/domain/entities/Ref";
 import { User } from "$/domain/entities/User";

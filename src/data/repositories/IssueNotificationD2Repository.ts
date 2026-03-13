@@ -2,6 +2,7 @@ import { apiToFuture, FutureData } from "$/data/api-futures";
 import { buildTrackerEventsResponse, buildTrackerResponse } from "$/data/common/utils";
 import _c from "$/domain/entities/generic/Collection";
 import { Future } from "$/domain/entities/generic/Future";
+import { IssueNotification } from "$/domain/entities/IssueNotification";
 import { MetadataItem } from "$/domain/entities/MetadataItem";
 import { Id, Ref } from "$/domain/entities/Ref";
 import {
@@ -20,19 +21,6 @@ type MessageConversation = {
     subject: string;
     lastSender: Ref;
     lastMessage: string;
-};
-
-export type IssueNotification = {
-    id: string;
-    subject: string;
-    messages: {
-        id: string;
-        name: string;
-        sender: {
-            id: string;
-            displayName: string;
-        };
-    }[];
 };
 
 export class IssueNotificationD2Repository implements IssueNotificationRepository {

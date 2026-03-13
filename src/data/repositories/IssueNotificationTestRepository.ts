@@ -1,6 +1,6 @@
 import { FutureData } from "$/data/api-futures";
-import { IssueNotification } from "$/data/repositories/IssueNotificationD2Repository";
 import { Future } from "$/domain/entities/generic/Future";
+import { IssueNotification } from "$/domain/entities/IssueNotification";
 import {
     IssueNotificationOptions,
     IssueNotificationRepository,

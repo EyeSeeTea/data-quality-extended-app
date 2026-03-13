@@ -1,10 +1,10 @@
 import { FutureData } from "$/data/api-futures";
 import { Future } from "$/domain/entities/generic/Future";
+import { NamedRef } from "$/domain/entities/Ref";
 import { User } from "$/domain/entities/User";
 import { UserGroup } from "$/domain/entities/UserGroup";
 import { UserGroupRepository } from "$/domain/repositories/UserGroupRepository";
 import { UserRepository } from "$/domain/repositories/UserRepository";
-import { NamedRef } from "@eyeseetea/d2-logger/domain/entities/Base";
 
 export class GetUserByIdentifierUseCase {
     constructor(
