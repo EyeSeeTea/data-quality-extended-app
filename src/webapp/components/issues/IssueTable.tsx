@@ -259,7 +259,7 @@ export function useGetRows(
                                     row =>
                                         new QualityAnalysisIssue({
                                             ...row,
-                                            id: `${row.id}:${row.number}`,
+                                            id: getQualityAnalysisId(row),
                                         })
                                 ),
                             });
@@ -365,3 +365,20 @@ type UseTableConfigProps = {
 };
 
 type UseCopyContactEmailsProps = { onSuccess?: () => void };
+
+function getQualityAnalysisId(row: QualityAnalysisIssue): string {
+    return `${row.id}:${row.number}`;
+}
+
+export function parseQualityAnalysisId(qualityAnalysisId: string): {
+    issueId: string;
+    issueNumber: string;
+} {
+    const [id, number] = qualityAnalysisId.split(":");
+
+    if (!id || !number) {
+        throw new Error(`Invalid quality analysis ID: ${qualityAnalysisId}`);
+    }
+
+    return { issueId: id, issueNumber: number };
+}

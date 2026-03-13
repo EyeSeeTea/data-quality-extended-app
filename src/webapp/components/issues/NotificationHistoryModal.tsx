@@ -6,6 +6,7 @@ import { useAppContext } from "$/webapp/contexts/app-context";
 import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
 import { Maybe } from "$/utils/ts-utils";
 import { IssueNotification } from "$/domain/entities/IssueNotification";
+import { parseQualityAnalysisId } from "$/webapp/components/issues/IssueTable";
 
 type NotificationHistoryModalProps = {
     isOpen: boolean;
@@ -67,11 +68,7 @@ export function useIssueNotificationHistory(props: {
 
     const openNotificationHistoryModal = useCallback(
         (compositeId: string) => {
-            const [issueId, _issueNumber] = compositeId.split(":");
-            if (!issueId) {
-                console.error(`Invalid issue id format: ${compositeId}`);
-                return;
-            }
+            const { issueId } = parseQualityAnalysisId(compositeId);
 
             compositionRoot.issues.getNotifications
                 .execute({

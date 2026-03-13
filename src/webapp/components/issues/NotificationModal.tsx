@@ -21,6 +21,7 @@ import { SearchResult } from "$/domain/usecases/GetUserByIdentifierUseCase";
 import { Maybe } from "$/utils/ts-utils";
 import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
 import styled from "styled-components";
+import { parseQualityAnalysisId } from "$/webapp/components/issues/IssueTable";
 
 type NotificationModalProps = {
     filteredResults: SearchResult[];
@@ -196,24 +197,17 @@ export function useIssueNotification(props: { analysisId: Id; sectionId: Maybe<I
     const [sending, setSending] = useState(false);
     const [reload, refreshReload] = useState(0);
 
-    const openNotificationModal = useCallback(
-        (compositeId: Id) => {
-            const [issueId, issueNumber] = compositeId.split(":");
-            if (!issueId || !issueNumber) {
-                snackbar.error(`Invalid issue id format: ${compositeId}`);
-                return;
-            }
+    const openNotificationModal = useCallback((compositeId: Id) => {
+        const { issueId, issueNumber } = parseQualityAnalysisId(compositeId);
 
-            updateNotificationModal({
-                isOpen: true,
-                issueId: issueId,
-                issueNumber: issueNumber,
-            });
-            updateSubject(generateIssueSubject(issueNumber));
-            updateMessage("");
-        },
-        [snackbar]
-    );
+        updateNotificationModal({
+            isOpen: true,
+            issueId: issueId,
+            issueNumber: issueNumber,
+        });
+        updateSubject(generateIssueSubject(issueNumber));
+        updateMessage("");
+    }, []);
 
     const closeNotificationModal = useCallback(() => {
         updateSearchText("");
