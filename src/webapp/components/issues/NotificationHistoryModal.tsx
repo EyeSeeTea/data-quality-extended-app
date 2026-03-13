@@ -11,18 +11,18 @@ import { parseQualityAnalysisId } from "$/webapp/components/issues/IssueTable";
 type NotificationHistoryModalProps = {
     isOpen: boolean;
     issueNotification: Maybe<IssueNotification>;
-    closeNotificationHistoryModal: () => void;
+    onClose: () => void;
 };
 
 export const NotificationHistoryModal: React.FC<NotificationHistoryModalProps> = React.memo(
     props => {
-        const { isOpen, issueNotification, closeNotificationHistoryModal } = props;
+        const { isOpen, issueNotification, onClose } = props;
 
         return (
             <ConfirmationDialog
                 isOpen={isOpen}
                 title={i18n.t("Notification History")}
-                onCancel={closeNotificationHistoryModal}
+                onCancel={onClose}
                 cancelText={i18n.t("Close")}
                 maxWidth="md"
                 fullWidth
@@ -54,17 +54,27 @@ export const NotificationHistoryModal: React.FC<NotificationHistoryModalProps> =
     }
 );
 
+type NotificationHistoryModalState = {
+    isOpen: boolean;
+    issueNotification: Maybe<IssueNotification>;
+};
+
+const emptyNotificationHistoryModalState: NotificationHistoryModalState = {
+    isOpen: false,
+    issueNotification: undefined,
+};
+
 export function useIssueNotificationHistory(props: {
     analysisId: string;
     sectionId: Maybe<string>;
 }) {
     const { analysisId, sectionId } = props;
-
     const { compositionRoot } = useAppContext();
     const { metadataItem } = useMetadataItemContext();
 
-    const [isOpen, setIsOpen] = useState(false);
-    const [issueNotification, setIssueNotification] = useState<IssueNotification>();
+    const [modalState, setModalState] = useState<NotificationHistoryModalState>(
+        emptyNotificationHistoryModalState
+    );
 
     const openNotificationHistoryModal = useCallback(
         (compositeId: string) => {
@@ -72,31 +82,40 @@ export function useIssueNotificationHistory(props: {
 
             compositionRoot.issues.getNotifications
                 .execute({
-                    analysisId: analysisId,
-                    sectionId: sectionId,
-                    issueId: issueId,
+                    analysisId,
+                    sectionId,
+                    issueId,
                     metadata: metadataItem,
                 })
                 .run(
                     issueNotification => {
-                        setIssueNotification(issueNotification);
-                        setIsOpen(true);
+                        setModalState({
+                            isOpen: true,
+                            issueNotification,
+                        });
                     },
-                    error => console.error({ error })
+                    error => {
+                        setModalState({
+                            isOpen: true,
+                            issueNotification: undefined,
+                        });
+                        console.error({ error });
+                    }
                 );
         },
-        [analysisId, compositionRoot.issues.getNotifications, metadataItem, sectionId]
+        [analysisId, sectionId, compositionRoot.issues.getNotifications, metadataItem]
     );
 
     const closeNotificationHistoryModal = useCallback(() => {
-        setIsOpen(false);
-        setIssueNotification(undefined);
+        setModalState(emptyNotificationHistoryModalState);
     }, []);
 
     return {
-        isOpen,
-        issueNotification,
         openNotificationHistoryModal,
-        closeNotificationHistoryModal,
+        notificationHistoryModalProps: {
+            isOpen: modalState.isOpen,
+            issueNotification: modalState.issueNotification,
+            onClose: closeNotificationHistoryModal,
+        },
     };
 }

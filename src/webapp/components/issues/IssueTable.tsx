@@ -295,14 +295,19 @@ export const IssueTable: React.FC<IssueTableProps> = React.memo(props => {
     const { analysisId, reload, sectionId, showExport, showStepFilter } = props;
     const [filters, setFilters] = React.useState(initialFilters);
 
-    const { openNotificationModal, ...issueNotification } = useIssueNotification({
+    const {
+        openNotificationModal,
+        reload: notificationReload,
+        notificationModalProps,
+    } = useIssueNotification({
         analysisId,
         sectionId,
     });
-    const { openNotificationHistoryModal, ...notificationHistory } = useIssueNotificationHistory({
-        analysisId,
-        sectionId,
-    });
+    const { openNotificationHistoryModal, notificationHistoryModalProps } =
+        useIssueNotificationHistory({
+            analysisId,
+            sectionId,
+        });
 
     const { tableConfig } = useTableConfig({
         filters,
@@ -318,7 +323,7 @@ export const IssueTable: React.FC<IssueTableProps> = React.memo(props => {
         reload,
         analysisId,
         sectionId,
-        issueNotification.reload
+        notificationReload
     );
     const config = useObjectsTable(tableConfig, getRows);
 
@@ -334,8 +339,8 @@ export const IssueTable: React.FC<IssueTableProps> = React.memo(props => {
 
     return (
         <>
-            <NotificationModal {...issueNotification} />
-            <NotificationHistoryModal {...notificationHistory} />
+            <NotificationModal {...notificationModalProps} />
+            <NotificationHistoryModal {...notificationHistoryModalProps} />
             <ObjectsTable
                 loading={loading}
                 {...config}

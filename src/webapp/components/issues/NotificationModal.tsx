@@ -23,252 +23,25 @@ import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context"
 import styled from "styled-components";
 import { parseQualityAnalysisId } from "$/webapp/components/issues/IssueTable";
 
-type NotificationModalProps = {
-    filteredResults: SearchResult[];
-    notificationModal: NotificationModalState;
-    displaySearchResults: boolean;
-    noUsers: boolean;
-    searchText: string;
-    subject: string;
-    message: string;
+type RecipientSearchProps = {
     selectedUsers: SearchResult[];
-    closeNotificationModal: () => void;
-    sendNotification: () => void;
-    hideList: () => void;
-    removeSelectedUser: (id: Id) => void;
-    updateSearchText: (value: string) => void;
-    updateSubject: (value: string) => void;
-    updateMessage: (value: string) => void;
-    updateSelectedUsers: (user: SearchResult) => void;
-    loading: boolean;
-    disableSave: boolean;
+    onAddUser: (user: SearchResult) => void;
+    onRemoveUser: (id: Id) => void;
 };
 
-export const NotificationModal: React.FC<NotificationModalProps> = React.memo(props => {
-    const {
-        filteredResults,
-        displaySearchResults,
-        loading,
-        notificationModal,
-        noUsers,
-        searchText,
-        subject,
-        message,
-        selectedUsers,
-        disableSave,
-        closeNotificationModal,
-        sendNotification,
-        hideList,
-        removeSelectedUser,
-        updateSearchText,
-        updateSubject,
-        updateMessage,
-        updateSelectedUsers,
-    } = props;
-
-    return (
-        <ConfirmationDialog
-            isOpen={notificationModal.isOpen}
-            title={i18n.t(`New notification for issue ${notificationModal.issueNumber}`)}
-            description={i18n.t("Select users and user groups to notify about this issue")}
-            onCancel={closeNotificationModal}
-            onSave={sendNotification}
-            saveText={i18n.t("Send notification")}
-            cancelText={i18n.t("Cancel")}
-            maxWidth="lg"
-            disableSave={disableSave}
-            fullWidth
-        >
-            <SearchBox>
-                {selectedUsers.length > 0 && (
-                    <SelectedUsersContainer>
-                        {selectedUsers.map(user => (
-                            <Chip
-                                key={user.id}
-                                label={user.name}
-                                size="small"
-                                onDelete={() => removeSelectedUser(user.id)}
-                            />
-                        ))}
-                    </SelectedUsersContainer>
-                )}
-
-                <TextField
-                    fullWidth
-                    label={i18n.t("To")}
-                    value={searchText}
-                    onChange={e => updateSearchText(e.target.value)}
-                    disabled={loading}
-                    InputProps={{
-                        endAdornment: (
-                            <InputAdornment position="end">
-                                {loading ? (
-                                    <CircularProgress size={20} style={{ marginRight: 8 }} />
-                                ) : null}
-                                {searchText && (
-                                    <IconButton size="small" onClick={hideList}>
-                                        <CloseIcon fontSize="small" />
-                                    </IconButton>
-                                )}
-                            </InputAdornment>
-                        ),
-                    }}
-                />
-
-                {(displaySearchResults || noUsers) && (
-                    <ClickAwayListener onClickAway={hideList}>
-                        <StyledPaper elevation={4}>
-                            {displaySearchResults && (
-                                <List>
-                                    {filteredResults.map(result => (
-                                        <ListItem
-                                            button
-                                            key={result.id}
-                                            onClick={() => updateSelectedUsers(result)}
-                                        >
-                                            {result.type === "user" ? (
-                                                <PersonIcon style={{ marginRight: 12 }} />
-                                            ) : result.type === "userGroup" ? (
-                                                <GroupIcon style={{ marginRight: 12 }} />
-                                            ) : null}
-                                            <ListItemText
-                                                primary={result.name}
-                                                secondary={result.id}
-                                            />
-                                        </ListItem>
-                                    ))}
-                                </List>
-                            )}
-
-                            {noUsers && (
-                                <NoUsersContainer>
-                                    {i18n.t("No users or user groups found")}
-                                </NoUsersContainer>
-                            )}
-                        </StyledPaper>
-                    </ClickAwayListener>
-                )}
-            </SearchBox>
-
-            <TextField
-                fullWidth
-                label={i18n.t("Subject")}
-                value={subject}
-                onChange={e => updateSubject(e.target.value)}
-                margin="normal"
-            />
-
-            <TextField
-                fullWidth
-                multiline
-                minRows={4}
-                label={i18n.t("Message")}
-                value={message}
-                onChange={e => updateMessage(e.target.value)}
-                margin="normal"
-            />
-        </ConfirmationDialog>
-    );
-});
-
-type NotificationModalState = {
-    isOpen: boolean;
-    issueId: Id;
-    issueNumber: string;
-};
-
-export function useIssueNotification(props: { analysisId: Id; sectionId: Maybe<Id> }) {
-    const { analysisId, sectionId } = props;
+const RecipientSearch: React.FC<RecipientSearchProps> = React.memo(props => {
+    const { selectedUsers, onAddUser, onRemoveUser } = props;
     const { compositionRoot, currentUser } = useAppContext();
     const snackbar = useSnackbar();
-    const { metadataItem } = useMetadataItemContext();
 
-    const [notificationModal, updateNotificationModal] = useState<NotificationModalState>(
-        emptyNotificationModalState
-    );
-    const [searchText, updateSearchText] = useState("");
-    const [subject, updateSubject] = useState("");
-    const [message, updateMessage] = useState("");
-    const [hasSearched, setHasSearched] = useState(false);
+    const [searchText, setSearchText] = useState("");
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-    const [selectedUsers, setSelectedUsers] = useState<SearchResult[]>([]);
     const [isListOpen, setIsListOpen] = useState(true);
     const [loading, setLoading] = useState(false);
-    const [sending, setSending] = useState(false);
-    const [reload, refreshReload] = useState(0);
-
-    const openNotificationModal = useCallback((compositeId: Id) => {
-        const { issueId, issueNumber } = parseQualityAnalysisId(compositeId);
-
-        updateNotificationModal({
-            isOpen: true,
-            issueId: issueId,
-            issueNumber: issueNumber,
-        });
-        updateSubject(generateIssueSubject(issueNumber));
-        updateMessage("");
-    }, []);
-
-    const closeNotificationModal = useCallback(() => {
-        updateSearchText("");
-        updateSubject("");
-        updateMessage("");
-        setSearchResults([]);
-        setSelectedUsers([]);
-        setIsListOpen(false);
-        updateNotificationModal({ isOpen: false, issueId: "", issueNumber: "" });
-    }, []);
-
-    const sendNotification = useCallback(() => {
-        setSending(true);
-
-        compositionRoot.issues.sendNotification
-            .execute({
-                analysisId: analysisId,
-                sectionId: sectionId,
-                issueId: notificationModal.issueId,
-                issueNumber: notificationModal.issueNumber,
-                message: message,
-                metadata: metadataItem,
-                searchResults: selectedUsers,
-                subject: subject,
-                sender: currentUser,
-            })
-            .run(
-                () => {
-                    setSending(false);
-                    snackbar.success(i18n.t("Notification sent successfully"));
-                    closeNotificationModal();
-                    refreshReload(reload + 1);
-                },
-                error => {
-                    setSending(false);
-                    snackbar.error(error.message);
-                }
-            );
-    }, [
-        reload,
-        compositionRoot.issues.sendNotification,
-        analysisId,
-        sectionId,
-        notificationModal.issueId,
-        notificationModal.issueNumber,
-        message,
-        metadataItem,
-        selectedUsers,
-        subject,
-        currentUser,
-        snackbar,
-        closeNotificationModal,
-    ]);
-
-    const removeSelectedUser = useCallback(
-        (id: string) => setSelectedUsers(selectedUsers.filter(user => user.id !== id)),
-        [selectedUsers]
-    );
+    const [hasSearched, setHasSearched] = useState(false);
 
     const hideList = useCallback(() => {
-        updateSearchText("");
+        setSearchText("");
         setIsListOpen(false);
     }, []);
 
@@ -304,7 +77,6 @@ export function useIssueNotification(props: { analysisId: Id; sectionId: Maybe<I
 
     useEffect(() => {
         debouncedSearch(searchText);
-
         return () => {
             debouncedSearch.cancel();
         };
@@ -319,17 +91,169 @@ export function useIssueNotification(props: { analysisId: Id; sectionId: Maybe<I
         () => filteredResults.length > 0 && isListOpen,
         [filteredResults, isListOpen]
     );
-
-    const updateSelectedUsers = useCallback(
-        (newUser: SearchResult) => {
-            setSelectedUsers([...selectedUsers, newUser]);
-        },
-        [selectedUsers]
-    );
-
     const noUsers = useMemo(
         () => isListOpen && hasSearched && searchResults.length === 0,
         [isListOpen, hasSearched, searchResults]
+    );
+
+    return (
+        <SearchBox>
+            {selectedUsers.length > 0 && (
+                <SelectedUsersContainer>
+                    {selectedUsers.map(user => (
+                        <Chip
+                            key={user.id}
+                            label={user.name}
+                            size="small"
+                            onDelete={() => onRemoveUser(user.id)}
+                        />
+                    ))}
+                </SelectedUsersContainer>
+            )}
+
+            <TextField
+                fullWidth
+                label={i18n.t("To")}
+                value={searchText}
+                onChange={e => setSearchText(e.target.value)}
+                disabled={loading}
+                InputProps={{
+                    endAdornment: (
+                        <InputAdornment position="end">
+                            {loading ? (
+                                <CircularProgress size={20} style={{ marginRight: 8 }} />
+                            ) : null}
+                            {searchText && (
+                                <IconButton size="small" onClick={hideList}>
+                                    <CloseIcon fontSize="small" />
+                                </IconButton>
+                            )}
+                        </InputAdornment>
+                    ),
+                }}
+            />
+
+            {(displaySearchResults || noUsers) && (
+                <ClickAwayListener onClickAway={hideList}>
+                    <StyledPaper elevation={4}>
+                        {displaySearchResults && (
+                            <List>
+                                {filteredResults.map(result => (
+                                    <ListItem
+                                        button
+                                        key={result.id}
+                                        onClick={() => onAddUser(result)}
+                                    >
+                                        {result.type === "user" ? (
+                                            <PersonIcon style={{ marginRight: 12 }} />
+                                        ) : result.type === "userGroup" ? (
+                                            <GroupIcon style={{ marginRight: 12 }} />
+                                        ) : null}
+                                        <ListItemText primary={result.name} secondary={result.id} />
+                                    </ListItem>
+                                ))}
+                            </List>
+                        )}
+
+                        {noUsers && (
+                            <NoUsersContainer>
+                                {i18n.t("No users or user groups found")}
+                            </NoUsersContainer>
+                        )}
+                    </StyledPaper>
+                </ClickAwayListener>
+            )}
+        </SearchBox>
+    );
+});
+
+type NotificationModalProps = {
+    analysisId: Id;
+    sectionId: Maybe<Id>;
+    isOpen: boolean;
+    issueId: Id;
+    issueNumber: string;
+    onClose: () => void;
+    onSendSuccess: () => void;
+};
+
+export const NotificationModal: React.FC<NotificationModalProps> = React.memo(props => {
+    const { analysisId, sectionId, isOpen, issueId, issueNumber, onClose, onSendSuccess } = props;
+    const { compositionRoot, currentUser } = useAppContext();
+    const snackbar = useSnackbar();
+    const { metadataItem } = useMetadataItemContext();
+
+    const [subject, setSubject] = useState("");
+    const [message, setMessage] = useState("");
+    const [selectedUsers, setSelectedUsers] = useState<SearchResult[]>([]);
+    const [sending, setSending] = useState(false);
+
+    useEffect(() => {
+        if (isOpen) {
+            setSubject(generatePlaceholderSubject(issueNumber));
+            setMessage("");
+            setSelectedUsers([]);
+        }
+    }, [isOpen, issueNumber]);
+
+    const closeModal = useCallback(() => {
+        setSubject("");
+        setMessage("");
+        setSelectedUsers([]);
+        onClose();
+    }, [onClose]);
+
+    const sendNotification = useCallback(() => {
+        setSending(true);
+
+        compositionRoot.issues.sendNotification
+            .execute({
+                analysisId: analysisId,
+                sectionId: sectionId,
+                issueId: issueId,
+                issueNumber: issueNumber,
+                message: message,
+                metadata: metadataItem,
+                searchResults: selectedUsers,
+                subject: subject,
+                sender: currentUser,
+            })
+            .run(
+                () => {
+                    setSending(false);
+                    snackbar.success(i18n.t("Notification sent successfully"));
+                    closeModal();
+                    onSendSuccess();
+                },
+                error => {
+                    setSending(false);
+                    snackbar.error(error.message);
+                }
+            );
+    }, [
+        compositionRoot.issues.sendNotification,
+        analysisId,
+        sectionId,
+        issueId,
+        issueNumber,
+        message,
+        metadataItem,
+        selectedUsers,
+        subject,
+        currentUser,
+        snackbar,
+        closeModal,
+        onSendSuccess,
+    ]);
+
+    const addUser = useCallback(
+        (newUser: SearchResult) => setSelectedUsers(prev => [...prev, newUser]),
+        []
+    );
+
+    const removeUser = useCallback(
+        (id: string) => setSelectedUsers(prev => prev.filter(user => user.id !== id)),
+        []
     );
 
     const disableSave = useMemo(
@@ -337,38 +261,100 @@ export function useIssueNotification(props: { analysisId: Id; sectionId: Maybe<I
         [sending, selectedUsers, subject, message]
     );
 
+    return (
+        <ConfirmationDialog
+            isOpen={isOpen}
+            title={i18n.t(`New notification for issue ${issueNumber}`)}
+            description={i18n.t("Select users and user groups to notify about this issue")}
+            onCancel={closeModal}
+            onSave={sendNotification}
+            saveText={i18n.t("Send notification")}
+            cancelText={i18n.t("Cancel")}
+            maxWidth="lg"
+            disableSave={disableSave}
+            fullWidth
+        >
+            <RecipientSearch
+                selectedUsers={selectedUsers}
+                onAddUser={addUser}
+                onRemoveUser={removeUser}
+            />
+
+            <TextField
+                fullWidth
+                label={i18n.t("Subject")}
+                value={subject}
+                onChange={e => setSubject(e.target.value)}
+                margin="normal"
+            />
+
+            <TextField
+                fullWidth
+                multiline
+                minRows={4}
+                label={i18n.t("Message")}
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                margin="normal"
+            />
+        </ConfirmationDialog>
+    );
+});
+
+export function useIssueNotification(props: { analysisId: Id; sectionId: Maybe<Id> }) {
+    const { analysisId, sectionId } = props;
+
+    const [modalState, setModalState] = useState<NotificationModalState>(
+        emptyNotificationModalState
+    );
+    const [reload, setReload] = useState(0);
+
+    const openNotificationModal = useCallback((compositeId: Id) => {
+        const { issueId, issueNumber } = parseQualityAnalysisId(compositeId);
+
+        setModalState({
+            isOpen: true,
+            issueId: issueId,
+            issueNumber: issueNumber,
+        });
+    }, []);
+
+    const closeNotificationModal = useCallback(() => {
+        setModalState(emptyNotificationModalState);
+    }, []);
+
+    const onSendSuccess = useCallback(() => {
+        setReload(prev => prev + 1);
+    }, []);
+
     return {
-        filteredResults: filteredResults,
-        notificationModal: notificationModal,
-        noUsers: noUsers,
-        searchText: searchText,
-        subject: subject,
-        message: message,
-        selectedUsers: selectedUsers,
-        searchResults: searchResults,
-        displaySearchResults: displaySearchResults,
-        loading: loading,
-        disableSave: disableSave,
-        reload: reload,
-        closeNotificationModal: closeNotificationModal,
-        sendNotification: sendNotification,
-        hideList: hideList,
-        openNotificationModal: openNotificationModal,
-        removeSelectedUser: removeSelectedUser,
-        updateSearchText: updateSearchText,
-        updateSubject: updateSubject,
-        updateMessage: updateMessage,
-        updateSelectedUsers: updateSelectedUsers,
+        reload,
+        openNotificationModal,
+        notificationModalProps: {
+            analysisId,
+            sectionId,
+            isOpen: modalState.isOpen,
+            issueId: modalState.issueId,
+            issueNumber: modalState.issueNumber,
+            onClose: closeNotificationModal,
+            onSendSuccess,
+        },
     };
 }
 
-const generateIssueSubject = (issueNumber: string): string =>
+type NotificationModalState = {
+    isOpen: boolean;
+    issueId: Id;
+    issueNumber: string;
+};
+
+const generatePlaceholderSubject = (issueNumber: string): string =>
     i18n.t("Data Quality Issue detected: {{issueNumber}}", {
         issueNumber: issueNumber,
         nsSeparator: false,
     });
 
-const emptyNotificationModalState = {
+const emptyNotificationModalState: NotificationModalState = {
     isOpen: false,
     issueId: "",
     issueNumber: "",
