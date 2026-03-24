@@ -260,6 +260,10 @@ export class Collection<T> {
         return _c(pairs);
     }
 
+    partition(pred: (x: T) => boolean): [T[], T[]] {
+        return [this.xs.filter(pred), this.xs.filter(x => !pred(x))];
+    }
+
     /* Methods that return HashMap */
 
     indexBy<U>(grouperFn: (x: T) => U): HashMap<U, T> {

@@ -333,4 +333,11 @@ describe("Collection", () => {
         expect(hashMap.get(2)).toEqual("1");
         expect(hashMap.get(4)).toEqual("2");
     });
+
+    test("partition", () => {
+        const [evens, odds] = _([1, 2, 3, 4, 5]).partition(x => x % 2 === 0);
+
+        expect(evens).toEqual([2, 4]);
+        expect(odds).toEqual([1, 3, 5]);
+    });
 });

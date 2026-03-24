@@ -13,7 +13,6 @@ import {
 import { SearchResult } from "$/domain/usecases/GetUserByIdentifierUseCase";
 import { D2Api, D2TrackerTrackedEntity } from "$/types/d2-api";
 import { Maybe } from "$/utils/ts-utils";
-import _ from "lodash";
 
 type MessageConversation = {
     id: string;
@@ -144,9 +143,7 @@ export class IssueNotificationD2Repository implements IssueNotificationRepositor
         message: string,
         subject: string
     ): Future<Error, void> {
-        const [users, userGroups] = _(searchResults)
-            .partition(user => user.type === "user")
-            .value();
+        const [users, userGroups] = _c(searchResults).partition(user => user.type === "user");
 
         return apiToFuture(
             this.api.messageConversations.post({
