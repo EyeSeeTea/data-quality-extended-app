@@ -1,8 +1,8 @@
 import { apiToFuture, FutureData } from "$/data/api-futures";
+import { D2Api } from "$/types/d2-api";
 import { Future } from "$/domain/entities/generic/Future";
 import { UserGroup } from "$/domain/entities/UserGroup";
 import { UserGroupRepository } from "$/domain/repositories/UserGroupRepository";
-import { D2Api } from "@eyeseetea/d2-api/2.36";
 
 export class UserGroupD2Repository implements UserGroupRepository {
     constructor(private api: D2Api) {}

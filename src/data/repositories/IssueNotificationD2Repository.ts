@@ -1,5 +1,5 @@
 import { apiToFuture, FutureData } from "$/data/api-futures";
-import { buildTrackerEventsResponse, buildTrackerResponse } from "$/data/common/utils";
+import { buildTrackerResponse } from "$/data/common/utils";
 import _c from "$/domain/entities/generic/Collection";
 import { Future } from "$/domain/entities/generic/Future";
 import { IssueNotification } from "$/domain/entities/IssueNotification";
@@ -11,9 +11,8 @@ import {
     IssueNotificationRepository,
 } from "$/domain/repositories/IssueNotificationRepository";
 import { SearchResult } from "$/domain/usecases/GetUserByIdentifierUseCase";
-import { D2TrackerEvent, D2TrackerTrackedEntity } from "$/types/d2-api";
+import { D2Api, D2TrackerTrackedEntity } from "$/types/d2-api";
 import { Maybe } from "$/utils/ts-utils";
-import { D2Api } from "@eyeseetea/d2-api/2.36";
 import _ from "lodash";
 
 type MessageConversation = {
@@ -41,41 +40,15 @@ export class IssueNotificationD2Repository implements IssueNotificationRepositor
 
     private getConversationIdFromEvent(options: GetIssueNotificationsOptions): FutureData<string> {
         const { analysisId, sectionId, issueId, metadata } = options;
-        const firstPage = 1;
-        const events: D2TrackerEvent[] = [];
 
-        const fetchPage = (
-            page: number,
-            accEvents: D2TrackerEvent[]
-        ): FutureData<D2TrackerEvent[]> => {
-            return apiToFuture(
-                this.api.tracker.events.get({
-                    programStage: sectionId,
-                    fields: { dataValues: true, event: true, programStage: true },
-                    totalPages: true,
-                    trackedEntity: analysisId,
-                    pageSize: 50,
-                    event: issueId,
-                })
-            ).flatMap(response => {
-                const events = buildTrackerEventsResponse(response).instances;
-                const nextAccEvents = [...accEvents, ...events];
-
-                // @ts-ignore. The d2-api types should be updated to reflect that pageCount is always returned when totalPages is true
-                const pageCount = response.pageCount;
-                const nextPage = (response.page ?? page) + 1;
-
-                if (pageCount !== undefined && nextPage <= pageCount) {
-                    return fetchPage(nextPage, nextAccEvents);
-                }
-
-                return Future.success(nextAccEvents);
-            });
-        };
-
-        return fetchPage(firstPage, events).flatMap(events => {
-            const dataValues = events[0]?.dataValues;
-            const conversationId = dataValues?.find(
+        return apiToFuture(
+            this.api.tracker.events.getById(issueId, {
+                programStage: sectionId,
+                fields: { dataValues: true, event: true, programStage: true },
+                trackedEntity: analysisId,
+            })
+        ).flatMap(({ dataValues }) => {
+            const conversationId = dataValues.find(
                 dataValue => dataValue.dataElement === metadata.dataElements.conversationId?.id
             )?.value;
 
