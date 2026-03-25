@@ -51,7 +51,7 @@ The application supports the analysis steps described below and can also support
 
 > **Note**
 >
-> The configuration of analysis steps is stored in the DHIS2 DataStore in namespace `data-quality` under the key: `steps-PROGRAM_CODE`
+> The configuration of analysis steps is stored in the DHIS2 DataStore in namespace `data-quality` under the key: `steps_PROGRAM_CODE`
 > where `PROGRAM_CODE` corresponds to the code of the Data Quality Tracker Program
 > (for example: `steps_TEST_DQI_001`).
 > For custom analysis steps, users must ensure that all steps are correctly configured in this key.
@@ -257,12 +257,12 @@ the application will not be able to recognize or configure the program and will 
 >
 > After completing the Data Quality Analysis setup in the application,
 > users must ensure that the configuration stored in the DHIS2 DataStore
-> under the key `programs-PROGRAM_CODE` is correctly defined,
+> under the key `programs_PROGRAM_CODE` is correctly defined,
 > where `PROGRAM_CODE` corresponds to the code of the Data Quality Tracker Program
 > (for example: `steps_TEST_DQI_001`).
 >
 > The **Contact Emails auto-fill** feature relies on the configuration stored in the DHIS2 DataStore
-> under the key `programs-PROGRAM_CODE`.
+> under the key `programs_PROGRAM_CODE`.
 > To enable this feature, the `userGroups` property must be correctly defined in this configuration.
 > If the `userGroups` configuration is missing or incorrect,
 > the Contact Emails auto-fill feature will not work.
