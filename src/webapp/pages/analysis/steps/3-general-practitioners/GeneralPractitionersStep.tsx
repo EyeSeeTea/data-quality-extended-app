@@ -12,6 +12,8 @@ import { EmptyState } from "$/webapp/components/empty-state/EmptyState";
 import { Typography } from "@material-ui/core";
 import { UserFeedbackContainer } from "$/webapp/components/user-feedback-container/UserFeedbackContainer";
 
+const NHWA_MODULE_2_CODE = "NHWA-M2-2023";
+
 export const GeneralPractitionersStep: React.FC<PageStepProps> = React.memo(props => {
     const { analysis, section, title, updateAnalysis } = props;
 
@@ -36,7 +38,7 @@ export const GeneralPractitionersStep: React.FC<PageStepProps> = React.memo(prop
         runAnalysis();
     };
 
-    return analysis.module.name !== "NHWA Module 2" ? (
+    return analysis.module.code !== NHWA_MODULE_2_CODE ? (
         <UserFeedbackContainer isLoading={isLoading} error={error}>
             <StepAnalysis
                 id={analysis.id}

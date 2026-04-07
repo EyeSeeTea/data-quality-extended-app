@@ -12,7 +12,6 @@ import { D2DataElement } from "$/data/common/D2DataElement";
 import { D2CategoryOption } from "$/data/common/D2CategoryOption";
 import { D2OrgUnit } from "$/data/common/D2Country";
 import { D2User } from "$/data/common/D2User";
-import { Module } from "$/domain/entities/Module";
 import { Country } from "$/domain/entities/Country";
 import { DataElement } from "$/domain/entities/DataElement";
 import { CategoryOption } from "$/domain/entities/CategoryOption";
@@ -20,7 +19,6 @@ import { HashMap } from "$/domain/entities/generic/HashMap";
 import { Maybe } from "$/utils/ts-utils";
 import { IssueAction } from "$/domain/entities/IssueAction";
 import { IssueStatus } from "$/domain/entities/IssueStatus";
-import { getDefaultModules } from "$/data/common/D2Module";
 import {
     buildTrackerEventsResponse,
     buildTrackerResponse,
@@ -32,19 +30,17 @@ export class IssueD2Repository implements IssueRepository {
     d2CategoryOption: D2CategoryOption;
     d2OrgUnit: D2OrgUnit;
     d2User: D2User;
-    allowedModules: Module[];
 
-    constructor(private api: D2Api, private metadata: MetadataItem) {
+    constructor(private api: D2Api) {
         this.d2DataElement = new D2DataElement(this.api);
         this.d2CategoryOption = new D2CategoryOption(this.api);
         this.d2OrgUnit = new D2OrgUnit(this.api);
         this.d2User = new D2User(this.api);
-        this.allowedModules = getDefaultModules(this.metadata);
     }
 
     get(options: GetIssuesOptions): FutureData<RowsPaginated<QualityAnalysisIssue>> {
         const { filters, pagination } = options;
-        const filtersParams = this.buildFilters(options.filters);
+        const filtersParams = this.buildFilters(options.filters, options.metadata);
         return apiToFuture(
             this.api.tracker.events.get({
                 programStage: filters.sectionId ? filters.sectionId : undefined,
@@ -58,9 +54,10 @@ export class IssueD2Repository implements IssueRepository {
                 // disabling order if any filter is present
                 order: filtersParams
                     ? undefined
-                    : `${this.getDataElementIdOrThrow("sectionNumber")}:asc,${this.buildOrder(
-                          options.sorting
-                      )}`,
+                    : `${this.getDataElementIdOrThrow(
+                          "sectionNumber",
+                          options.metadata
+                      )}:asc,${this.buildOrder(options.sorting, options.metadata)}`,
                 filter: filtersParams,
                 event: filters.id ? filters.id : undefined,
             })
@@ -68,15 +65,15 @@ export class IssueD2Repository implements IssueRepository {
             const instances = buildTrackerEventsResponse(d2Response).instances;
             const orgUnitIds = this.getRelatedIdsFromDataValues(
                 instances,
-                this.getDataElementIdOrThrow("country")
+                this.getDataElementIdOrThrow("country", options.metadata)
             );
             const dataElementIds = this.getRelatedIdsFromDataValues(
                 instances,
-                this.getDataElementIdOrThrow("dataElement")
+                this.getDataElementIdOrThrow("dataElement", options.metadata)
             );
             const categoryOptionIds = this.getRelatedIdsFromDataValues(
                 instances,
-                this.getDataElementIdOrThrow("categoryOption")
+                this.getDataElementIdOrThrow("categoryOption", options.metadata)
             );
             return Future.joinObj({
                 countries: this.d2OrgUnit.getByIds(orgUnitIds),
@@ -91,13 +88,19 @@ export class IssueD2Repository implements IssueRepository {
                         page: d2Response.page,
                         total: d2Response.total || 0,
                     },
-                    rows: this.buildIssues(instances, countries, dataElements, categoryOptions),
+                    rows: this.buildIssues(
+                        instances,
+                        countries,
+                        dataElements,
+                        categoryOptions,
+                        options.metadata
+                    ),
                 });
             });
         });
     }
 
-    getById(id: Id): FutureData<QualityAnalysisIssue> {
+    getById(id: Id, metadata: MetadataItem): FutureData<QualityAnalysisIssue> {
         return apiToFuture(
             this.api.tracker.events.get({
                 fields: { dataValues: true, event: true, programStage: true },
@@ -109,15 +112,15 @@ export class IssueD2Repository implements IssueRepository {
 
             const orgUnitIds = this.getRelatedIdsFromDataValues(
                 [d2Event],
-                this.getDataElementIdOrThrow("country")
+                this.getDataElementIdOrThrow("country", metadata)
             );
             const dataElementIds = this.getRelatedIdsFromDataValues(
                 [d2Event],
-                this.getDataElementIdOrThrow("dataElement")
+                this.getDataElementIdOrThrow("dataElement", metadata)
             );
             const categoryOptionIds = this.getRelatedIdsFromDataValues(
                 [d2Event],
-                this.getDataElementIdOrThrow("categoryOption")
+                this.getDataElementIdOrThrow("categoryOption", metadata)
             );
             return Future.joinObj({
                 countries: this.d2OrgUnit.getByIds(orgUnitIds),
@@ -128,7 +131,8 @@ export class IssueD2Repository implements IssueRepository {
                     [d2Event],
                     countries,
                     dataElements,
-                    categoryOptions
+                    categoryOptions,
+                    metadata
                 );
                 const firstIssue = _(issues).first();
                 if (!firstIssue) return Future.error(new Error(`Cannot found event: ${id}`));
@@ -137,16 +141,17 @@ export class IssueD2Repository implements IssueRepository {
         });
     }
 
-    create(issue: QualityAnalysisIssue, analysisId: Id): FutureData<void> {
+    create(issue: QualityAnalysisIssue, analysisId: Id, metadata: MetadataItem): FutureData<void> {
         const programStageId = issue.type;
         if (!programStageId)
             return Future.error(new Error(`Cannot found programStage: ${programStageId}`));
 
         return apiToFuture(
             this.api.tracker.trackedEntities.get({
-                ouMode: "ALL",
+                ouMode: "SELECTED",
+                orgUnit: metadata.organisationUnits.global.id,
                 fields: { trackedEntity: true, enrollments: true },
-                program: this.metadata.programs.qualityIssues.id,
+                program: metadata.programs.qualityIssues.id,
                 trackedEntity: analysisId,
             })
         ).flatMap(d2Response => {
@@ -157,7 +162,7 @@ export class IssueD2Repository implements IssueRepository {
             if (!enrollment)
                 return Future.error(new Error(`Cannot found Enrollment in TEI: ${tei}`));
 
-            const programStageIndex = getProgramStageIndexById(issue.type, this.metadata);
+            const programStageIndex = getProgramStageIndexById(issue.type, metadata);
 
             return Future.fromPromise(
                 logger.info({
@@ -168,63 +173,63 @@ export class IssueD2Repository implements IssueRepository {
                     },
                     messages: [
                         {
-                            id: this.metadata.dataElements.correlative.id,
+                            id: metadata.dataElements.correlative.id,
                             value: issue.correlative,
                         },
                         {
-                            id: this.metadata.dataElements.status.id,
+                            id: metadata.dataElements.status.id,
                             value: issue.status?.code || "",
                         },
                         {
-                            id: this.metadata.dataElements.issueNumber.id,
+                            id: metadata.dataElements.issueNumber.id,
                             value: issue.number,
                         },
                         {
-                            id: this.metadata.dataElements.country.id,
+                            id: metadata.dataElements.country.id,
                             value: issue.country?.id || "",
                         },
                         {
-                            id: this.metadata.dataElements.description.id,
+                            id: metadata.dataElements.description.id,
                             value: issue.description,
                         },
                         {
-                            id: this.metadata.dataElements.action.id,
+                            id: metadata.dataElements.action.id,
                             value: issue.action?.code || "",
                         },
                         {
-                            id: this.metadata.dataElements.dataElement.id,
+                            id: metadata.dataElements.dataElement.id,
                             value: issue.dataElement?.id || "",
                         },
                         {
-                            id: this.metadata.dataElements.azureUrl.id,
+                            id: metadata.dataElements.azureUrl.id,
                             value: issue.azureUrl,
                         },
                         {
-                            id: this.metadata.dataElements.actionDescription.id,
+                            id: metadata.dataElements.actionDescription.id,
                             value: issue.actionDescription,
                         },
                         {
-                            id: this.metadata.dataElements.period.id,
+                            id: metadata.dataElements.period.id,
                             value: issue.period || "",
                         },
                         {
-                            id: this.metadata.dataElements.categoryOption.id,
+                            id: metadata.dataElements.categoryOption.id,
                             value: issue.categoryOption?.id || "",
                         },
                         {
-                            id: this.metadata.dataElements.followUp.id,
+                            id: metadata.dataElements.followUp.id,
                             value: issue.followUp ? "true" : "false",
                         },
                         {
-                            id: this.metadata.dataElements.contactEmails.id,
+                            id: metadata.dataElements.contactEmails.id,
                             value: issue.contactEmails,
                         },
                         {
-                            id: this.metadata.dataElements.comments.id,
+                            id: metadata.dataElements.comments.id,
                             value: issue.comments,
                         },
                         {
-                            id: this.metadata.dataElements.sectionNumber.id,
+                            id: metadata.dataElements.sectionNumber.id,
                             value: String(programStageIndex + 1),
                         },
                     ],
@@ -237,11 +242,12 @@ export class IssueD2Repository implements IssueRepository {
         events: D2TrackerEvent[],
         countries: Country[],
         dataElements: DataElement[],
-        categoryOptions: CategoryOption[]
+        categoryOptions: CategoryOption[],
+        metadata: MetadataItem
     ): QualityAnalysisIssue[] {
         return _(events)
             .map(d2Event => {
-                const issueType = this.metadata.programs.qualityIssues.programStages.find(
+                const issueType = metadata.programs.qualityIssues.programStages.find(
                     programStage => programStage.id === d2Event.programStage
                 );
 
@@ -254,47 +260,57 @@ export class IssueD2Repository implements IssueRepository {
 
                 const dataValuesById = this.buildDataElementsById(d2Event.dataValues);
 
-                const countryId = this.getDataValue(dataValuesById, "country");
+                const countryId = this.getDataValue(dataValuesById, "country", metadata);
                 const country = countries.find(country => country.id === countryId);
 
                 const issueAction = this.getValueFromOptionSet(
                     dataValuesById,
-                    this.getDataElementIdOrThrow("action"),
-                    "nhwaAction"
+                    this.getDataElementIdOrThrow("action", metadata),
+                    "action",
+                    metadata
                 );
                 const issueStatus = this.getValueFromOptionSet(
                     dataValuesById,
-                    this.getDataElementIdOrThrow("status"),
-                    "nhwaStatus"
+                    this.getDataElementIdOrThrow("status", metadata),
+                    "status",
+                    metadata
                 );
 
-                const categoryOptionId = this.getDataValue(dataValuesById, "categoryOption");
+                const categoryOptionId = this.getDataValue(
+                    dataValuesById,
+                    "categoryOption",
+                    metadata
+                );
                 const categoryOption = categoryOptions.find(
                     categoryOption => categoryOption.id === categoryOptionId
                 );
 
-                const dataElementId = this.getDataValue(dataValuesById, "dataElement");
+                const dataElementId = this.getDataValue(dataValuesById, "dataElement", metadata);
                 const dataElement = dataElements.find(
                     dataElement => dataElement.id === dataElementId
                 );
 
                 return new QualityAnalysisIssue({
                     action: issueAction,
-                    actionDescription: this.getDataValue(dataValuesById, "actionDescription"),
-                    azureUrl: this.getDataValue(dataValuesById, "azureUrl"),
+                    actionDescription: this.getDataValue(
+                        dataValuesById,
+                        "actionDescription",
+                        metadata
+                    ),
+                    azureUrl: this.getDataValue(dataValuesById, "azureUrl", metadata),
                     categoryOption: categoryOption,
                     country: country,
                     dataElement: dataElement,
-                    description: this.getDataValue(dataValuesById, "description"),
-                    followUp: this.getDataValue(dataValuesById, "followUp") === "true",
+                    description: this.getDataValue(dataValuesById, "description", metadata),
+                    followUp: this.getDataValue(dataValuesById, "followUp", metadata) === "true",
                     id: d2Event.event,
-                    number: this.getDataValue(dataValuesById, "issueNumber"),
-                    period: this.getDataValue(dataValuesById, "period"),
+                    number: this.getDataValue(dataValuesById, "issueNumber", metadata),
+                    period: this.getDataValue(dataValuesById, "period", metadata),
                     status: issueStatus,
                     type: issueType.id,
-                    comments: this.getDataValue(dataValuesById, "comments"),
-                    contactEmails: this.getDataValue(dataValuesById, "contactEmails"),
-                    correlative: this.getDataValue(dataValuesById, "correlative"),
+                    comments: this.getDataValue(dataValuesById, "comments", metadata),
+                    contactEmails: this.getDataValue(dataValuesById, "contactEmails", metadata),
+                    correlative: this.getDataValue(dataValuesById, "correlative", metadata),
                 });
             })
             .compact()
@@ -304,10 +320,11 @@ export class IssueD2Repository implements IssueRepository {
     private getValueFromOptionSet(
         dataValuesById: HashMap<string, string>,
         dataElementId: Id,
-        key: keyof MetadataItem["optionSets"]
+        key: keyof MetadataItem["optionSets"],
+        metadata: MetadataItem
     ): Maybe<IssueStatus | IssueAction> {
         const value = this.getValueOrDefault(dataValuesById.get(dataElementId));
-        const option = this.metadata.optionSets[key].options.find(option => option.code === value);
+        const option = metadata.optionSets[key].options.find(option => option.code === value);
         return option ? new IssueAction(option) : undefined;
     }
 
@@ -321,10 +338,11 @@ export class IssueD2Repository implements IssueRepository {
 
     private getDataValue(
         dataValuesById: HashMap<Id, string>,
-        dataElementName: DataElementKey
+        dataElementName: DataElementKey,
+        metadata: MetadataItem
     ): string {
         return this.getValueOrDefault(
-            dataValuesById.get(this.getDataElementIdOrThrow(dataElementName))
+            dataValuesById.get(this.getDataElementIdOrThrow(dataElementName, metadata))
         );
     }
 
@@ -349,64 +367,72 @@ export class IssueD2Repository implements IssueRepository {
         return valuesFromEvents;
     }
 
-    private getDataElementIdOrThrow(key: DataElementKey): string {
-        const metadataItem = this.metadata.dataElements[key];
+    private getDataElementIdOrThrow(key: DataElementKey, metadata: MetadataItem): string {
+        const metadataItem = metadata.dataElements[key];
         if (!metadataItem) throw Error(`cannot found: ${key} indataElements`);
         return metadataItem.id;
     }
 
-    private buildOrder(sorting: GetIssuesOptions["sorting"]): Maybe<string> {
+    private buildOrder(
+        sorting: GetIssuesOptions["sorting"],
+        metadata: MetadataItem
+    ): Maybe<string> {
         switch (sorting.field) {
             case "number":
-                return `${this.getDataElementIdOrThrow("correlative")}:${sorting.order}`;
+                return `${this.getDataElementIdOrThrow("correlative", metadata)}:${sorting.order}`;
             case "status":
-                return `${this.getDataElementIdOrThrow("status")}:${sorting.order}`;
+                return `${this.getDataElementIdOrThrow("status", metadata)}:${sorting.order}`;
             case "period":
-                return `${this.getDataElementIdOrThrow("period")}:${sorting.order}`;
+                return `${this.getDataElementIdOrThrow("period", metadata)}:${sorting.order}`;
             case "description":
-                return `${this.getDataElementIdOrThrow("description")}:${sorting.order}`;
+                return `${this.getDataElementIdOrThrow("description", metadata)}:${sorting.order}`;
             case "followUp":
-                return `${this.getDataElementIdOrThrow("followUp")}:${sorting.order}`;
+                return `${this.getDataElementIdOrThrow("followUp", metadata)}:${sorting.order}`;
             case "action":
-                return `${this.getDataElementIdOrThrow("action")}:${sorting.order}`;
+                return `${this.getDataElementIdOrThrow("action", metadata)}:${sorting.order}`;
             case "actionDescription":
-                return `${this.getDataElementIdOrThrow("actionDescription")}:${sorting.order}`;
+                return `${this.getDataElementIdOrThrow("actionDescription", metadata)}:${
+                    sorting.order
+                }`;
             case "azureUrl":
-                return `${this.getDataElementIdOrThrow("azureUrl")}:${sorting.order}`;
+                return `${this.getDataElementIdOrThrow("azureUrl", metadata)}:${sorting.order}`;
         }
         return undefined;
     }
 
-    private buildFilters(filter: GetIssuesOptions["filters"]): Maybe<string> {
+    private buildFilters(
+        filter: GetIssuesOptions["filters"],
+        metadata: MetadataItem
+    ): Maybe<string> {
         const numberFilter = filter.name
-            ? `${this.metadata.dataElements.issueNumber.id}:LIKE:${filter.name}`
+            ? `${metadata.dataElements.issueNumber.id}:LIKE:${filter.name}`
             : undefined;
 
         const periodsFilter = this.buildFilterMultipleValue(
             filter.periods,
-            this.metadata.dataElements.period.id
+            metadata.dataElements.period.id
         );
 
         const statusFilter = this.buildFilterMultipleValue(
             filter.status,
-            this.metadata.dataElements.status.id
+            metadata.dataElements.status.id
         );
 
         const actionsFilter = this.buildFilterMultipleValue(
             filter.actions,
-            this.metadata.dataElements.action.id
+            metadata.dataElements.action.id
         );
 
         const countriesFilter = this.buildFilterMultipleValue(
             filter.countries,
-            this.metadata.dataElements.country.id
+            metadata.dataElements.country.id
         );
 
-        const followUpFilter = this.buildFollowUpFilter(filter.followUp);
+        const followUpFilter = this.buildFollowUpFilter(filter.followUp, metadata);
 
         const stepFilter = this.buildFilterMultipleValue(
             filter.step,
-            this.metadata.dataElements.sectionNumber.id
+            metadata.dataElements.sectionNumber.id
         );
 
         const allFilters = _([
@@ -429,11 +455,14 @@ export class IssueD2Repository implements IssueRepository {
         return valueSeparatedByComma ? `${dataElementId}:IN:${valueSeparatedByComma}` : undefined;
     }
 
-    private buildFollowUpFilter(followUpValue: Maybe<string>): Maybe<string> {
+    private buildFollowUpFilter(
+        followUpValue: Maybe<string>,
+        metadata: MetadataItem
+    ): Maybe<string> {
         if (followUpValue === "1") {
-            return `${this.metadata.dataElements.followUp.id}:eq:true`;
+            return `${metadata.dataElements.followUp.id}:eq:true`;
         } else if (followUpValue === "0") {
-            return `${this.metadata.dataElements.followUp.id}:eq:false`;
+            return `${metadata.dataElements.followUp.id}:eq:false`;
         } else {
             return undefined;
         }

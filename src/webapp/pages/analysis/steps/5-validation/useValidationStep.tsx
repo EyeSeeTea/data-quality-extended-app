@@ -4,10 +4,12 @@ import { QualityAnalysis } from "$/domain/entities/QualityAnalysis";
 import { QualityAnalysisSection } from "$/domain/entities/QualityAnalysisSection";
 import { UpdateAnalysisState } from "$/webapp/pages/analysis/AnalysisPage";
 import { Maybe } from "$/utils/ts-utils";
+import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
 
 export function useValidationStep(props: UseValidationStepProps) {
     const { analysis, section, updateAnalysis } = props;
     const { compositionRoot, validationRuleGroups } = useAppContext();
+    const { metadataItem } = useMetadataItemContext();
 
     const [isLoading, setLoading] = React.useState<boolean>(false);
     const [error, setError] = React.useState<Maybe<string>>(undefined);
@@ -26,6 +28,7 @@ export function useValidationStep(props: UseValidationStepProps) {
                 qualityAnalysisId: analysis.id,
                 validationRuleGroupId: selectedValidationRule || "",
                 sectionId: section.id,
+                metadata: metadataItem,
             })
             .run(
                 analysis => {
@@ -45,6 +48,7 @@ export function useValidationStep(props: UseValidationStepProps) {
         section.id,
         reload,
         updateAnalysis,
+        metadataItem,
     ]);
 
     const validationRulesOptions = React.useMemo(() => {

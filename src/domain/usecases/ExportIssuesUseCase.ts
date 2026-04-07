@@ -1,4 +1,5 @@
 import { FutureData } from "$/data/api-futures";
+import { MetadataItem } from "$/domain/entities/MetadataItem";
 import { QualityAnalysisIssue } from "$/domain/entities/QualityAnalysisIssue";
 import { Id } from "$/domain/entities/Ref";
 import { IssueExportRepository } from "$/domain/repositories/IssueExportRepository";
@@ -16,7 +17,7 @@ export class ExportIssuesUseCase {
 
     execute(options: ExportIssuesOptions): FutureData<void> {
         return this.getIssuesWithFilters(options).flatMap(issues => {
-            return this.issueExportRepository.export(issues);
+            return this.issueExportRepository.export(issues, options.metadata);
         });
     }
 
@@ -29,7 +30,8 @@ export class ExportIssuesUseCase {
             {
                 initialPage: 1,
                 issues: [],
-            }
+            },
+            options.metadata
         );
     }
 }
@@ -37,4 +39,5 @@ export class ExportIssuesUseCase {
 type ExportIssuesOptions = {
     analysisId: Id;
     filters: GetIssuesOptions["filters"];
+    metadata: MetadataItem;
 };

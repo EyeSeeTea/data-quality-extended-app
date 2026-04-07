@@ -1,4 +1,5 @@
 export type Id = string;
+export type Code = string;
 
 export interface Ref {
     id: Id;
@@ -9,7 +10,7 @@ export interface NamedRef extends Ref {
 }
 
 export interface NamedCodeRef extends NamedRef {
-    code: string;
+    code: Code;
 }
 
 export type IssuePeriod = string;

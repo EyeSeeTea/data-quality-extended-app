@@ -10,8 +10,6 @@ import { ModuleRepository } from "$/domain/repositories/ModuleRepository";
 import { QualityAnalysisRepository } from "$/domain/repositories/QualityAnalysisRepository";
 import { DataValue } from "$/domain/entities/DataValue";
 import { MidwiferyNursing } from "$/domain/entities/MidwiferyPersonnel";
-import { SettingsRepository } from "$/domain/repositories/SettingsRepository";
-import { SectionDisaggregation } from "$/domain/entities/Settings";
 import { UCIssue } from "./common/UCIssue";
 import { QualityAnalysisIssue } from "$/domain/entities/QualityAnalysisIssue";
 import { IssueRepository } from "$/domain/repositories/IssueRepository";
@@ -19,6 +17,8 @@ import { IssueRepository } from "$/domain/repositories/IssueRepository";
 import { UCAnalysis } from "./common/UCAnalysis";
 import { UCDataValue } from "./common/UCDataValue";
 import { getCurrentSection } from "./common/utils";
+import { MetadataItem } from "$/domain/entities/MetadataItem";
+import { SectionDisaggregation } from "$/domain/entities/SectionDisaggregation";
 
 export class ValidateMidwiferyAndPersonnelUseCase {
     analysisUseCase: UCAnalysis;
@@ -28,8 +28,7 @@ export class ValidateMidwiferyAndPersonnelUseCase {
         private analysisRepository: QualityAnalysisRepository,
         private issueRepository: IssueRepository,
         private dataValueRepository: DataValueRepository,
-        private moduleRepository: ModuleRepository,
-        private settingsRepository: SettingsRepository
+        private moduleRepository: ModuleRepository
     ) {
         this.analysisUseCase = new UCAnalysis(this.analysisRepository);
         this.dataValueUseCase = new UCDataValue(this.dataValueRepository);
@@ -37,25 +36,21 @@ export class ValidateMidwiferyAndPersonnelUseCase {
     }
 
     execute(options: ValidateMidwiferyAndPersonnelOptions): FutureData<QualityAnalysis> {
-        return this.getSettingsSections(options).flatMap(disaggregations => {
-            return this.validateMidwiferyAndPersonnel(options, disaggregations);
-        });
+        const disaggregations = this.getSelectedDisaggregations(
+            options.sectionDisaggregations,
+            options.disaggregationsIds
+        );
+        return this.validateMidwiferyAndPersonnel(options, disaggregations);
     }
 
-    private getSettingsSections(
-        options: ValidateMidwiferyAndPersonnelOptions
-    ): FutureData<SectionDisaggregation[]> {
-        return this.settingsRepository.get().flatMap(settings => {
-            const section = settings.sections.find(section => section.id === options.sectionId);
-            if (!section)
-                return Future.error(
-                    new Error(`Cannot found section settings: ${options.sectionId}`)
-                );
-            const onlySelectedDisaggregations = section.disaggregations.filter(disaggregation =>
-                options.disaggregationsIds.includes(disaggregation.id)
-            );
-            return Future.success(onlySelectedDisaggregations);
-        });
+    private getSelectedDisaggregations(
+        sectionDisaggregations: SectionDisaggregation[],
+        selectedDisaggregationsIds: Id[]
+    ): SectionDisaggregation[] {
+        const onlySelectedDisaggregations = sectionDisaggregations.filter(disaggregation =>
+            selectedDisaggregationsIds.includes(disaggregation.id)
+        );
+        return onlySelectedDisaggregations;
     }
 
     private validateMidwiferyAndPersonnel(
@@ -72,7 +67,7 @@ export class ValidateMidwiferyAndPersonnelUseCase {
                     );
 
                     return this.issueUseCase
-                        .getTotalIssuesBySection(analysis, options.sectionId)
+                        .getTotalIssuesBySection(analysis, options.sectionId, options.metadata)
                         .flatMap(totalIssues => {
                             const issues = this.createIssues(
                                 midwiferyNursingValues,
@@ -94,18 +89,22 @@ export class ValidateMidwiferyAndPersonnelUseCase {
         totalIssues: number
     ): FutureData<QualityAnalysis> {
         return this.issueUseCase
-            .getRelatedIssues(issues, options.sectionId)
+            .getRelatedIssues(issues, options.sectionId, options.metadata)
             .flatMap(dismissedIssues => {
-                return this.issueUseCase.save(dismissedIssues, analysis.id).flatMap(() => {
-                    const analysisToUpdate = this.analysisUseCase.updateAnalysis(
-                        analysis,
-                        options.sectionId,
-                        totalIssues
-                    );
-                    return this.analysisRepository.save([analysisToUpdate]).flatMap(() => {
-                        return Future.success(analysisToUpdate);
+                return this.issueUseCase
+                    .save(dismissedIssues, analysis.id, options.metadata)
+                    .flatMap(() => {
+                        const analysisToUpdate = this.analysisUseCase.updateAnalysis(
+                            analysis,
+                            options.sectionId,
+                            totalIssues
+                        );
+                        return this.analysisRepository
+                            .save([analysisToUpdate], options.metadata)
+                            .flatMap(() => {
+                                return Future.success(analysisToUpdate);
+                            });
                     });
-                });
             });
     }
 
@@ -329,7 +328,7 @@ export class ValidateMidwiferyAndPersonnelUseCase {
     private getAnalysis(
         options: ValidateMidwiferyAndPersonnelOptions
     ): FutureData<QualityAnalysis> {
-        return this.analysisUseCase.getById(options.analysisId);
+        return this.analysisUseCase.getById(options.analysisId, options.metadata);
     }
 
     private getDataElementsWithValues(
@@ -378,4 +377,6 @@ type ValidateMidwiferyAndPersonnelOptions = {
     analysisId: Id;
     sectionId: Id;
     disaggregationsIds: Id[];
+    metadata: MetadataItem;
+    sectionDisaggregations: SectionDisaggregation[];
 };

@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2025-08-05T05:01:40.620Z\n"
+"POT-Creation-Date: 2026-02-05T11:05:05.516Z\n"
 "PO-Revision-Date: 2018-10-25T09:02:35.143Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -60,6 +60,27 @@ msgid "Select at least one organisation unit"
 msgstr ""
 
 msgid "Cannot be blank: {{fieldName}}"
+msgstr ""
+
+msgid "Start date must be before end date"
+msgstr ""
+
+msgid "Must be empty: {{fieldName}}"
+msgstr ""
+
+msgid "Must be a number: {{fieldName}}"
+msgstr ""
+
+msgid "At least one step is required"
+msgstr ""
+
+msgid "Duplicate step types are not allowed"
+msgstr ""
+
+msgid "Invalid value: {{fieldName}}"
+msgstr ""
+
+msgid "At least one disaggregation is required"
 msgstr ""
 
 msgid "No disaggregations selected"
@@ -166,6 +187,40 @@ msgstr ""
 msgid "Extend Follow-Up + Contact Emails"
 msgstr ""
 
+msgid "Removing..."
+msgstr ""
+
+msgid "Data quality analysis configuration removed successfully"
+msgstr ""
+
+msgid "Delete data quality analysis configuration"
+msgstr ""
+
+msgid ""
+"This action will permanently delete the data quality analysis configuration."
+msgstr ""
+
+msgid "This action cannot be undone. Are you sure you want to proceed?"
+msgstr ""
+
+msgid "Yes, delete"
+msgstr ""
+
+msgid "No configured"
+msgstr ""
+
+msgid "Data Quality Analysis Location"
+msgstr ""
+
+msgid "Edit data quality analysis setup"
+msgstr ""
+
+msgid "Delete data quality analysis"
+msgstr ""
+
+msgid "Dataset Name"
+msgstr ""
+
 msgid "Back"
 msgstr "Volver"
 
@@ -175,13 +230,22 @@ msgstr "Ayuda"
 msgid "Running analysis..."
 msgstr ""
 
+msgid "Loading..."
+msgstr ""
+
+msgid "Error loading Metadata Item: {{message}}"
+msgstr ""
+
+msgid "Error loading Data Quality Issues Programs: {{message}}"
+msgstr ""
+
+msgid "Error loading Datasets: {{message}}"
+msgstr ""
+
 msgid "Creating Data Quality Report..."
 msgstr ""
 
 msgid "Quality Analysis created"
-msgstr ""
-
-msgid "Removing..."
 msgstr ""
 
 msgid "Quality Analysis deleted"
@@ -202,13 +266,13 @@ msgstr ""
 msgid "Data Quality Analysis"
 msgstr ""
 
+msgid "You must save the Analysis configuration before running any step"
+msgstr ""
+
 msgid "Configuration"
 msgstr ""
 
 msgid "Summary"
-msgstr ""
-
-msgid "You must save the Analysis configuration before running any step"
 msgstr ""
 
 msgid "Algorithm"
@@ -250,10 +314,109 @@ msgstr ""
 msgid "No Issues found"
 msgstr ""
 
+msgid "Data Quality Analysis Setup"
+msgstr ""
+
+msgid "Saving configuration..."
+msgstr ""
+
+msgid "Dataset Selection"
+msgstr ""
+
+msgid "Default Analysis Settings"
+msgstr ""
+
+msgid "Steps Configuration"
+msgstr ""
+
+msgid "Select a location where data quality analysis issues will be created"
+msgstr ""
+
+msgid "Select at least one Dataset"
+msgstr ""
+
+msgid "Select a default dataset"
+msgstr ""
+
+msgid "Select a start date"
+msgstr ""
+
+msgid "Select an end date"
+msgstr ""
+
+msgid "At least one step must be configured"
+msgstr ""
+
+msgid "Select where data quality analysis issues will be created"
+msgstr ""
+
+msgid ""
+"No location is available to store data quality analysis issues. Please "
+"create one first."
+msgstr ""
+
+msgid "Select datasets for data quality analysis"
+msgstr ""
+
+msgid "No datasets are available for data quality analysis."
+msgstr ""
+
+msgid "Use previous year for start and end dates"
+msgstr ""
+
+msgid "No match found for this step, so it cannot be configured."
+msgstr ""
+
+msgid ""
+"Please, make sure the program stage is properly configured and try again."
+msgstr ""
+
+msgid "Custom name"
+msgstr ""
+
+msgid "Data Quality Analysis Location: "
+msgstr ""
+
+msgid "Selected Datasets to be analysed: "
+msgstr ""
+
+msgid "Default analysis settings: "
+msgstr ""
+
+msgid "Dataset: "
+msgstr ""
+
+msgid "Start date: "
+msgstr ""
+
+msgid "End date: "
+msgstr ""
+
+msgid "Organisation Units: "
+msgstr ""
+
+msgid "Steps: "
+msgstr ""
+
+msgid "Save setup"
+msgstr ""
+
 msgid "Are you sure you want to {{action}} the selected rows?"
 msgstr ""
 
 msgid "Yes, {{actionButton}}"
+msgstr ""
+
+msgid "No Data Quality Analysis Locations have been configured yet."
+msgstr ""
+
+msgid "Data Quality Analysis Locations"
+msgstr ""
+
+msgid "Data Quality Analysis Settings"
+msgstr ""
+
+msgid "Set up data quality analysis"
 msgstr ""
 
 msgid "Progress"

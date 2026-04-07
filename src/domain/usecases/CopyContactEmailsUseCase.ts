@@ -10,6 +10,7 @@ import { RowsPaginated } from "$/domain/entities/Pagination";
 import { QualityAnalysis } from "$/domain/entities/QualityAnalysis";
 import { QualityAnalysisSection } from "$/domain/entities/QualityAnalysisSection";
 import _ from "$/domain/entities/generic/Collection";
+import { MetadataItem } from "$/domain/entities/MetadataItem";
 
 export class CopyContactEmailsUseCase {
     private analysisUseCase: UCAnalysis;
@@ -21,7 +22,10 @@ export class CopyContactEmailsUseCase {
     }
 
     execute(options: CopyContactEmailsOptions): FutureData<void> {
-        return this.getIssueById(options.issueId).flatMap(issue => {
+        if (!options.metadata.userGroups || Object.keys(options.metadata.userGroups).length === 0)
+            return Future.error(new Error("User groups are not available"));
+
+        return this.getIssueById(options.issueId, options.metadata).flatMap(issue => {
             if (!issue.contactEmails) return Future.error(new Error("No contact emails to copy"));
             return this.extendContactEmailsToOthersIssues(options, issue);
         });
@@ -31,23 +35,28 @@ export class CopyContactEmailsUseCase {
         options: CopyContactEmailsOptions,
         issue: QualityAnalysisIssue
     ): FutureData<void> {
-        return this.analysisUseCase.getById(options.analysisId).flatMap(analysis => {
-            return this.getAllIssues(options, issue, { initialPage: 1, issues: [] }).flatMap(
-                issues => {
-                    const selectedIssue = issues.find(issue => issue.id === options.issueId);
-                    if (!selectedIssue)
-                        return Future.error(new Error(`Issue not found: ${options.issueId}`));
+        return this.analysisUseCase
+            .getById(options.analysisId, options.metadata)
+            .flatMap(analysis => {
+                return this.getAllIssues(options, issue, { initialPage: 1, issues: [] }).flatMap(
+                    issues => {
+                        const selectedIssue = issues.find(issue => issue.id === options.issueId);
+                        if (!selectedIssue)
+                            return Future.error(new Error(`Issue not found: ${options.issueId}`));
 
-                    const newIssues = this.copyContactEmailsToOtherIssues(issues, selectedIssue);
-                    const analysisWithIssues = this.addIssuesToAnalysis(analysis, newIssues);
-                    return this.analysisRepository.save([analysisWithIssues]);
-                }
-            );
-        });
+                        const newIssues = this.copyContactEmailsToOtherIssues(
+                            issues,
+                            selectedIssue
+                        );
+                        const analysisWithIssues = this.addIssuesToAnalysis(analysis, newIssues);
+                        return this.analysisRepository.save([analysisWithIssues], options.metadata);
+                    }
+                );
+            });
     }
 
-    private getIssueById(id: Id): FutureData<QualityAnalysisIssue> {
-        return this.issueRepository.getById(id);
+    private getIssueById(id: Id, metadata: MetadataItem): FutureData<QualityAnalysisIssue> {
+        return this.issueRepository.getById(id, metadata);
     }
 
     private addIssuesToAnalysis(
@@ -113,6 +122,7 @@ export class CopyContactEmailsUseCase {
             },
             pagination: { page: page, pageSize: 100 },
             sorting: { field: "number", order: "asc" },
+            metadata: options.metadata,
         });
     }
 }
@@ -122,4 +132,5 @@ type CopyContactEmailsOptions = {
     sectionId: Maybe<Id>;
     issueId: Id;
     filters: GetIssuesOptions["filters"];
+    metadata: MetadataItem;
 };

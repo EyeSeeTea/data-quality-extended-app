@@ -1,14 +1,12 @@
 import React, { useContext } from "react";
 import { CompositionRoot } from "$/CompositionRoot";
 import { User } from "$/domain/entities/User";
-import { MetadataItem } from "$/domain/entities/MetadataItem";
 import { D2Api } from "$/types/d2-api";
 import { ValidationRuleGroup } from "$/domain/entities/ValidationRuleGroup";
 
 export interface AppContextState {
     currentUser: User;
     compositionRoot: CompositionRoot;
-    metadata: MetadataItem;
     api: D2Api;
     validationRuleGroups: ValidationRuleGroup[];
 }

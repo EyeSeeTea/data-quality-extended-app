@@ -4,12 +4,16 @@ import { TableColumn } from "@eyeseetea/d2-ui-components";
 
 import i18n from "$/utils/i18n";
 import { EditIssueValue } from "./EditIssueValue";
+import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
+import { hasUserGroups } from "$/webapp/components/issues/utils";
 
 export function useIssueColumns() {
+    const { metadataItem } = useMetadataItemContext();
+
     const [refresh, setRefresh] = React.useState(0);
 
     const issueColumns = React.useMemo(() => {
-        const issueColumns: TableColumn<QualityAnalysisIssue>[] = [
+        const baseColumns: TableColumn<QualityAnalysisIssue>[] = [
             { name: "number", text: i18n.t("Issue"), sortable: true },
             { name: "country", text: i18n.t("Country"), sortable: false },
             {
@@ -75,14 +79,6 @@ export function useIssueColumns() {
                 },
             },
             {
-                name: "contactEmails",
-                text: i18n.t("Contact Emails"),
-                sortable: false,
-                getValue: value => {
-                    return <EditIssueValue key={value.id} field="contactEmails" issue={value} />;
-                },
-            },
-            {
                 name: "actionDescription",
                 text: i18n.t("Action Description"),
                 sortable: false,
@@ -103,8 +99,25 @@ export function useIssueColumns() {
                 },
             },
         ];
-        return issueColumns;
-    }, [setRefresh]);
+
+        const actionIndex = baseColumns.findIndex(c => c.name === "action");
+
+        const columnsWithContactEmails: TableColumn<QualityAnalysisIssue>[] = [
+            ...baseColumns.slice(0, actionIndex + 1),
+            {
+                name: "contactEmails",
+                text: i18n.t("Contact Emails"),
+                sortable: false,
+                hidden: false,
+                getValue: (value: QualityAnalysisIssue) => {
+                    return <EditIssueValue key={value.id} field="contactEmails" issue={value} />;
+                },
+            },
+            ...baseColumns.slice(actionIndex + 1),
+        ];
+
+        return hasUserGroups(metadataItem.userGroups) ? columnsWithContactEmails : baseColumns;
+    }, [metadataItem.userGroups]);
 
     return { refresh, setRefresh, issueColumns };
 }

@@ -2,11 +2,8 @@ import React from "react";
 import i18n from "@dhis2/d2-i18n";
 import { Provider } from "@dhis2/app-runtime";
 import { D2Api } from "$/types/d2-api";
-import { setupLogger } from "$/utils/logger";
 import App from "./App";
 import { CompositionRoot, getWebappCompositionRoot } from "$/CompositionRoot";
-import { MetadataD2Repository } from "$/data/repositories/MetadataD2Repository";
-import { MetadataItem } from "$/domain/entities/MetadataItem";
 
 export function Dhis2App(_props: {}) {
     const [compositionRootRes, setCompositionRootRes] = React.useState<CompositionRootResult>({
@@ -32,12 +29,12 @@ export function Dhis2App(_props: {}) {
             );
         }
         case "loaded": {
-            const { baseUrl, compositionRoot, metadata, api } = compositionRootRes.data;
+            const { baseUrl, compositionRoot, api } = compositionRootRes.data;
             const config = { baseUrl, apiVersion: 30 };
 
             return (
                 <Provider config={config}>
-                    <App compositionRoot={compositionRoot} metadata={metadata} api={api} />
+                    <App compositionRoot={compositionRoot} api={api} />
                 </Provider>
             );
         }
@@ -47,7 +44,6 @@ export function Dhis2App(_props: {}) {
 type Data = {
     compositionRoot: CompositionRoot;
     baseUrl: string;
-    metadata: MetadataItem;
     api: D2Api;
 };
 
@@ -60,13 +56,18 @@ async function getData(): Promise<CompositionRootResult> {
         : new D2Api({ baseUrl: baseUrl });
 
     try {
-        const metadata = await new MetadataD2Repository(api).get().toPromise();
-        const compositionRoot = getWebappCompositionRoot(api, metadata);
+        const compositionRoot = getWebappCompositionRoot(api);
 
         const userSettings = await api.get<{ keyUiLocale: string }>("/userSettings").getData();
         configI18n(userSettings);
-        await setupLogger(api.baseUrl, metadata.programs.qualityIssues.id);
-        return { type: "loaded", data: { baseUrl, compositionRoot, metadata: metadata, api: api } };
+        return {
+            type: "loaded",
+            data: {
+                baseUrl,
+                compositionRoot,
+                api: api,
+            },
+        };
     } catch (err) {
         return { type: "error", error: { baseUrl, error: err as Error } };
     }

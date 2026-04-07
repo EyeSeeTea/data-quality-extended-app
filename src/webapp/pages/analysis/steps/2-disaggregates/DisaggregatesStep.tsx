@@ -8,39 +8,36 @@ import { PageStepProps } from "$/webapp/pages/analysis/AnalysisPage";
 import { UserFeedbackContainer } from "$/webapp/components/user-feedback-container/UserFeedbackContainer";
 
 export const DisaggregatesStep: React.FC<PageStepProps> = React.memo(props => {
-    const { analysis, section, title, updateAnalysis } = props;
+    const { analysis, section, title, updateAnalysis, disaggregations } = props;
     const {
-        disaggregations,
+        disaggregationOptions,
         handleChange,
         reload,
         runAnalysis,
-        selectedDisagregations,
+        selectedDisaggregations,
         isLoading,
         error,
     } = useDisaggregatesStep({
         analysis: analysis,
         updateAnalysis,
         sectionId: section.id,
+        disaggregations,
     });
-
-    const onClick = () => {
-        runAnalysis();
-    };
 
     return (
         <UserFeedbackContainer isLoading={isLoading} error={error}>
             <StepAnalysis
                 id={analysis.id}
-                onRun={onClick}
+                onRun={runAnalysis}
                 reload={reload}
                 section={section}
                 title={title}
             >
                 <FiltersContainer>
                     <SelectMultiCheckboxes
-                        options={disaggregations}
+                        options={disaggregationOptions}
                         onChange={handleChange}
-                        value={selectedDisagregations}
+                        value={selectedDisaggregations}
                         label={i18n.t("CatCombos")}
                     />
                 </FiltersContainer>

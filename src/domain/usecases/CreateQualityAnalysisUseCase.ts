@@ -10,6 +10,7 @@ import { QualityAnalysisRepository } from "$/domain/repositories/QualityAnalysis
 import { SequentialRepository } from "$/domain/repositories/SequentialRepository";
 import { SettingsRepository } from "$/domain/repositories/SettingsRepository";
 import { UserRepository } from "$/domain/repositories/UserRepository";
+import { MetadataItem } from "$/domain/entities/MetadataItem";
 
 const previousYear = (new Date().getFullYear() - 1).toString();
 
@@ -25,17 +26,21 @@ export class CreateQualityAnalysisUseCase {
     execute(options: CreateQualityAnalysisOptions): FutureData<Id> {
         return Future.joinObj({
             currentUser: this.userRepository.getCurrent(),
-            defaultSettings: this.settingsRepository.get(),
-            sections: this.analysisSectionRepository.get(),
-            sequential: this.sequentialRepository.get(),
+            defaultSettings: this.settingsRepository.get(
+                options.metadata.programs.qualityIssues.code
+            ),
+            sections: this.analysisSectionRepository.get(options.metadata),
+            sequential: this.sequentialRepository.get(options.metadata),
         }).flatMap(({ currentUser, defaultSettings, sections, sequential }) => {
             const qualityAnalysisName = QualityAnalysis.buildDefaultName(
                 options.qualityAnalysis.name,
                 currentUser.username
             );
 
+            const { endDate, startDate, usePreviousYear, countryIds } = defaultSettings;
+
             return QualityAnalysis.build({
-                endDate: previousYear,
+                endDate: usePreviousYear ? previousYear : endDate,
                 id: getUid(`quality-analysis_${new Date().getTime()}`),
                 module: options.qualityAnalysis.module,
                 name: qualityAnalysisName,
@@ -45,10 +50,10 @@ export class CreateQualityAnalysisUseCase {
                         status: QualityAnalysisSection.getInitialStatus(),
                     });
                 }),
-                startDate: previousYear,
+                startDate: usePreviousYear ? previousYear : startDate,
                 status: "In Progress",
                 lastModification: "",
-                countriesAnalysis: defaultSettings.countryIds,
+                countriesAnalysis: countryIds,
                 sequential: { value: `DQ-${sequential.value}` },
             }).match({
                 error: errors => {
@@ -56,7 +61,9 @@ export class CreateQualityAnalysisUseCase {
                     return Future.error(new Error(errorMessages));
                 },
                 success: entity => {
-                    return this.qualityAnalysisRepository.save([entity]).map(() => entity.id);
+                    return this.qualityAnalysisRepository
+                        .save([entity], options.metadata)
+                        .map(() => entity.id);
                 },
             });
         });
@@ -65,4 +72,5 @@ export class CreateQualityAnalysisUseCase {
 
 type CreateQualityAnalysisOptions = {
     qualityAnalysis: Pick<QualityAnalysis, "name" | "module">;
+    metadata: MetadataItem;
 };

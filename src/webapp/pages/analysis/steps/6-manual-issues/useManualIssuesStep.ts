@@ -7,6 +7,7 @@ import { UpdateAnalysisState } from "$/webapp/pages/analysis/AnalysisPage";
 import { AddIssueDialogProps } from "$/webapp/components/add-issue-dialog/AddIssueDialog";
 import { IssueTemplate } from "$/domain/usecases/CreateIssueUseCase";
 import { useAppContext } from "$/webapp/contexts/app-context";
+import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
 
 type UseManualStepProps = {
     analysis: QualityAnalysis;
@@ -17,6 +18,7 @@ type UseManualStepProps = {
 export function useManualIssuesStep(props: UseManualStepProps) {
     const { analysis, section, updateAnalysis } = props;
     const { compositionRoot } = useAppContext();
+    const { metadataItem } = useMetadataItemContext();
 
     const [isLoading, setIsLoading] = React.useState<boolean>(false);
     const [error, setError] = React.useState<Maybe<string>>(undefined);
@@ -30,6 +32,7 @@ export function useManualIssuesStep(props: UseManualStepProps) {
                     qualityAnalysisId: analysis.id,
                     issues: issues,
                     sectionId: section.id,
+                    metadata: metadataItem,
                 })
                 .run(
                     analysis => {
@@ -44,7 +47,7 @@ export function useManualIssuesStep(props: UseManualStepProps) {
                     }
                 );
         },
-        [compositionRoot, section, analysis, updateAnalysis]
+        [compositionRoot, section, analysis, updateAnalysis, metadataItem]
     );
 
     const closeAddIssueDialog = React.useCallback(() => {
