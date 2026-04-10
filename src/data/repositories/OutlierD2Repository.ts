@@ -9,13 +9,16 @@ export class OutlierD2Repository implements OutlierRepository {
     constructor(private api: D2Api) {}
 
     export(options: OutlierOptions): FutureData<Outlier[]> {
+        // https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-240/data-validation.html#request-query-parameters
+        // The endpoint expects either `ds` (analyze every DE in the data set)
+        // or `de` (analyze specific DEs); when both are sent, `de` is silently ignored
+        // Omitting `ds` returns error E2200.
         return apiToFuture(
             this.api.request<D2OutlierResponse>({
                 method: "get",
                 url: "/outlierDetection",
                 params: {
                     ds: options.moduleId,
-                    de: options.dataElementIds,
                     ou: options.countryIds,
                     startDate: options.startDate,
                     endDate: options.endDate,

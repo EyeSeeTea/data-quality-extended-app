@@ -139,8 +139,7 @@ function getCompositionRoot(repositories: Repositories) {
             run: new RunOutlierUseCase(
                 repositories.outlierRepository,
                 repositories.qualityAnalysisRepository,
-                repositories.issueRepository,
-                repositories.moduleRepository
+                repositories.issueRepository
             ),
         },
         practitioners: {
