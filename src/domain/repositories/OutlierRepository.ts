@@ -9,7 +9,6 @@ export interface OutlierRepository {
 
 export type OutlierOptions = {
     moduleId: Maybe<Id>;
-    dataElementIds: Maybe<Id[]>;
     countryIds: Id[];
     startDate: string;
     endDate: string;

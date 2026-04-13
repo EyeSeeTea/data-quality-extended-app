@@ -2,13 +2,9 @@ import { FutureData } from "$/data/api-futures";
 import { Outlier } from "$/domain/entities/Outlier";
 import { QualityAnalysis } from "$/domain/entities/QualityAnalysis";
 import { Id } from "$/domain/entities/Ref";
-import { Future } from "$/domain/entities/generic/Future";
 import { IssueRepository } from "$/domain/repositories/IssueRepository";
 import { OutlierRepository } from "$/domain/repositories/OutlierRepository";
 import { QualityAnalysisRepository } from "$/domain/repositories/QualityAnalysisRepository";
-import _ from "$/domain/entities/generic/Collection";
-import { ModuleRepository } from "$/domain/repositories/ModuleRepository";
-import { DataElement } from "$/domain/entities/DataElement";
 import { UCIssue } from "./common/UCIssue";
 import { UCAnalysis } from "./common/UCAnalysis";
 import { QualityAnalysisIssue } from "$/domain/entities/QualityAnalysisIssue";
@@ -20,8 +16,7 @@ export class RunOutlierUseCase {
     constructor(
         private outlierRepository: OutlierRepository,
         private analysisRepository: QualityAnalysisRepository,
-        private issueRepository: IssueRepository,
-        private moduleRepository: ModuleRepository
+        private issueRepository: IssueRepository
     ) {
         this.analysisUseCase = new UCAnalysis(this.analysisRepository);
         this.issueUseCase = new UCIssue(this.issueRepository);
@@ -31,47 +26,36 @@ export class RunOutlierUseCase {
         return this.analysisUseCase
             .getById(options.qualityAnalysisId, options.metadata)
             .flatMap(analysis => {
-                return this.getNumericDataElements(analysis.module.id).flatMap(dataElements => {
-                    return this.getOutliers(
-                        options,
-                        analysis.startDate,
-                        analysis.endDate,
-                        analysis.countriesAnalysis,
-                        dataElements.map(dataElement => dataElement.id),
-                        analysis.module.id
-                    ).flatMap(outliers => {
-                        return this.issueUseCase
-                            .getTotalIssuesBySection(analysis, options.sectionId, options.metadata)
-                            .flatMap(totalIssues => {
-                                const issues = this.generateIssuesFromOutliers(
-                                    outliers,
-                                    analysis,
-                                    totalIssues,
-                                    options
-                                );
-                                return this.saveIssues(issues, analysis, options);
-                            })
-                            .flatMap(() => {
-                                const analysisToUpdate = this.analysisUseCase.updateAnalysis(
-                                    analysis,
-                                    options.sectionId,
-                                    outliers.length
-                                );
-                                return this.analysisRepository
-                                    .save([analysisToUpdate], options.metadata)
-                                    .map(() => analysisToUpdate);
-                            });
-                    });
+                return this.getOutliers(
+                    options,
+                    analysis.startDate,
+                    analysis.endDate,
+                    analysis.countriesAnalysis,
+                    analysis.module.id
+                ).flatMap(outliers => {
+                    return this.issueUseCase
+                        .getTotalIssuesBySection(analysis, options.sectionId, options.metadata)
+                        .flatMap(totalIssues => {
+                            const issues = this.generateIssuesFromOutliers(
+                                outliers,
+                                analysis,
+                                totalIssues,
+                                options
+                            );
+                            return this.saveIssues(issues, analysis, options);
+                        })
+                        .flatMap(() => {
+                            const analysisToUpdate = this.analysisUseCase.updateAnalysis(
+                                analysis,
+                                options.sectionId,
+                                outliers.length
+                            );
+                            return this.analysisRepository
+                                .save([analysisToUpdate], options.metadata)
+                                .map(() => analysisToUpdate);
+                        });
                 });
             });
-    }
-
-    private getNumericDataElements(moduleId: Id): FutureData<DataElement[]> {
-        return this.moduleRepository.getByIds([moduleId]).flatMap(modules => {
-            const module = modules[0];
-            if (!module) return Future.error(new Error(`Cannot find module: ${moduleId}`));
-            return Future.success(module.dataElements.filter(dataElement => dataElement.isNumber));
-        });
     }
 
     private getOutliers(
@@ -79,25 +63,15 @@ export class RunOutlierUseCase {
         startDate: string,
         endDate: string,
         countryIds: Id[],
-        dataElements: Id[],
         moduleId: Id
     ): FutureData<Outlier[]> {
-        const $requests = _(dataElements)
-            .chunk(100)
-            .map(dataElementsIds => {
-                return this.outlierRepository.export({
-                    algorithm: options.algorithm,
-                    countryIds: countryIds,
-                    endDate: endDate,
-                    startDate: startDate,
-                    moduleId: moduleId,
-                    threshold: options.threshold,
-                    dataElementIds: dataElementsIds,
-                });
-            })
-            .value();
-        return Future.sequential($requests).flatMap(result => {
-            return Future.success(_(result).flatten().value());
+        return this.outlierRepository.export({
+            algorithm: options.algorithm,
+            countryIds: countryIds,
+            endDate: endDate,
+            startDate: startDate,
+            moduleId: moduleId,
+            threshold: options.threshold,
         });
     }
 
