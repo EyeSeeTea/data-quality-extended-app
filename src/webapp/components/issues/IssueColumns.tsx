@@ -32,6 +32,26 @@ export function useIssueColumns() {
                 name: "description",
                 text: i18n.t("Description"),
                 sortable: false,
+                getValue: (issue: QualityAnalysisIssue) => {
+                    const desc = issue.description;
+                    if (!desc.startsWith("Rule Group: ")) return desc;
+                    const [groupLine, ruleLine, valuesLine] = desc.split("\n");
+                    const label = (prefix: string, line: string | undefined) => (
+                        <>
+                            <strong>{prefix}</strong>
+                            {line?.slice(prefix.length) ?? ""}
+                        </>
+                    );
+                    return (
+                        <span>
+                            {label("Rule Group:", groupLine)}
+                            <br />
+                            {label("Rule:", ruleLine)}
+                            <br />
+                            {label("Values:", valuesLine)}
+                        </span>
+                    );
+                },
             },
             {
                 name: "status",
