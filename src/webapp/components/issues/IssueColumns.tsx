@@ -43,6 +43,11 @@ export function useIssueColumns() {
 
                     if (!isStructured) return description;
 
+                    // guaranteed non-undefined by isStructured check above
+                    const group = groupLine ?? "";
+                    const rule = ruleLine ?? "";
+                    const values = valuesLine ?? "";
+
                     const label = (prefix: string, line: string) => (
                         <>
                             <strong>{prefix}</strong>
@@ -52,11 +57,11 @@ export function useIssueColumns() {
 
                     return (
                         <span>
-                            {label("Rule Group:", groupLine!)}
+                            {label("Rule Group:", group)}
                             <br />
-                            {label("Rule:", ruleLine!)}
+                            {label("Rule:", rule)}
                             <br />
-                            {label("Values:", valuesLine!)}
+                            {label("Values:", values)}
                         </span>
                     );
                 },
