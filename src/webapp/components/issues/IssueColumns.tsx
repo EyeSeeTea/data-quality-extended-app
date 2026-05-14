@@ -52,11 +52,11 @@ export function useIssueColumns() {
 
                     return (
                         <span>
-                            {label("Rule Group:", groupLine)}
+                            {label("Rule Group:", groupLine!)}
                             <br />
-                            {label("Rule:", ruleLine)}
+                            {label("Rule:", ruleLine!)}
                             <br />
-                            {label("Values:", valuesLine)}
+                            {label("Values:", valuesLine!)}
                         </span>
                     );
                 },
