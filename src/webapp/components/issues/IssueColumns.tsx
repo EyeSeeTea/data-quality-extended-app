@@ -32,6 +32,39 @@ export function useIssueColumns() {
                 name: "description",
                 text: i18n.t("Description"),
                 sortable: false,
+                getValue: (issue: QualityAnalysisIssue) => {
+                    const description = issue.description;
+                    const [groupLine, ruleLine, valuesLine] = description.split("\n");
+
+                    const isStructured =
+                        groupLine?.startsWith("Rule Group: ") &&
+                        ruleLine?.startsWith("Rule: ") &&
+                        valuesLine?.startsWith("Values: ");
+
+                    if (!isStructured) return description;
+
+                    // guaranteed non-undefined by isStructured check above
+                    const group = groupLine ?? "";
+                    const rule = ruleLine ?? "";
+                    const values = valuesLine ?? "";
+
+                    const label = (prefix: string, line: string) => (
+                        <>
+                            <strong>{prefix}</strong>
+                            {line.slice(prefix.length)}
+                        </>
+                    );
+
+                    return (
+                        <span>
+                            {label("Rule Group:", group)}
+                            <br />
+                            {label("Rule:", rule)}
+                            <br />
+                            {label("Values:", values)}
+                        </span>
+                    );
+                },
             },
             {
                 name: "status",
