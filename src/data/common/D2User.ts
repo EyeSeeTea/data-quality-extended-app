@@ -44,14 +44,12 @@ export class D2User {
 
     getByUsernames(userIds: string[]): FutureData<User[]> {
         return apiToFuture(
-            this.api.models.users
-                .get({ fields: userFields, filter: { username: { in: userIds } } })
-                .map(d2Response => {
-                    return d2Response.data.objects.map(d2User => {
-                        return this.buildUser(d2User);
-                    });
-                })
-        );
+            this.api.models.users.get({ fields: userFields, filter: { username: { in: userIds } } })
+        ).map(d2Response => {
+            return d2Response.objects.map((d2User): User => {
+                return this.buildUser(d2User);
+            });
+        });
     }
 
     private buildUser(d2User: D2UserEntity) {
@@ -73,11 +71,8 @@ export class D2User {
             }),
             countries: [...readAccessCountries, ...writeAccessCountries],
             email: d2User.email,
-            // @ts-expect-error - upgrade d2-api for up-to-date types
             lastLogin: d2User.lastLogin,
-            // @ts-expect-error - upgrade d2-api for up-to-date types
             username: d2User.username,
-            // @ts-expect-error - upgrade d2-api for up-to-date types
             userRoles: d2User.userRoles,
         });
     }

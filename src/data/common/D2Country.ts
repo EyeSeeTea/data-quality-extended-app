@@ -6,6 +6,7 @@ import { Country } from "$/domain/entities/Country";
 import { Future } from "$/domain/entities/generic/Future";
 import { CountryOptions } from "$/domain/repositories/CountryRepository";
 import { RowsPaginated } from "$/domain/entities/Pagination";
+import { MetadataPick } from "$/types/d2-api";
 
 export class D2OrgUnit {
     constructor(private api: D2Api) {}
@@ -21,7 +22,7 @@ export class D2OrgUnit {
                             filter: { id: { in: countriesIds } },
                         })
                     ).map(d2Response => {
-                        return d2Response.objects.map((d2OrgUnit): Country => {
+                        return d2Response.objects.map((d2OrgUnit: D2OrgUnitEntity): Country => {
                             return {
                                 id: d2OrgUnit.id,
                                 name:
@@ -82,7 +83,7 @@ export class D2OrgUnit {
                     pageSize: d2Response.pager.pageSize,
                     total: d2Response.pager.total,
                 },
-                rows: d2Response.objects.map(d2OrgUnit => {
+                rows: d2Response.objects.map((d2OrgUnit: D2OrgUnitEntity) => {
                     return {
                         id: d2OrgUnit.id,
                         name:
@@ -105,3 +106,7 @@ const orgUnitFields = {
     displayShortName: true,
     path: true,
 };
+
+type D2OrgUnitEntity = MetadataPick<{
+    organisationUnits: { fields: typeof orgUnitFields };
+}>["organisationUnits"][number];

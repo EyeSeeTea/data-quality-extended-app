@@ -14,7 +14,7 @@ import { getDefaultModules } from "$/data/common/D2Module";
 import { DataElement } from "$/domain/entities/DataElement";
 import _ from "$/domain/entities/generic/Collection";
 import { Maybe } from "$/utils/ts-utils";
-import { D2CategoryCombo, MetadataPick } from "@eyeseetea/d2-api/2.36";
+import { D2CategoryCombo, MetadataPick } from "$/types/d2-api";
 
 export class ModuleD2Repository implements ModuleRepository {
     constructor(private api: D2Api) {}
@@ -22,54 +22,11 @@ export class ModuleD2Repository implements ModuleRepository {
     getByIds(ids: string[]): FutureData<Module[]> {
         return apiToFuture(
             this.api.models.dataSets.get({
-                fields: {
-                    id: true,
-                    displayName: true,
-                    code: true,
-                    sections: {
-                        id: true,
-                        dataElements: { id: true },
-                    },
-                    dataSetElements: {
-                        dataElement: {
-                            id: true,
-                            code: true,
-                            formName: true,
-                            displayFormName: true,
-                            valueType: true,
-                            categoryCombo: {
-                                id: true,
-                                code: true,
-                                name: true,
-                                displayName: true,
-                                categories: {
-                                    id: true,
-                                    name: true,
-                                    categoryOptions: {
-                                        id: true,
-                                        name: true,
-                                    },
-                                },
-                                categoryOptionCombos: { id: true, name: true },
-                            },
-                        },
-                        categoryCombo: {
-                            id: true,
-                            code: true,
-                            displayName: true,
-                            categories: {
-                                id: true,
-                                name: true,
-                                categoryOptions: { id: true, name: true },
-                            },
-                            categoryOptionCombos: { id: true, name: true },
-                        },
-                    },
-                },
+                fields: dataSetByIdsFields,
                 filter: { id: { in: ids } },
             })
         ).map(d2Response => {
-            return d2Response.objects.map((d2DataSet): Module => {
+            return d2Response.objects.map((d2DataSet: D2DataSetByIds): Module => {
                 const sectionDataElements = d2DataSet.sections
                     .flatMap(section => section.dataElements)
                     .map(dataElement => dataElement.id);
@@ -246,6 +203,55 @@ const dataSetFields = {
     code: true,
 } as const;
 
+const dataSetByIdsFields = {
+    id: true,
+    displayName: true,
+    code: true,
+    sections: {
+        id: true,
+        dataElements: { id: true },
+    },
+    dataSetElements: {
+        dataElement: {
+            id: true,
+            code: true,
+            formName: true,
+            displayFormName: true,
+            valueType: true,
+            categoryCombo: {
+                id: true,
+                code: true,
+                name: true,
+                displayName: true,
+                categories: {
+                    id: true,
+                    name: true,
+                    categoryOptions: {
+                        id: true,
+                        name: true,
+                    },
+                },
+                categoryOptionCombos: { id: true, name: true },
+            },
+        },
+        categoryCombo: {
+            id: true,
+            code: true,
+            displayName: true,
+            categories: {
+                id: true,
+                name: true,
+                categoryOptions: { id: true, name: true },
+            },
+            categoryOptionCombos: { id: true, name: true },
+        },
+    },
+} as const;
+
 type D2DataSet = MetadataPick<{
     dataSets: { fields: typeof dataSetFields };
+}>["dataSets"][number];
+
+type D2DataSetByIds = MetadataPick<{
+    dataSets: { fields: typeof dataSetByIdsFields };
 }>["dataSets"][number];

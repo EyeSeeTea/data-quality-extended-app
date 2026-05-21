@@ -37,9 +37,17 @@ import { getDefaultModules } from "$/data/common/D2Module";
 import { buildTrackerResponse, getProgramStageIndexById } from "$/data/common/utils";
 import { DATA_QUALITY_NAMESPACE } from "$/data/common/DataStoreConfig";
 import { DataStore } from "@eyeseetea/d2-api/api";
+import type { AsyncPostResponse } from "@eyeseetea/d2-api/api/common";
+import type { TrackedOrderBase } from "@eyeseetea/d2-api/api/trackerTrackedEntities";
 
 const DEFAULT_PAGE_SIZE = 150;
 const DEFAULT_DELETE_CHUNK_SIZE = 300;
+const qualityAnalysisFields = {
+    orgUnit: true,
+    trackedEntity: true,
+    attributes: true,
+    enrollments: true,
+} as const;
 
 export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
     d2DataElement: D2DataElement;
@@ -59,7 +67,7 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
             this.api.tracker.trackedEntities.get({
                 ouMode: "SELECTED",
                 orgUnit: options.metadata.organisationUnits.global.id,
-                fields: { orgUnit: true, trackedEntity: true, attributes: true, enrollments: true },
+                fields: qualityAnalysisFields,
                 program: this.getIdOrThrow(options.metadata.programs.qualityIssues?.id),
                 page: options.pagination.page,
                 pageSize: options.pagination.pageSize,
@@ -69,7 +77,7 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
                 trackedEntities: options.filters.ids ? options.filters.ids.join(";") : undefined,
                 filter:
                     this.buildFilters(options.filters, options.metadata)?.join(",") || undefined,
-                order: this.buildOrder(options.sorting, options.metadata) || undefined,
+                order: this.buildOrder(options.sorting, options.metadata),
                 totalPages: true,
             })
         ).flatMap(d2Response => {
@@ -88,8 +96,7 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
                 return {
                     pagination: {
                         pageSize: d2Response.pageSize,
-                        // @ts-ignore
-                        pageCount: d2Response.pageCount,
+                        pageCount: d2Response.pageCount ?? d2Response.pager?.pageCount ?? 1,
                         page: d2Response.page,
                         total: d2Response.total || 0,
                     },
@@ -151,9 +158,11 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
     }
 
     remove(id: Id): FutureData<void> {
+        // TODO: d2-api upgrade - review this endpoint change
         return apiToFuture(
-            this.api.tracker.postAsync(
-                { importStrategy: "DELETE" },
+            this.api.post<AsyncPostResponse<"TRACKER_IMPORT_JOB">>(
+                "/tracker",
+                { importStrategy: "DELETE", async: true },
                 { trackedEntities: [{ trackedEntity: id }] }
             )
         ).flatMap(d2JobResponse => {
@@ -197,20 +206,22 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
     private getAllD2TrackerTrackedEntities(
         programId: Id,
         orgUnit: Id
-    ): FutureData<D2TrackerTrackedEntity[]> {
-        const teis: D2TrackerTrackedEntity[] = [];
+    ): FutureData<D2TrackerTrackedEntityForDelete[]> {
+        const teis: D2TrackerTrackedEntityForDelete[] = [];
         const pageSize = DEFAULT_PAGE_SIZE;
         const firstPage = 1;
 
         const fetchPage = (
             page: number,
-            accTeis: D2TrackerTrackedEntity[]
-        ): FutureData<D2TrackerTrackedEntity[]> => {
+            accTeis: D2TrackerTrackedEntityForDelete[]
+        ): FutureData<D2TrackerTrackedEntityForDelete[]> => {
             return apiToFuture(
                 this.api.tracker.trackedEntities.get({
                     ouMode: "SELECTED",
                     fields: {
                         trackedEntity: true,
+                        orgUnit: true,
+                        trackedEntityType: true,
                     },
                     program: programId,
                     orgUnit: orgUnit,
@@ -218,12 +229,15 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
                     pageSize: pageSize,
                     totalPages: true,
                 })
-            ).flatMap((response: TrackedEntitiesGetResponse) => {
-                const apiTeis: D2TrackerTrackedEntity[] = buildTrackerResponse(response).instances;
+            ).flatMap(response => {
+                const apiTeis = buildTrackerResponse(response).instances.map(tei => ({
+                    trackedEntity: tei.trackedEntity,
+                    orgUnit: tei.orgUnit,
+                    trackedEntityType: tei.trackedEntityType,
+                }));
                 const nextAccTeis = [...accTeis, ...apiTeis];
 
-                // @ts-ignore. The d2-api types should be updated to reflect that pageCount is always returned when totalPages is true
-                const pageCount = response.pageCount;
+                const pageCount = response.pageCount ?? response.pager?.pageCount;
                 const nextPage = (response.page ?? page) + 1;
 
                 if (pageCount !== undefined && nextPage <= pageCount) {
@@ -273,11 +287,22 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
     }
 
     private deleteFromProgramAndDatastore(
-        teis: D2TrackerTrackedEntity[],
+        teis: D2TrackerTrackedEntityForDelete[],
         dataStore: DataStore
     ): FutureData<void> {
         return apiToFuture(
-            this.api.tracker.post({ importStrategy: "DELETE" }, { trackedEntities: teis })
+            this.api.tracker.post(
+                { importStrategy: "DELETE" },
+                {
+                    trackedEntities: teis.map(tei => ({
+                        trackedEntity: tei.trackedEntity,
+                        orgUnit: tei.orgUnit,
+                        trackedEntityType: tei.trackedEntityType,
+                        enrollments: [],
+                        attributes: [],
+                    })),
+                }
+            )
         ).flatMap(d2Response => {
             if (d2Response?.status === "ERROR") {
                 return Future.error(new Error(d2Response.message));
@@ -482,10 +507,11 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
             storedBy: firstEnrollment?.storedBy || "",
             orgUnit: metadata.organisationUnits.global.id,
             orgUnitName: this.getValueOrDefault(firstEnrollment?.orgUnitName),
+            trackedEntity: teiId,
+            trackedEntityType: metadata.trackedEntityTypes.dataQuality.id,
             program: metadata.programs.qualityIssues.id,
             enrollment:
                 firstEnrollment?.enrollment || getUid(`quality-analysis-enrollment_${teiId}`),
-            relationships: [],
             attributes: [],
             notes: [],
             status: firstEnrollment?.status || "ACTIVE",
@@ -516,6 +542,7 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
         metadata: MetadataItem
     ): DataValue[] {
         const programStageIndex = getProgramStageIndexById(issue.type, metadata);
+        const now = new Date().toISOString();
 
         const currentDataValues = [
             {
@@ -583,7 +610,15 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
             const d2DataValue = event.dataValues.find(
                 dv => dv.dataElement === dataValue.dataElement
             );
-            return d2DataValue ? { ...d2DataValue, value: dataValue.value } : dataValue;
+            // TODO: d2-api upgrade - review these defaults
+            return d2DataValue
+                ? { ...d2DataValue, value: dataValue.value }
+                : {
+                      ...dataValue,
+                      createdAt: now,
+                      updatedAt: now,
+                      storedBy: event.storedBy || "",
+                  };
         });
     }
 
@@ -621,38 +656,55 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
     private buildOrder(
         sorting: QualityAnalysisOptions["sorting"],
         metadata: MetadataItem
-    ): Maybe<string> {
+    ): Maybe<TrackedOrderBase[]> {
+        const buildAttributeOrder = (id: Id): TrackedOrderBase => ({
+            type: "trackedEntityAttributeId",
+            id,
+            direction: sorting.order,
+        });
         switch (sorting.field) {
             case "endDate":
-                return `${this.getIdOrThrow(metadata.trackedEntityAttributes.endDate.id)}:${
-                    sorting.order
-                }`;
+                return [
+                    buildAttributeOrder(
+                        this.getIdOrThrow(metadata.trackedEntityAttributes.endDate.id)
+                    ),
+                ];
             case "startDate":
-                return `${this.getIdOrThrow(metadata.trackedEntityAttributes.startDate.id)}:${
-                    sorting.order
-                }`;
+                return [
+                    buildAttributeOrder(
+                        this.getIdOrThrow(metadata.trackedEntityAttributes.startDate.id)
+                    ),
+                ];
             case "module":
-                return `${this.getIdOrThrow(metadata.trackedEntityAttributes.module.id)}:${
-                    sorting.order
-                }`;
+                return [
+                    buildAttributeOrder(
+                        this.getIdOrThrow(metadata.trackedEntityAttributes.module.id)
+                    ),
+                ];
             case "status":
-                return `${this.getIdOrThrow(metadata.trackedEntityAttributes.status.id)}:${
-                    sorting.order
-                }`;
+                return [
+                    buildAttributeOrder(
+                        this.getIdOrThrow(metadata.trackedEntityAttributes.status.id)
+                    ),
+                ];
             case "name":
-                return `${this.getIdOrThrow(metadata.trackedEntityAttributes.name.id)}:${
-                    sorting.order
-                }`;
+                return [
+                    buildAttributeOrder(
+                        this.getIdOrThrow(metadata.trackedEntityAttributes.name.id)
+                    ),
+                ];
             case "lastModification":
-                return `${this.getIdOrThrow(
-                    metadata.trackedEntityAttributes.lastModification.id
-                )}:${sorting.order}`;
+                return [
+                    buildAttributeOrder(
+                        this.getIdOrThrow(metadata.trackedEntityAttributes.lastModification.id)
+                    ),
+                ];
         }
         return undefined;
     }
 
     private buildQualityAnalysis(
-        entity: D2TrackerTrackedEntity,
+        entity: D2QualityAnalysisEntity,
         sectionStatus: AnalysisSectionStatus[],
         metadata: MetadataItem
     ): Maybe<QualityAnalysis> {
@@ -743,7 +795,9 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
         return id;
     }
 
-    private buildAttributesById(entity: D2TrackerTrackedEntity): HashMap<Id, string> {
+    private buildAttributesById(
+        entity: Pick<D2QualityAnalysisEntity, "attributes">
+    ): HashMap<Id, string> {
         const attributesByPair = _(entity.attributes || [])
             .map(a => [a.attribute, a.value] as [Id, string])
             .value();
@@ -759,3 +813,10 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
 type D2AnalysisDataStore = { sections: SectionInfo[] };
 type SectionInfo = { id: Id; status: string };
 type AnalysisSectionStatus = { id: Id; extraInfo: Maybe<SectionInfo[]> };
+type D2QualityAnalysisEntity = TrackedEntitiesGetResponse<
+    typeof qualityAnalysisFields
+>["instances"][number];
+type D2TrackerTrackedEntityForDelete = Pick<
+    D2TrackerTrackedEntity,
+    "trackedEntity" | "orgUnit" | "trackedEntityType"
+>;

@@ -1,4 +1,4 @@
-import { D2Api, D2TrackerEvent, DataValue } from "$/types/d2-api";
+import { D2Api, D2TrackerEnrollment, DataValue, TrackerEventsResponse } from "$/types/d2-api";
 import { QualityAnalysisIssue } from "$/domain/entities/QualityAnalysisIssue";
 import { GetIssuesOptions, IssueRepository } from "$/domain/repositories/IssueRepository";
 import { FutureData, apiToFuture } from "$/data/api-futures";
@@ -44,7 +44,7 @@ export class IssueD2Repository implements IssueRepository {
         return apiToFuture(
             this.api.tracker.events.get({
                 programStage: filters.sectionId ? filters.sectionId : undefined,
-                fields: { dataValues: true, event: true, programStage: true },
+                fields: issueEventFields,
                 totalPages: true,
                 trackedEntity: filters.analysisIds ? filters.analysisIds.join(";") : undefined,
                 page: pagination.page,
@@ -83,8 +83,7 @@ export class IssueD2Repository implements IssueRepository {
                 return Future.success({
                     pagination: {
                         pageSize: d2Response.pageSize,
-                        // @ts-ignore
-                        pageCount: d2Response.pageCount,
+                        pageCount: d2Response.pageCount ?? d2Response.pager?.pageCount ?? 1,
                         page: d2Response.page,
                         total: d2Response.total || 0,
                     },
@@ -103,7 +102,7 @@ export class IssueD2Repository implements IssueRepository {
     getById(id: Id, metadata: MetadataItem): FutureData<QualityAnalysisIssue> {
         return apiToFuture(
             this.api.tracker.events.get({
-                fields: { dataValues: true, event: true, programStage: true },
+                fields: issueEventFields,
                 event: id ? id : undefined,
             })
         ).flatMap(d2Response => {
@@ -158,7 +157,8 @@ export class IssueD2Repository implements IssueRepository {
             const instances = buildTrackerResponse(d2Response).instances;
             const tei = instances.find(tei => tei.trackedEntity === analysisId);
             if (!tei) return Future.error(new Error(`Cannot found TEI: ${tei}`));
-            const enrollment = _(tei.enrollments || []).first();
+            // TODO: d2-api upgrade - review this cast
+            const enrollment = _(tei.enrollments || []).first() as Maybe<D2TrackerEnrollment>;
             if (!enrollment)
                 return Future.error(new Error(`Cannot found Enrollment in TEI: ${tei}`));
 
@@ -239,7 +239,7 @@ export class IssueD2Repository implements IssueRepository {
     }
 
     private buildIssues(
-        events: D2TrackerEvent[],
+        events: D2IssueEvent[],
         countries: Country[],
         dataElements: DataElement[],
         categoryOptions: CategoryOption[],
@@ -350,7 +350,7 @@ export class IssueD2Repository implements IssueRepository {
         return value || defaultValue || "";
     }
 
-    private getRelatedIdsFromDataValues(events: D2TrackerEvent[], dataElementId: Id): Id[] {
+    private getRelatedIdsFromDataValues(events: D2IssueEvent[], dataElementId: Id): Id[] {
         const valuesFromEvents = _(events)
             .map(d2Event => {
                 return _(d2Event.dataValues)
@@ -470,3 +470,7 @@ export class IssueD2Repository implements IssueRepository {
 }
 
 type DataElementKey = keyof MetadataItem["dataElements"];
+
+const issueEventFields = { dataValues: true, event: true, programStage: true } as const;
+
+type D2IssueEvent = TrackerEventsResponse<typeof issueEventFields>["instances"][number];
