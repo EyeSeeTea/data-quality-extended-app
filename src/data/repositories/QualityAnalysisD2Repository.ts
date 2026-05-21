@@ -34,7 +34,7 @@ import { D2DataElement } from "$/data/common/D2DataElement";
 import { D2OrgUnit } from "$/data/common/D2Country";
 import { getUid } from "$/utils/uid";
 import { getDefaultModules } from "$/data/common/D2Module";
-import { buildTrackerResponse, getProgramStageIndexById } from "$/data/common/utils";
+import { getProgramStageIndexById } from "$/data/common/utils";
 import { DATA_QUALITY_NAMESPACE } from "$/data/common/DataStoreConfig";
 import { DataStore } from "@eyeseetea/d2-api/api";
 import type { AsyncPostResponse } from "@eyeseetea/d2-api/api/common";
@@ -65,8 +65,8 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
     get(options: QualityAnalysisOptions): FutureData<QualityAnalysisPaginated> {
         return apiToFuture(
             this.api.tracker.trackedEntities.get({
-                ouMode: "SELECTED",
-                orgUnit: options.metadata.organisationUnits.global.id,
+                orgUnitMode: "SELECTED",
+                orgUnits: options.metadata.organisationUnits.global.id,
                 fields: qualityAnalysisFields,
                 program: this.getIdOrThrow(options.metadata.programs.qualityIssues?.id),
                 page: options.pagination.page,
@@ -81,7 +81,7 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
                 totalPages: true,
             })
         ).flatMap(d2Response => {
-            const instances = buildTrackerResponse(d2Response).instances;
+            const instances = d2Response.trackedEntities;
             const teiIds = _(instances)
                 .map(instance => instance.trackedEntity)
                 .compact()
@@ -95,10 +95,10 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
             }).map(({ sectionInformation }) => {
                 return {
                     pagination: {
-                        pageSize: d2Response.pageSize,
-                        pageCount: d2Response.pageCount ?? d2Response.pager?.pageCount ?? 1,
-                        page: d2Response.page,
-                        total: d2Response.total || 0,
+                        pageSize: d2Response.pager.pageSize,
+                        pageCount: d2Response.pager.pageCount ?? 1,
+                        page: d2Response.pager.page,
+                        total: d2Response.pager.total || 0,
                     },
                     rows: _(instances)
                         .map(tei =>
@@ -217,28 +217,28 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
         ): FutureData<D2TrackerTrackedEntityForDelete[]> => {
             return apiToFuture(
                 this.api.tracker.trackedEntities.get({
-                    ouMode: "SELECTED",
+                    orgUnitMode: "SELECTED",
                     fields: {
                         trackedEntity: true,
                         orgUnit: true,
                         trackedEntityType: true,
                     },
                     program: programId,
-                    orgUnit: orgUnit,
+                    orgUnits: orgUnit,
                     page: page,
                     pageSize: pageSize,
                     totalPages: true,
                 })
             ).flatMap(response => {
-                const apiTeis = buildTrackerResponse(response).instances.map(tei => ({
+                const apiTeis = response.trackedEntities.map(tei => ({
                     trackedEntity: tei.trackedEntity,
                     orgUnit: tei.orgUnit,
                     trackedEntityType: tei.trackedEntityType,
                 }));
                 const nextAccTeis = [...accTeis, ...apiTeis];
 
-                const pageCount = response.pageCount ?? response.pager?.pageCount;
-                const nextPage = (response.page ?? page) + 1;
+                const pageCount = response.pager?.pageCount;
+                const nextPage = (response.pager?.page ?? page) + 1;
 
                 if (pageCount !== undefined && nextPage <= pageCount) {
                     return fetchPage(nextPage, nextAccTeis);
@@ -392,14 +392,14 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
     ) {
         return apiToFuture(
             this.api.tracker.trackedEntities.get({
-                ouMode: "SELECTED",
-                orgUnit: metadata.organisationUnits.global.id,
+                orgUnitMode: "SELECTED",
+                orgUnits: metadata.organisationUnits.global.id,
                 program: metadata.programs.qualityIssues.id,
                 fields: { $all: true },
                 trackedEntity: qaIds.join(";"),
             })
         ).flatMap(d2Response => {
-            const instances = buildTrackerResponse(d2Response).instances;
+            const instances = d2Response.trackedEntities;
             const qualityAnalysisToPost = qaIds.map(qaId => {
                 const existingTei = instances.find(d2Tei => d2Tei.trackedEntity === qaId);
                 const qAnalysis = qualityAnalysis.find(qai => qai.id === qaId);
@@ -815,7 +815,7 @@ type SectionInfo = { id: Id; status: string };
 type AnalysisSectionStatus = { id: Id; extraInfo: Maybe<SectionInfo[]> };
 type D2QualityAnalysisEntity = TrackedEntitiesGetResponse<
     typeof qualityAnalysisFields
->["instances"][number];
+>["trackedEntities"][number];
 type D2TrackerTrackedEntityForDelete = Pick<
     D2TrackerTrackedEntity,
     "trackedEntity" | "orgUnit" | "trackedEntityType"
