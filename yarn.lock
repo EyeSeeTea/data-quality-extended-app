@@ -3343,6 +3343,21 @@
   resolved "https://registry.yarnpkg.com/@eslint/js/-/js-8.49.0.tgz#86f79756004a97fa4df866835093f1df3d03c333"
   integrity sha512-1S8uAY/MTJqVx0SC4epBq+N2yhuwtNwLbJYNZyhL2pO1ZVKn5HFXav5T41Ryzy9K9V7ZId2JB2oy/W4aCd9/2w==
 
+"@eyeseetea/d2-api-legacy@npm:@eyeseetea/d2-api@1.21.0":
+  version "1.21.0"
+  resolved "https://registry.yarnpkg.com/@eyeseetea/d2-api/-/d2-api-1.21.0.tgz#dd7bbd11a04760f302463e54a79a848821d05520"
+  integrity sha512-5MKdB022a0/w/q40GdrWLIOcBSJIWusHf7LGc5rODG/2m6LF3LGq4UBicVxi0VK0fTRF46H6wTMGZCWexSgm6w==
+  dependencies:
+    abort-controller "3.0.0"
+    axios "1.6.4"
+    axios-mock-adapter "1.22.0"
+    btoa "^1.2.1"
+    cross-fetch "^4.0.0"
+    form-data "^4.0.0"
+    iconv-lite "0.6.2"
+    lodash "4.17.21"
+    qs "6.9.7"
+
 "@eyeseetea/d2-api@1.14.0":
   version "1.14.0"
   resolved "https://registry.yarnpkg.com/@eyeseetea/d2-api/-/d2-api-1.14.0.tgz#546398b00b9f01b60a72ecba648a35f57b6f7559"

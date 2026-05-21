@@ -12,6 +12,7 @@ import { AnalysisSectionTestRepository } from "./data/repositories/AnalysisSecti
 import { CountryD2Repository } from "./data/repositories/CountryD2Repository";
 import { CountryTestRepository } from "./data/repositories/CountryTestRepository";
 import { IssueD2Repository } from "./data/repositories/IssueD2Repository";
+import { IssueD2LegacyRepository } from "./data/repositories/IssueD2LegacyRepository";
 import { IssueTestRepository } from "./data/repositories/IssueTestRepository";
 import { MetadataD2Repository } from "./data/repositories/MetadataD2Repository";
 import { MetadataTestRepository } from "./data/repositories/MetadataTestRepository";
@@ -20,6 +21,7 @@ import { ModuleTestRepository } from "./data/repositories/ModuleTestRepository";
 import { OutlierD2Repository } from "./data/repositories/OutlierD2Repository";
 import { OutlierTestRepository } from "./data/repositories/OutlierTestRepository";
 import { QualityAnalysisD2Repository } from "./data/repositories/QualityAnalysisD2Repository";
+import { QualityAnalysisD2LegacyRepository } from "./data/repositories/QualityAnalysisD2LegacyRepository";
 import { QualityAnalysisTestRepository } from "./data/repositories/QualityAnalysisTestRepository";
 import { SequentialD2Repository } from "./data/repositories/SequentialD2Repository";
 import { SequentialTestRepository } from "./data/repositories/SequentialTestRepository";
@@ -44,6 +46,8 @@ import { SaveConfigAnalysisUseCase } from "./domain/usecases/SaveConfigAnalysisU
 import { ValidationRuleGroupRepository } from "./domain/repositories/ValidationRuleGroupRepository";
 import { GetAllIssuesUseCase } from "./domain/usecases/GetAllIssuesUseCase";
 import { D2Api } from "./types/d2-api";
+import { D2ApiLegacyImpl } from "./types/d2-api-legacy";
+import { getDhis2MajorVersion } from "./utils/dhis2Version";
 import { RunPractitionersValidationUseCase } from "./domain/usecases/RunPractitionersValidationUseCase";
 import { DataValueRepository } from "$/domain/repositories/DataValueRepository";
 import { DataValueD2Repository } from "./data/repositories/DataValueD2Repository";
@@ -230,16 +234,31 @@ function getCompositionRoot(repositories: Repositories) {
     };
 }
 
-export function getWebappCompositionRoot(api: D2Api) {
+export async function getWebappCompositionRoot(
+    api: D2Api
+): Promise<ReturnType<typeof getCompositionRoot>> {
+    const majorVersion = await getDhis2MajorVersion(api);
+    const isLegacy = majorVersion < 42;
+
+    // For DHIS2 < 42 we use the legacy d2-api package (1.x) which still exposes
+    // the old response shapes (.instances, flat pagination, ouMode/orgUnit).
+    const legacyApi = isLegacy ? new D2ApiLegacyImpl({ baseUrl: api.baseUrl }) : undefined;
+
     const repositories: Repositories = {
         usersRepository: new UserD2Repository(api),
-        qualityAnalysisRepository: new QualityAnalysisD2Repository(api),
+        qualityAnalysisRepository:
+            isLegacy && legacyApi
+                ? new QualityAnalysisD2LegacyRepository(legacyApi)
+                : new QualityAnalysisD2Repository(api),
         metadataRepository: new MetadataD2Repository(api),
         settingsRepository: new SettingsD2Repository(api),
         moduleRepository: new ModuleD2Repository(api),
         analysisSectionRepository: new AnalysisSectionD2Repository(),
         outlierRepository: new OutlierD2Repository(api),
-        issueRepository: new IssueD2Repository(api),
+        issueRepository:
+            isLegacy && legacyApi
+                ? new IssueD2LegacyRepository(legacyApi)
+                : new IssueD2Repository(api),
         countryRepository: new CountryD2Repository(api),
         sequentialRepository: new SequentialD2Repository(api),
         dataValueRepository: new DataValueD2Repository(api),

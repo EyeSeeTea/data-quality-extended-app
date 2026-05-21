@@ -17,6 +17,7 @@
         "@dhis2/d2-i18n": "1.1.3",
         "@dhis2/ui": "6.12.0",
         "@eyeseetea/d2-api": "42.22.0-beta.1",
+        "@eyeseetea/d2-api-legacy": "npm:@eyeseetea/d2-api@1.21.0",
         "@eyeseetea/d2-logger": "1.2.0-beta.1",
         "@eyeseetea/d2-ui-components": "2.10.1",
         "@eyeseetea/feedback-component": "0.0.3",
