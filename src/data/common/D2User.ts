@@ -73,7 +73,12 @@ export class D2User {
             }),
             countries: [...readAccessCountries, ...writeAccessCountries],
             email: d2User.email,
-            ...d2User.userCredentials,
+            // @ts-expect-error - upgrade d2-api for up-to-date types
+            lastLogin: d2User.lastLogin,
+            // @ts-expect-error - upgrade d2-api for up-to-date types
+            username: d2User.username,
+            // @ts-expect-error - upgrade d2-api for up-to-date types
+            userRoles: d2User.userRoles,
         });
     }
 }
@@ -83,11 +88,9 @@ const userFields = {
     displayName: true,
     email: true,
     userGroups: { id: true, name: true, users: true },
-    userCredentials: {
-        lastLogin: true,
-        username: true,
-        userRoles: { id: true, name: true, authorities: true },
-    },
+    lastLogin: true,
+    username: true,
+    userRoles: { id: true, name: true, authorities: true },
     teiSearchOrganisationUnits: { id: true, name: true, path: true },
     organisationUnits: { id: true, name: true, path: true },
 } as const;
