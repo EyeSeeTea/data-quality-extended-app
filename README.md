@@ -8,6 +8,8 @@ The app allows users to analyze the quality of their DHIS2 Data Sets, automatica
 
 ### DHIS2 Metadata Requirements
 
+> **Note:** The metadata package (needed for setup) is included in the GitHub release assets. This allows users and developers to easily locate and import it.
+
 The app requires at least a **Tracker Program** with predefined metadata codes.
 
 Multiple Data Quality Tracker Programs can be created in the same DHIS2 instance.
