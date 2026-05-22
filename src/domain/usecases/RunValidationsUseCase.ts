@@ -149,11 +149,14 @@ export class RunValidationsUseCase {
         validationRuleGroup: ValidationRuleGroup,
         rule: ValidationRuleAnalysis
     ): string {
-        if (rule.validationRule.description) {
-            return `Validation Rule ${rule.validationRule.name} - ${rule.validationRule.description} associated to the Validation Rule Group ${validationRuleGroup.name} failed: ${rule.leftValue} ${rule.operator} ${rule.rightValue}`;
-        } else {
-            return `Validation Rule ${rule.validationRule.name} associated to the Validation Rule Group ${validationRuleGroup.name} failed: ${rule.leftValue} ${rule.operator} ${rule.rightValue}`;
-        }
+        const rulePart = rule.validationRule.description
+            ? `${rule.validationRule.name} - ${rule.validationRule.description}`
+            : rule.validationRule.name;
+        return [
+            `Rule Group: ${validationRuleGroup.name}`,
+            `Rule: ${rulePart}`,
+            `Values: ${rule.leftValue} ${rule.operator} ${rule.rightValue}`,
+        ].join("\n");
     }
 
     private saveIssues(
