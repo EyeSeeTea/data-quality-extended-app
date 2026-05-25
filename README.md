@@ -18,13 +18,13 @@ which uniquely identifies each Data Quality program.
 
 For every additional program:
 
--   All **codes and names must be identical** to the ones described in this document,
-    replacing the placeholder `PREFIX` with a user-defined prefix (for example: `TEST`, `MAL`, `WHO`).
--   The **same prefix may be reused only for the Tracker Program code** by changing the numeric suffix  
-    (for example: `TEST_DQI_001`, `TEST_DQI_002`, `TEST_DQI_003`).
--   All other metadata objects (Tracked Entity Type, Data Elements, Tracked Entity Attributes, Option Sets, Program Stages)
-    **must keep exactly the same codes**, with no numeric variations.
--   No other changes to codes, names, value types, or structure are allowed.
+- All **codes and names must be identical** to the ones described in this document,
+  replacing the placeholder `PREFIX` with a user-defined prefix (for example: `TEST`, `MAL`, `WHO`).
+- The **same prefix may be reused only for the Tracker Program code** by changing the numeric suffix  
+  (for example: `TEST_DQI_001`, `TEST_DQI_002`, `TEST_DQI_003`).
+- All other metadata objects (Tracked Entity Type, Data Elements, Tracked Entity Attributes, Option Sets, Program Stages)
+  **must keep exactly the same codes**, with no numeric variations.
+- No other changes to codes, names, value types, or structure are allowed.
 
 This allows the application to support multiple Data Quality analyses in parallel,
 while still being able to identify and configure each program correctly.
@@ -35,7 +35,7 @@ If the metadata does not follow these rules, the application will not work corre
 
 #### Tracker Program
 
--   One **Tracker Program** with the following code:
+- One **Tracker Program** with the following code:
 
     `PREFIX_DQI_001`
 
@@ -51,9 +51,9 @@ The application supports the analysis steps described below and can also support
 
 > **Note**
 >
-> The configuration of analysis steps is stored in the DHIS2 DataStore in namespace `data-quality` under the key: `steps_PROGRAM_CODE`
+> The configuration of analysis steps is stored in the DHIS2 DataStore in namespace `data-quality` under the key: `steps-PROGRAM_CODE`
 > where `PROGRAM_CODE` corresponds to the code of the Data Quality Tracker Program
-> (for example: `steps_TEST_DQI_001`).
+> (for example: `steps-TEST_DQI_001`).
 > For custom analysis steps, users must ensure that all steps are correctly configured in this key.
 >
 > If the configuration in this DataStore entry is incorrect,
@@ -64,12 +64,12 @@ The application supports the analysis steps described below and can also support
 This Program Stage is used to store **data quality issues detected through outlier analysis**,
 based on the standard DHIS2 min–max outlier detection functionality.
 
--   **Name:** Outliers
--   **Scheduled days from start:** `0`
--   **Repeatable:** enabled
--   **Auto-generate event:** enabled
--   **Hide due date:** enabled
--   **Open data entry form after enrollment:** enabled
+- **Name:** Outliers
+- **Scheduled days from start:** `0`
+- **Repeatable:** enabled
+- **Auto-generate event:** enabled
+- **Hide due date:** enabled
+- **Open data entry form after enrollment:** enabled
 
 All other options should remain with their default values.
 
@@ -77,12 +77,12 @@ All other options should remain with their default values.
 
 This Program Stage is used to store **data quality issues detected through validation rules analysis**.
 
--   **Name:** Validation
--   **Scheduled days from start:** `1`
--   **Repeatable:** enabled
--   **Auto-generate event:** enabled
--   **Hide due date:** enabled
--   **Open data entry form after enrollment:** enabled
+- **Name:** Validation
+- **Scheduled days from start:** `1`
+- **Repeatable:** enabled
+- **Auto-generate event:** enabled
+- **Hide due date:** enabled
+- **Open data entry form after enrollment:** enabled
 
 All other options should remain with their default values.
 
@@ -91,12 +91,12 @@ All other options should remain with their default values.
 This Program Stage is used to **manually register data quality issues**
 that cannot be automatically detected through data analysis.
 
--   **Name:** Manual Issues
--   **Scheduled days from start:** `0`
--   **Repeatable:** enabled
--   **Auto-generate event:** enabled
--   **Hide due date:** enabled
--   **Open data entry form after enrollment:** disabled
+- **Name:** Manual Issues
+- **Scheduled days from start:** `0`
+- **Repeatable:** enabled
+- **Auto-generate event:** enabled
+- **Hide due date:** enabled
+- **Open data entry form after enrollment:** disabled
 
 All other options should remain with their default values.
 
@@ -109,15 +109,15 @@ All Data Elements defined in the metadata section **must be assigned to every Pr
 Unless stated otherwise for a specific stage, the following Data Elements  
 **must be marked as compulsory in all Program Stages**:
 
--   `PREFIX_DQI_Issue_Number`
--   `PREFIX_DQI_Issue_Correlative_Number`
--   `PREFIX_DQI_Section_Number`
+- `PREFIX_DQI_Issue_Number`
+- `PREFIX_DQI_Issue_Correlative_Number`
+- `PREFIX_DQI_Section_Number`
 
 All other Data Elements must be assigned as **non-compulsory**.
 
 #### Tracked Entity Type
 
--   One **Tracked Entity Type** with the following **name**:
+- One **Tracked Entity Type** with the following **name**:
 
     `PREFIX_DQI - Data Quality Analysis`
 
@@ -127,16 +127,16 @@ All other Data Elements must be assigned as **non-compulsory**.
 
 The following Tracked Entity Attributes **must exist** (codes must match exactly):
 
--   `PREFIX_DQI_TEA_Name`
--   `PREFIX_DQI_TEA_Dataset`
--   `PREFIX_DQI_TEA_Status`
--   `PREFIX_DQI_TEA_Start_Date`
--   `PREFIX_DQI_TEA_End_Date`
--   `PREFIX_DQI_TEA_Last_Modification`
--   `PREFIX_DQI_TEA_Countries_Analysis` — **LONG_TEXT**
--   `PREFIX_DQI_TEA_Sequential` — **TEXT**
-    -   **Unique**: entire system
-    -   **Automatically generated** with pattern: `SEQUENTIAL(######)`
+- `PREFIX_DQI_TEA_Name`
+- `PREFIX_DQI_TEA_Dataset`
+- `PREFIX_DQI_TEA_Status`
+- `PREFIX_DQI_TEA_Start_Date`
+- `PREFIX_DQI_TEA_End_Date`
+- `PREFIX_DQI_TEA_Last_Modification`
+- `PREFIX_DQI_TEA_Countries_Analysis` — **LONG_TEXT**
+- `PREFIX_DQI_TEA_Sequential` — **TEXT**
+    - **Unique**: entire system
+    - **Automatically generated** with pattern: `SEQUENTIAL(######)`
 
 #### Data Elements
 
@@ -144,30 +144,30 @@ The following Tracked Entity Attributes **must exist** (codes must match exactly
 
 The Tracker Program stages must include Data Elements with the following codes:
 
--   `PREFIX_DQI_Action` — **Option Set:** `PREFIX_DQI_Action`
--   `PREFIX_DQI_Action_Description` — **LONG_TEXT**
--   `PREFIX_DQI_Azure_URL` — **URL**
--   `PREFIX_DQI_Category_Option`
--   `PREFIX_DQI_Comments` — **LONG_TEXT**
--   `PREFIX_DQI_Contact_Emails` — **LONG_TEXT**
--   `PREFIX_DQI_Issue_Correlative_Number` — **NUMBER**
--   `PREFIX_DQI_Country` — **ORGANISATION_UNIT**
-    -   Aggregation type: **Average** (sum in org unit hierarchy)
--   `PREFIX_DQI_DataElement`
--   `PREFIX_DQI_Description` — **LONG_TEXT**
--   `PREFIX_DQI_Follow-Up` — **BOOLEAN** (Yes/No)
--   `PREFIX_DQI_Issue_Number` — **TEXT**
--   `PREFIX_DQI_Period` — **TEXT**
--   `PREFIX_DQI_Section_Number` — **NUMBER**
--   `PREFIX_DQI_Status` — **Option Set:** `PREFIX_DQI_Status`
--   `PREFIX_DQI_Conversation_ID` - **TEXT** (Optional)
+- `PREFIX_DQI_Action` — **Option Set:** `PREFIX_DQI_Action`
+- `PREFIX_DQI_Action_Description` — **LONG_TEXT**
+- `PREFIX_DQI_Azure_URL` — **URL**
+- `PREFIX_DQI_Category_Option`
+- `PREFIX_DQI_Comments` — **LONG_TEXT**
+- `PREFIX_DQI_Contact_Emails` — **LONG_TEXT**
+- `PREFIX_DQI_Issue_Correlative_Number` — **NUMBER**
+- `PREFIX_DQI_Country` — **ORGANISATION_UNIT**
+    - Aggregation type: **Average** (sum in org unit hierarchy)
+- `PREFIX_DQI_DataElement`
+- `PREFIX_DQI_Description` — **LONG_TEXT**
+- `PREFIX_DQI_Follow-Up` — **BOOLEAN** (Yes/No)
+- `PREFIX_DQI_Issue_Number` — **TEXT**
+- `PREFIX_DQI_Period` — **TEXT**
+- `PREFIX_DQI_Section_Number` — **NUMBER**
+- `PREFIX_DQI_Status` — **Option Set:** `PREFIX_DQI_Status`
+- `PREFIX_DQI_Conversation_ID` - **TEXT** (Optional)
 
 The `PREFIX_DQI_Conversation_ID` data element is **optional**.
 
--   **If provided:** The application enables notification functionality, allowing users to:
-    -   Send notifications to other users about specific data quality issues
-    -   View the history of notifications sent for an issue
--   **If NOT provided:** The notification actions ("Send new notification" and "View notification history") will not be displayed in the issues table, and users cannot send notifications.
+- **If provided:** The application enables notification functionality, allowing users to:
+    - Send notifications to other users about specific data quality issues
+    - View the history of notifications sent for an issue
+- **If NOT provided:** The notification actions ("Send new notification" and "View notification history") will not be displayed in the issues table, and users cannot send notifications.
 
 To enable notifications, ensure the `conversationId` data element is included in your metadata configuration
 and is assigned to all Program Stages with the required code `PREFIX_DQI_Conversation_ID`.
@@ -176,25 +176,24 @@ and is assigned to all Program Stages with the required code `PREFIX_DQI_Convers
 
 The following Option Sets **must exist**:
 
--   `PREFIX_DQI_Action`
+- `PREFIX_DQI_Action`
+    - Name: No action — Code: `0`
+    - Name: Data modification from HQ — Code: `1`
+    - Name: Data modification from country — Code: `2`
 
-    -   Name: No action — Code: `0`
-    -   Name: Data modification from HQ — Code: `1`
-    -   Name: Data modification from country — Code: `2`
-
--   `PREFIX_DQI_Status`
-    -   Name: Not treated — Code: `0`
-    -   Name: In treatment — Code: `1`
-    -   Name: Waiting for focal point — Code: `2`
-    -   Name: Resolved — Code: `3`
-    -   Name: Dismissed — Code: `4`
+- `PREFIX_DQI_Status`
+    - Name: Not treated — Code: `0`
+    - Name: In treatment — Code: `1`
+    - Name: Waiting for focal point — Code: `2`
+    - Name: Resolved — Code: `3`
+    - Name: Dismissed — Code: `4`
 
 ### Datastore
 
 The app uses a **DHIS2 DataStore entry** with:
 
--   **Namespace:** `data-quality`
--   **Key:** `programs-template`
+- **Namespace:** `data-quality`
+- **Key:** `programs-template`
 
 This DataStore entry is **mandatory** and must be created **exactly as shown below**.
 
@@ -257,12 +256,12 @@ the application will not be able to recognize or configure the program and will 
 >
 > After completing the Data Quality Analysis setup in the application,
 > users must ensure that the configuration stored in the DHIS2 DataStore
-> under the key `programs_PROGRAM_CODE` is correctly defined,
+> under the key `programs-PROGRAM_CODE` is correctly defined,
 > where `PROGRAM_CODE` corresponds to the code of the Data Quality Tracker Program
-> (for example: `steps_TEST_DQI_001`).
+> (for example: `steps-TEST_DQI_001`).
 >
 > The **Contact Emails auto-fill** feature relies on the configuration stored in the DHIS2 DataStore
-> under the key `programs_PROGRAM_CODE`.
+> under the key `programs-PROGRAM_CODE`.
 > To enable this feature, the `userGroups` property must be correctly defined in this configuration.
 > If the `userGroups` configuration is missing or incorrect,
 > the Contact Emails auto-fill feature will not work.
@@ -302,22 +301,22 @@ $ yarn test
 
 ### Clean architecture folder structure
 
--   `src/domain`: Domain layer of the app (entities, use cases, repository definitions)
--   `src/data`: Data of the app (repository implementations)
--   `src/webapp/pages`: Main React components.
--   `src/webapp/components`: React components.
--   `src/utils`: Misc utilities.
--   `i18n/`: Contains literal translations (gettext format)
--   `public/`: General non-React webapp resources.
+- `src/domain`: Domain layer of the app (entities, use cases, repository definitions)
+- `src/data`: Data of the app (repository implementations)
+- `src/webapp/pages`: Main React components.
+- `src/webapp/components`: React components.
+- `src/utils`: Misc utilities.
+- `i18n/`: Contains literal translations (gettext format)
+- `public/`: General non-React webapp resources.
 
 ## Data structures
 
--   `Future.ts`: Async values, similar to promises, but cancellables and with type-safe errors.
--   `Collection.ts`: Similar to Lodash, provides a wrapper over JS arrays.
--   `Obj.ts`: Similar to Lodash, provides a wrapper over JS objects.
--   `HashMap.ts`: Similar to ES6 map, but immutable.
--   `Struct.ts`: Base class for typical classes with attributes. Features: create, update.
--   `Either.ts`: Either a success value or an error.
+- `Future.ts`: Async values, similar to promises, but cancellables and with type-safe errors.
+- `Collection.ts`: Similar to Lodash, provides a wrapper over JS arrays.
+- `Obj.ts`: Similar to Lodash, provides a wrapper over JS objects.
+- `HashMap.ts`: Similar to ES6 map, but immutable.
+- `Struct.ts`: Base class for typical classes with attributes. Features: create, update.
+- `Either.ts`: Either a success value or an error.
 
 ## Docs
 
@@ -341,6 +340,6 @@ Check the example script, entry `"script-example"`in `package.json`->scripts and
 
 ### Misc Notes
 
--   Requests to DHIS2 will be transparently proxied (see `vite.config.ts` -> `server.proxy`) from `http://localhost:8081/dhis2/xyz` to `${VITE_DHIS2_BASE_URL}/xyz`. This prevents CORS and cross-domain problems.
+- Requests to DHIS2 will be transparently proxied (see `vite.config.ts` -> `server.proxy`) from `http://localhost:8081/dhis2/xyz` to `${VITE_DHIS2_BASE_URL}/xyz`. This prevents CORS and cross-domain problems.
 
--   You can use `.env` variables within the React app: `const value = import.meta.env.NAME;`
+- You can use `.env` variables within the React app: `const value = import.meta.env.NAME;`
