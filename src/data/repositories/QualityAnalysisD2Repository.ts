@@ -38,7 +38,7 @@ import { buildTrackerResponse, getProgramStageIndexById } from "$/data/common/ut
 import { DATA_QUALITY_NAMESPACE } from "$/data/common/DataStoreConfig";
 import { DataStore } from "@eyeseetea/d2-api/api";
 
-const DEFAULT_PAGE_SIZE = 150;
+const DEFAULT_PAGE_SIZE = 500;
 const DEFAULT_DELETE_CHUNK_SIZE = 300;
 
 export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
@@ -116,7 +116,7 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
             },
             pagination: {
                 page: 1,
-                pageSize: 1e6,
+                pageSize: DEFAULT_PAGE_SIZE,
             },
             sorting: {
                 field: "name",
