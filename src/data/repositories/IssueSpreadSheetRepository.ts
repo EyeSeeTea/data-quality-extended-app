@@ -27,7 +27,7 @@ export class IssueSpreadSheetRepository implements IssueExportRepository {
                         number: { title: i18n.t("Number") },
                         azureUrl: { title: i18n.t("Azure URL") },
                         period: { title: i18n.t("Period") },
-                        country: { title: i18n.t("Country") },
+                        country: { title: i18n.t("Org Unit") },
                         dataElement: { title: i18n.t("Data Element") },
                         categoryOption: { title: i18n.t("Category") },
                         description: { title: i18n.t("Description") },
