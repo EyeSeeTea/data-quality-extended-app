@@ -171,7 +171,7 @@ The following Option Sets **must exist**:
 
     -   Name: No action — Code: `0`
     -   Name: Data modification from HQ — Code: `1`
-    -   Name: Data modification from country — Code: `2`
+    -   Name: Data modification from Organisation Unit — Code: `2`
 
 -   `PREFIX_DQI_Status`
     -   Name: Not treated — Code: `0`
