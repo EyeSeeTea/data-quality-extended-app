@@ -53,5 +53,13 @@ const NAME_TO_STEP_TYPE: Record<string, StepType> = {
 
 export function resolveStepTypeFromSectionName(name: string): StepType | undefined {
     const key = normalizeSectionNameToKey(name);
-    return NAME_TO_STEP_TYPE[key];
+
+    const exactMatch = NAME_TO_STEP_TYPE[key];
+    if (exactMatch) return exactMatch;
+
+    const prefixedMatch = Object.entries(NAME_TO_STEP_TYPE).find(([canonicalKey]) =>
+        key.endsWith(`_${canonicalKey}`)
+    );
+
+    return prefixedMatch?.[1];
 }
