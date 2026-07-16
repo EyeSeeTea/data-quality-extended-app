@@ -30,6 +30,7 @@
         "eslint-plugin-no-relative-import-paths": "^1.5.3",
         "font-awesome": "4.7.0",
         "lodash": "4.17.21",
+        "moment": "2.29.4",
         "purify-ts-extra-codec": "0.6.0",
         "purify-ts": "2.0.3",
         "react-dom": "^18.2.0",
