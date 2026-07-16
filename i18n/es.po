@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: i18next-conv\n"
-"POT-Creation-Date: 2026-02-05T11:05:05.516Z\n"
+"POT-Creation-Date: 2026-07-16T10:04:40.196Z\n"
 "PO-Revision-Date: 2018-10-25T09:02:35.143Z\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -83,6 +83,9 @@ msgstr ""
 msgid "At least one disaggregation is required"
 msgstr ""
 
+msgid "All selected datasets must share the same periodicity (period type)"
+msgstr ""
+
 msgid "No disaggregations selected"
 msgstr ""
 
@@ -120,6 +123,9 @@ msgid "End Date"
 msgstr ""
 
 msgid "New Data Quality Report"
+msgstr ""
+
+msgid "Start Date must not be later than End Date"
 msgstr ""
 
 msgid "Name"
@@ -361,7 +367,7 @@ msgstr ""
 msgid "No datasets are available for data quality analysis."
 msgstr ""
 
-msgid "Use previous year for start and end dates"
+msgid "Use previous period for start and end dates"
 msgstr ""
 
 msgid "No match found for this step, so it cannot be configured."

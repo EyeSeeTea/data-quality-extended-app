@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-02-05T11:05:05.516Z\n"
-"PO-Revision-Date: 2026-02-05T11:05:05.516Z\n"
+"POT-Creation-Date: 2026-07-16T10:04:40.196Z\n"
+"PO-Revision-Date: 2026-07-16T10:04:40.196Z\n"
 
 msgid "ID"
 msgstr ""
@@ -83,6 +83,9 @@ msgstr ""
 msgid "At least one disaggregation is required"
 msgstr ""
 
+msgid "All selected datasets must share the same periodicity (period type)"
+msgstr ""
+
 msgid "No disaggregations selected"
 msgstr ""
 
@@ -120,6 +123,9 @@ msgid "End Date"
 msgstr ""
 
 msgid "New Data Quality Report"
+msgstr ""
+
+msgid "Start Date must not be later than End Date"
 msgstr ""
 
 msgid "Name"
@@ -360,7 +366,7 @@ msgstr ""
 msgid "No datasets are available for data quality analysis."
 msgstr ""
 
-msgid "Use previous year for start and end dates"
+msgid "Use previous period for start and end dates"
 msgstr ""
 
 msgid "No match found for this step, so it cannot be configured."

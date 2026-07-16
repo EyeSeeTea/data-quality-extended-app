@@ -69,9 +69,9 @@ export const SummaryStep: React.FC<Props> = React.memo(props => {
                                 {i18n.t("Dataset: ", { nsSeparator: false })} {defaultModule}
                             </li>
 
-                            {configProgramState.defaultSettings.usePreviousYear ? (
+                            {configProgramState.defaultSettings.usePreviousPeriod ? (
                                 <li key={configProgramState.defaultSettings.endDate}>
-                                    {i18n.t("Use previous year for start and end dates")}
+                                    {i18n.t("Use previous period for start and end dates")}
                                 </li>
                             ) : (
                                 <>

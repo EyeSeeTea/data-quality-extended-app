@@ -20,6 +20,8 @@ import { StepSettings } from "$/domain/entities/StepSettings";
 import { DataQualityIssuesProgramConfig } from "$/domain/entities/DataQualityIssuesProgramConfig";
 import { Maybe } from "$/utils/ts-utils";
 import { Country } from "$/domain/entities/Country";
+import { PeriodType } from "$/domain/entities/PeriodType";
+import { validateSamePeriodType } from "$/domain/entities/generic/validations";
 
 type StepKey =
     | "program-selection"
@@ -44,7 +46,7 @@ export function useConfigProgram(): State {
     }>();
     const { compositionRoot } = useAppContext();
     const { qualityIssuesPrograms } = useQualityIssuesPrograms();
-    const { modulesOptions } = useModulesOptions();
+    const { modulesOptions, modules } = useModulesOptions();
 
     const isEdit = Boolean(qualityIssuesProgramCode);
 
@@ -166,6 +168,22 @@ export function useConfigProgram(): State {
         );
     }, [moduleOptionsAvailable, configProgramState?.selectedModuleCodes]);
 
+    const periodTypeByCode = React.useMemo<Record<Code, PeriodType>>(() => {
+        return Object.fromEntries(modules.map(module => [module.code, module.periodType]));
+    }, [modules]);
+
+    const selectedModulePeriodTypes = React.useMemo<PeriodType[]>(() => {
+        const codes = configProgramState?.selectedModuleCodes ?? [];
+        return codes
+            .map(code => periodTypeByCode[code])
+            .filter((periodType): periodType is PeriodType => Boolean(periodType));
+    }, [configProgramState?.selectedModuleCodes, periodTypeByCode]);
+
+    const defaultDataSetPeriodType = React.useMemo<PeriodType>(() => {
+        const dataSet = configProgramState?.defaultSettings?.dataSet;
+        return (dataSet ? periodTypeByCode[dataSet] : undefined) ?? "Yearly";
+    }, [configProgramState?.defaultSettings?.dataSet, periodTypeByCode]);
+
     const sections = useMemo(() => {
         return (
             qualityIssuesPrograms?.find(
@@ -178,20 +196,23 @@ export function useConfigProgram(): State {
         if (!configProgramState) return;
 
         loading.show(true, i18n.t("Saving configuration..."));
-        compositionRoot.dataQualityIssuesProgramConfig.save.execute(configProgramState).run(
-            () => {
-                loading.hide();
-                snackBar.success(`Configuration saved successfully`);
-                history.push("/settings");
-            },
-            err => {
-                loading.hide();
-                snackBar.error(`Error saving configuration: ${err.message}`);
-            }
-        );
+        compositionRoot.dataQualityIssuesProgramConfig.save
+            .execute({ ...configProgramState, selectedModulePeriodTypes })
+            .run(
+                () => {
+                    loading.hide();
+                    snackBar.success(`Configuration saved successfully`);
+                    history.push("/settings");
+                },
+                err => {
+                    loading.hide();
+                    snackBar.error(`Error saving configuration: ${err.message}`);
+                }
+            );
     }, [
         compositionRoot.dataQualityIssuesProgramConfig.save,
         configProgramState,
+        selectedModulePeriodTypes,
         history,
         loading,
         snackBar,
@@ -235,6 +256,7 @@ export function useConfigProgram(): State {
                     selectedModuleOptions,
                     values: configProgramState.defaultSettings,
                     onChange: updateDefaultSettings,
+                    defaultDataSetPeriodType,
                 },
             },
             {
@@ -266,6 +288,7 @@ export function useConfigProgram(): State {
         programOptions,
         onSaveConfiguration,
         selectedModuleOptions,
+        defaultDataSetPeriodType,
         updateConfig,
         updateDefaultSettings,
         sections,
@@ -291,17 +314,26 @@ export function useConfigProgram(): State {
                 if (!configProgramState?.selectedModuleCodes?.length) {
                     errors = [...errors, i18n.t("Select at least one Dataset")];
                 }
+
+                if (validateSamePeriodType(selectedModulePeriodTypes).length > 0) {
+                    errors = [
+                        ...errors,
+                        i18n.t(
+                            "All selected datasets must share the same periodicity (period type)"
+                        ),
+                    ];
+                }
             }
 
             if (stepKey === "default-settings") {
-                const { dataSet, startDate, endDate, usePreviousYear } =
+                const { dataSet, startDate, endDate, usePreviousPeriod } =
                     configProgramState?.defaultSettings ?? {};
 
                 if (!dataSet) {
                     errors = [...errors, i18n.t("Select a default dataset")];
                 }
 
-                if (!usePreviousYear) {
+                if (!usePreviousPeriod) {
                     if (!startDate) {
                         errors = [...errors, i18n.t("Select a start date")];
                     }
@@ -333,6 +365,7 @@ export function useConfigProgram(): State {
             configProgramState?.selectedModuleCodes?.length,
             configProgramState?.selectedProgramCode,
             configProgramState?.steps,
+            selectedModulePeriodTypes,
         ]
     );
 
@@ -362,11 +395,12 @@ function getDataQualityIssuesProgramConfigOptions(
     return {
         selectedProgramCode: config.selectedProgramCode,
         selectedModuleCodes: config.selectedModuleCodes,
+        selectedModulePeriodTypes: config.selectedModulePeriodTypes ?? [],
         defaultSettings: {
             dataSet: config.defaultSettings.dataSet,
             endDate: config.defaultSettings.endDate,
             startDate: config.defaultSettings.startDate,
-            usePreviousYear: config.defaultSettings.usePreviousYear,
+            usePreviousPeriod: config.defaultSettings.usePreviousPeriod,
             orgUnits: config.defaultSettings.orgUnits,
             orgUnitPaths: countries?.map(country => country.path) ?? [],
         },

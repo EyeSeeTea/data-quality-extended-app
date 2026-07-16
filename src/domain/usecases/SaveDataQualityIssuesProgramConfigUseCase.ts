@@ -32,11 +32,12 @@ export class SaveDataQualityIssuesProgramConfigUseCase {
 export type DataQualityIssuesProgramConfigOptions = {
     selectedProgramCode: Maybe<Code>;
     selectedModuleCodes: Code[];
+    selectedModulePeriodTypes: string[];
     defaultSettings: {
         dataSet: Maybe<Code>;
         endDate: Maybe<string>;
         startDate: Maybe<string>;
-        usePreviousYear: boolean;
+        usePreviousPeriod: boolean;
         orgUnits: Id[];
         orgUnitPaths: string[];
     };
@@ -47,11 +48,12 @@ export type DataQualityIssuesProgramConfigOptions = {
 export const initialState: DataQualityIssuesProgramConfigOptions = {
     selectedProgramCode: undefined,
     selectedModuleCodes: [],
+    selectedModulePeriodTypes: [],
     defaultSettings: {
         dataSet: undefined,
         endDate: undefined,
         startDate: undefined,
-        usePreviousYear: false,
+        usePreviousPeriod: false,
         orgUnits: [],
         orgUnitPaths: [],
     },
@@ -65,12 +67,13 @@ function mapToDataQualityIssuesProgramConfig(
     return DataQualityIssuesProgramConfig.build({
         selectedProgramCode: selectedOptions.selectedProgramCode as Code,
         selectedModuleCodes: selectedOptions.selectedModuleCodes,
+        selectedModulePeriodTypes: selectedOptions.selectedModulePeriodTypes,
         defaultSettings: {
             dataSet: selectedOptions.defaultSettings.dataSet as Code,
             startDate: selectedOptions.defaultSettings.startDate as string,
             endDate: selectedOptions.defaultSettings.endDate as string,
             orgUnits: selectedOptions.defaultSettings.orgUnits,
-            usePreviousYear: selectedOptions.defaultSettings.usePreviousYear,
+            usePreviousPeriod: selectedOptions.defaultSettings.usePreviousPeriod,
         },
         steps: selectedOptions.steps,
     });

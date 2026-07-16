@@ -24,7 +24,7 @@ export class DataQualityIssuesProgramConfigTestRepository
                     startDate: "2023-01-01",
                     endDate: "2023-12-31",
                     orgUnits: [],
-                    usePreviousYear: false,
+                    usePreviousPeriod: false,
                 },
                 steps: [],
             }).get()
