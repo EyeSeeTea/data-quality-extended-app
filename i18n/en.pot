@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-07-16T10:04:40.196Z\n"
-"PO-Revision-Date: 2026-07-16T10:04:40.196Z\n"
+"POT-Creation-Date: 2026-07-16T16:41:44.135Z\n"
+"PO-Revision-Date: 2026-07-16T16:41:44.135Z\n"
 
 msgid "ID"
 msgstr ""
@@ -191,6 +191,9 @@ msgid "Export"
 msgstr ""
 
 msgid "Extend Follow-Up + Contact Emails"
+msgstr ""
+
+msgid "Could not load analysis period information: {{message}}"
 msgstr ""
 
 msgid "Removing..."

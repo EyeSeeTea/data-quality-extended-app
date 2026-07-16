@@ -7,6 +7,7 @@ import {
 import { apiToFuture, FutureData } from "$/data/api-futures";
 import { Future } from "$/domain/entities/generic/Future";
 import { DataQualityIssuesProgramConfig } from "$/domain/entities/DataQualityIssuesProgramConfig";
+import { QualityAnalysis } from "$/domain/entities/QualityAnalysis";
 import { Code } from "$/domain/entities/Ref";
 import {
     buildProgramConfigByProgramCode,
@@ -375,8 +376,8 @@ export class DataQualityIssuesProgramConfigD2Repository
             const raw = settings.defaultConfig;
             return Future.success({
                 dataSet: raw.dataSet,
-                startDate: raw.startDate,
-                endDate: raw.endDate,
+                startDate: QualityAnalysis.normalizePeriodBoundary(raw.startDate, "start"),
+                endDate: QualityAnalysis.normalizePeriodBoundary(raw.endDate, "end"),
                 orgUnits: raw.orgUnits,
                 usePreviousPeriod: readUsePreviousPeriod(raw),
             });

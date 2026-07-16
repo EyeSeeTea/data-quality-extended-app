@@ -64,16 +64,19 @@ export const initialState: DataQualityIssuesProgramConfigOptions = {
 function mapToDataQualityIssuesProgramConfig(
     selectedOptions: DataQualityIssuesProgramConfigOptions
 ): Either<ValidationError<DataQualityIssuesProgramConfig>[], DataQualityIssuesProgramConfig> {
+    const { defaultSettings } = selectedOptions;
+    // Coalesce the optional wizard values to empty strings so the entity's
+    // `validateRequired` reports them as missing, instead of forcing the types with `as`.
     return DataQualityIssuesProgramConfig.build({
-        selectedProgramCode: selectedOptions.selectedProgramCode as Code,
+        selectedProgramCode: selectedOptions.selectedProgramCode ?? "",
         selectedModuleCodes: selectedOptions.selectedModuleCodes,
         selectedModulePeriodTypes: selectedOptions.selectedModulePeriodTypes,
         defaultSettings: {
-            dataSet: selectedOptions.defaultSettings.dataSet as Code,
-            startDate: selectedOptions.defaultSettings.startDate as string,
-            endDate: selectedOptions.defaultSettings.endDate as string,
-            orgUnits: selectedOptions.defaultSettings.orgUnits,
-            usePreviousPeriod: selectedOptions.defaultSettings.usePreviousPeriod,
+            dataSet: defaultSettings.dataSet ?? "",
+            startDate: defaultSettings.startDate ?? "",
+            endDate: defaultSettings.endDate ?? "",
+            orgUnits: defaultSettings.orgUnits,
+            usePreviousPeriod: defaultSettings.usePreviousPeriod,
         },
         steps: selectedOptions.steps,
     });

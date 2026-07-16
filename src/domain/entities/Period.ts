@@ -254,12 +254,15 @@ function generateFinancialPeriods(
     if (startMonthIndex === undefined)
         return steppedPeriods(start, end, 1, "days", m => m.format("YYYYMMDD"));
 
-    return _(Collection.range(start.year(), end.year() + 1).value())
+    // Start one year early so a financial year that begins in the previous calendar
+    // year but extends into the range (e.g. FinancialApril 2023 spanning Apr 2023 – Mar
+    // 2024 when the range starts in Feb 2024) is still considered.
+    return _(Collection.range(start.year() - 1, end.year() + 1).value())
         .compactMap(year => {
             const periodStart = dateFromParts({ year: year, month: startMonthIndex, date: 1 });
             const periodEnd = periodStart.clone().add(1, "year").subtract(1, "day");
-            const isContained = periodStart.isSameOrAfter(start) && periodEnd.isSameOrBefore(end);
-            return isContained ? `${year}${monthName}` : undefined;
+            const intersects = periodStart.isSameOrBefore(end) && periodEnd.isSameOrAfter(start);
+            return intersects ? `${year}${monthName}` : undefined;
         })
         .value();
 }

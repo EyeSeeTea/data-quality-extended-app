@@ -592,42 +592,13 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
         filters: QualityAnalysisOptions["filters"],
         metadata: MetadataItem
     ): Maybe<string[]> {
-        const nameFilter = filters.name
-            ? `${metadata.trackedEntityAttributes.name.id}:LIKE:${filters.name}`
-            : undefined;
-
-        // Overlap filter: startDate <= window end AND endDate >= window start. A legacy
-        // bare-year endDate ("2024") sorts *before* any full ISO date in that same year,
-        // so a precise `GE` would wrongly exclude it — coarsen to year granularity, but
-        // only for `Yearly`/unknown periodType, the only ones with legacy bare-year data.
-        const canHaveLegacyYearData = !filters.periodType || filters.periodType === "Yearly";
-
-        const endDateLowerBound =
-            canHaveLegacyYearData && filters.startDate
-                ? filters.startDate.slice(0, 4)
-                : filters.startDate;
-
-        const startDateFilter = filters.endDate
-            ? `${metadata.trackedEntityAttributes.startDate.id}:LE:${filters.endDate}`
-            : undefined;
-
-        const endDateFilter = endDateLowerBound
-            ? `${metadata.trackedEntityAttributes.endDate.id}:GE:${endDateLowerBound}`
-            : undefined;
-
-        const moduleFilter = filters.module
-            ? `${metadata.trackedEntityAttributes.module.id}:EQ:${filters.module}`
-            : undefined;
-
-        const status = filters.status
-            ? `${metadata.trackedEntityAttributes.status.id}:EQ:${filters.status}`
-            : undefined;
-
-        const allFilters = _([endDateFilter, moduleFilter, nameFilter, startDateFilter, status])
-            .compact()
-            .value();
-
-        return allFilters.length > 0 ? allFilters : undefined;
+        return buildAnalysisFilters(filters, {
+            name: metadata.trackedEntityAttributes.name.id,
+            startDate: metadata.trackedEntityAttributes.startDate.id,
+            endDate: metadata.trackedEntityAttributes.endDate.id,
+            module: metadata.trackedEntityAttributes.module.id,
+            status: metadata.trackedEntityAttributes.status.id,
+        });
     }
 
     private buildOrder(
@@ -781,3 +752,54 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
 type D2AnalysisDataStore = { sections: SectionInfo[] };
 type SectionInfo = { id: Id; status: string };
 type AnalysisSectionStatus = { id: Id; extraInfo: Maybe<SectionInfo[]> };
+
+type AnalysisFilterTeaIds = {
+    name: Id;
+    startDate: Id;
+    endDate: Id;
+    module: Id;
+    status: Id;
+};
+
+/**
+ * Builds the tracker `filter` clauses for the dashboard analyses query. Start/End
+ * are a periodicity-aware overlap window: an analysis matches when its own
+ * `startDate <= window end` AND `endDate >= window start` (each term emitted only when
+ * that bound is set, giving a half-open filter for a single bound). A legacy bare-year
+ * `endDate` ("2024") sorts *before* any full ISO date in that same year, so a precise
+ * `:GE:` would wrongly exclude it — the `:GE:` lower bound is therefore coarsened to
+ * year granularity, but only for `Yearly`/unknown periodType, the only ones that ever
+ * stored bare-year boundaries. Extracted as a pure function so it can be unit-tested
+ * without a live `D2Api`.
+ */
+export function buildAnalysisFilters(
+    filters: QualityAnalysisOptions["filters"],
+    teaIds: AnalysisFilterTeaIds
+): Maybe<string[]> {
+    const nameFilter = filters.name ? `${teaIds.name}:LIKE:${filters.name}` : undefined;
+
+    const canHaveLegacyYearData = !filters.periodType || filters.periodType === "Yearly";
+
+    const endDateLowerBound =
+        canHaveLegacyYearData && filters.startDate
+            ? filters.startDate.slice(0, 4)
+            : filters.startDate;
+
+    const startDateFilter = filters.endDate
+        ? `${teaIds.startDate}:LE:${filters.endDate}`
+        : undefined;
+
+    const endDateFilter = endDateLowerBound
+        ? `${teaIds.endDate}:GE:${endDateLowerBound}`
+        : undefined;
+
+    const moduleFilter = filters.module ? `${teaIds.module}:EQ:${filters.module}` : undefined;
+
+    const status = filters.status ? `${teaIds.status}:EQ:${filters.status}` : undefined;
+
+    const allFilters = _([endDateFilter, moduleFilter, nameFilter, startDateFilter, status])
+        .compact()
+        .value();
+
+    return allFilters.length > 0 ? allFilters : undefined;
+}

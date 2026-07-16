@@ -88,6 +88,16 @@ describe("Period", () => {
             });
         });
 
+        it("includes financial years that overlap (not only those fully contained in) the range", () => {
+            // Range Feb–Dec 2024 straddles two FinancialApril years: 2023April
+            // (Apr 2023 – Mar 2024) and 2024April (Apr 2024 – Mar 2025). Neither is
+            // fully contained in the range, but both intersect it.
+            expect(getPeriodsForRange("FinancialApril", "2024-02-01", "2024-12-31")).toEqual([
+                "2023April",
+                "2024April",
+            ]);
+        });
+
         it("degrades to a date-based (daily) expansion for an unrecognized type (no throw)", () => {
             expect(getPeriodsForRange("SomeFuturePeriodType", "2024-03-01", "2024-03-02")).toEqual([
                 "20240301",

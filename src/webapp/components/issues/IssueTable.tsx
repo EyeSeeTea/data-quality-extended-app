@@ -244,6 +244,7 @@ function useAnalysisPeriodInfo(analysisId: Id): {
 } {
     const { compositionRoot } = useAppContext();
     const { metadataItem } = useMetadataItemContext();
+    const snackbar = useSnackbar();
     const [info, setInfo] = React.useState<{
         periodType: PeriodType;
         startDate: DateISOString;
@@ -258,9 +259,15 @@ function useAnalysisPeriodInfo(analysisId: Id): {
                     startDate: analysis.startDate,
                     endDate: analysis.endDate,
                 }),
-            () => {}
+            error =>
+                snackbar.error(
+                    i18n.t("Could not load analysis period information: {{message}}", {
+                        message: error.message,
+                        nsSeparator: false,
+                    })
+                )
         );
-    }, [analysisId, compositionRoot.qualityAnalysis.getById, metadataItem]);
+    }, [analysisId, compositionRoot.qualityAnalysis.getById, metadataItem, snackbar]);
 
     return info;
 }

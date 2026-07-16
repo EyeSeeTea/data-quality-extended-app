@@ -1,5 +1,6 @@
 import _ from "$/domain/entities/generic/Collection";
 import { D2Api } from "$/types/d2-api";
+import { QualityAnalysis } from "$/domain/entities/QualityAnalysis";
 import { Settings } from "$/domain/entities/Settings";
 import { SettingsRepository } from "$/domain/repositories/SettingsRepository";
 import { FutureData, apiToFuture } from "$/data/api-futures";
@@ -28,10 +29,16 @@ export class SettingsD2Repository implements SettingsRepository {
 
             return this.getDataSet(d2Response.defaultConfig.dataSet).map(dataSet => {
                 return Settings.build({
-                    endDate: d2Response.defaultConfig.endDate,
+                    endDate: QualityAnalysis.normalizePeriodBoundary(
+                        d2Response.defaultConfig.endDate,
+                        "end"
+                    ),
                     module: dataSet,
                     countryIds: d2Response.defaultConfig.orgUnits,
-                    startDate: d2Response.defaultConfig.startDate,
+                    startDate: QualityAnalysis.normalizePeriodBoundary(
+                        d2Response.defaultConfig.startDate,
+                        "start"
+                    ),
                     usePreviousPeriod: readUsePreviousPeriod(d2Response.defaultConfig),
                 }).get();
             });
