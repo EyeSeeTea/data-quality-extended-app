@@ -3,9 +3,13 @@ import { D2Api } from "$/types/d2-api";
 import { Settings } from "$/domain/entities/Settings";
 import { SettingsRepository } from "$/domain/repositories/SettingsRepository";
 import { FutureData, apiToFuture } from "$/data/api-futures";
-import { Code, Id, NamedCodeRef } from "$/domain/entities/Ref";
+import { Code, NamedCodeRef } from "$/domain/entities/Ref";
 import { DATA_QUALITY_NAMESPACE } from "$/data/common/DataStoreConfig";
 import { Future } from "$/domain/entities/generic/Future";
+import {
+    DefaultConfigDatastore,
+    readUsePreviousPeriod,
+} from "$/data/common/DefaultConfigDatastore";
 
 export class SettingsD2Repository implements SettingsRepository {
     constructor(private api: D2Api) {}
@@ -28,16 +32,16 @@ export class SettingsD2Repository implements SettingsRepository {
                     module: dataSet,
                     countryIds: d2Response.defaultConfig.orgUnits,
                     startDate: d2Response.defaultConfig.startDate,
-                    usePreviousYear: d2Response.defaultConfig.usePreviousYear,
+                    usePreviousPeriod: readUsePreviousPeriod(d2Response.defaultConfig),
                 }).get();
             });
         });
     }
 
-    private getDataSet(dataSetCode: string): FutureData<NamedCodeRef> {
+    private getDataSet(dataSetCode: string): FutureData<NamedCodeRef & { periodType: string }> {
         return apiToFuture(
             this.api.models.dataSets.get({
-                fields: { id: true, code: true, name: true },
+                fields: { id: true, code: true, name: true, periodType: true },
                 filter: { code: { eq: dataSetCode } },
             })
         ).flatMap(d2Response => {
@@ -50,8 +54,5 @@ export class SettingsD2Repository implements SettingsRepository {
 }
 
 type D2DataStore = {
-    defaultConfig: Pick<Settings, "endDate" | "startDate" | "usePreviousYear"> & {
-        dataSet: string;
-        orgUnits: Id[];
-    };
+    defaultConfig: DefaultConfigDatastore;
 };

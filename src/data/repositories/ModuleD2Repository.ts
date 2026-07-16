@@ -26,6 +26,7 @@ export class ModuleD2Repository implements ModuleRepository {
                     id: true,
                     displayName: true,
                     code: true,
+                    periodType: true,
                     sections: {
                         id: true,
                         dataElements: { id: true },
@@ -78,6 +79,7 @@ export class ModuleD2Repository implements ModuleRepository {
                     id: d2DataSet.id,
                     code: d2DataSet.code,
                     name: d2DataSet.displayName,
+                    periodType: d2DataSet.periodType,
                     dataElements: _(d2DataSet.dataSetElements)
                         .map((d2DataSetElement): Maybe<DataElement> => {
                             if (!sectionDataElements.includes(d2DataSetElement.dataElement.id))
@@ -125,6 +127,7 @@ export class ModuleD2Repository implements ModuleRepository {
                         id: d2DataSet.id,
                         code: d2DataSet.code,
                         name: d2DataSet.displayName,
+                        periodType: d2DataSet.periodType,
                     };
                 });
         });
@@ -156,6 +159,7 @@ export class ModuleD2Repository implements ModuleRepository {
                         id: d2DataSet.id,
                         code: d2DataSet.code,
                         name: d2DataSet.displayName,
+                        periodType: d2DataSet.periodType,
                     };
                 });
 
@@ -244,6 +248,7 @@ const dataSetFields = {
     id: true,
     displayName: true,
     code: true,
+    periodType: true,
 } as const;
 
 type D2DataSet = MetadataPick<{

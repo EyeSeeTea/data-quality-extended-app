@@ -3,6 +3,7 @@ import { Maybe } from "$/utils/ts-utils";
 import { QualityAnalysis } from "$/domain/entities/QualityAnalysis";
 import { Code, Id } from "$/domain/entities/Ref";
 import { MetadataItem } from "$/domain/entities/MetadataItem";
+import { PeriodType } from "$/domain/entities/PeriodType";
 
 export interface QualityAnalysisRepository {
     get(options: QualityAnalysisOptions): FutureData<QualityAnalysisPaginated>;
@@ -29,6 +30,7 @@ export type QualityAnalysisOptions = {
         startDate: Maybe<string>;
         status: Maybe<string>;
         ids: Maybe<Id[]>;
+        periodType: Maybe<PeriodType>;
     };
     metadata: MetadataItem;
 };

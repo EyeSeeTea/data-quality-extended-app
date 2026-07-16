@@ -476,7 +476,9 @@ export class RunPractitionersValidationUseCase {
         return this.dataValueUseCase.get(
             qualityAnalysis.countriesAnalysis,
             [qualityAnalysis.module.id],
-            [qualityAnalysis.startDate, qualityAnalysis.endDate]
+            qualityAnalysis.module.periodType,
+            qualityAnalysis.startDate,
+            qualityAnalysis.endDate
         );
     }
 

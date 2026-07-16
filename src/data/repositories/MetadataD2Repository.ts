@@ -14,7 +14,7 @@ const METADATA_FIELDS = {
         fields: { id: true, name: true, code: true },
     },
     dataSets: {
-        fields: { id: true, name: true, code: true },
+        fields: { id: true, name: true, code: true, periodType: true },
     },
     trackedEntityAttributes: {
         fields: { id: true, name: true, code: true },

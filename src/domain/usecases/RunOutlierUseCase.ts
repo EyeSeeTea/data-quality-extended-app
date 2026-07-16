@@ -28,8 +28,8 @@ export class RunOutlierUseCase {
             .flatMap(analysis => {
                 return this.getOutliers(
                     options,
-                    analysis.startDate,
-                    analysis.endDate,
+                    QualityAnalysis.normalizePeriodBoundary(analysis.startDate, "start"),
+                    QualityAnalysis.normalizePeriodBoundary(analysis.endDate, "end"),
                     analysis.countriesAnalysis,
                     analysis.module.id
                 ).flatMap(outliers => {

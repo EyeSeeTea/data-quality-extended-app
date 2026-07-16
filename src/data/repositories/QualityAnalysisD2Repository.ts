@@ -113,6 +113,7 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
                 name: undefined,
                 startDate: undefined,
                 status: undefined,
+                periodType: undefined,
             },
             pagination: {
                 page: 1,
@@ -434,7 +435,7 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
             },
             {
                 attribute: metadata.trackedEntityAttributes.endDate.id,
-                value: qualityAnalysis.endDate,
+                value: QualityAnalysis.normalizePeriodBoundary(qualityAnalysis.endDate, "end"),
             },
             {
                 attribute: metadata.trackedEntityAttributes.module.id,
@@ -442,7 +443,7 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
             },
             {
                 attribute: metadata.trackedEntityAttributes.startDate.id,
-                value: qualityAnalysis.startDate,
+                value: QualityAnalysis.normalizePeriodBoundary(qualityAnalysis.startDate, "start"),
             },
             {
                 attribute: metadata.trackedEntityAttributes.status.id,
@@ -595,12 +596,23 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
             ? `${metadata.trackedEntityAttributes.name.id}:LIKE:${filters.name}`
             : undefined;
 
-        const startDateFilter = filters.startDate
-            ? `${metadata.trackedEntityAttributes.startDate.id}:EQ:${filters.startDate}`
+        // Overlap filter: startDate <= window end AND endDate >= window start. A legacy
+        // bare-year endDate ("2024") sorts *before* any full ISO date in that same year,
+        // so a precise `GE` would wrongly exclude it — coarsen to year granularity, but
+        // only for `Yearly`/unknown periodType, the only ones with legacy bare-year data.
+        const canHaveLegacyYearData = !filters.periodType || filters.periodType === "Yearly";
+
+        const endDateLowerBound =
+            canHaveLegacyYearData && filters.startDate
+                ? filters.startDate.slice(0, 4)
+                : filters.startDate;
+
+        const startDateFilter = filters.endDate
+            ? `${metadata.trackedEntityAttributes.startDate.id}:LE:${filters.endDate}`
             : undefined;
 
-        const endDateFilter = filters.endDate
-            ? `${metadata.trackedEntityAttributes.endDate.id}:EQ:${filters.endDate}`
+        const endDateFilter = endDateLowerBound
+            ? `${metadata.trackedEntityAttributes.endDate.id}:GE:${endDateLowerBound}`
             : undefined;
 
         const moduleFilter = filters.module
@@ -688,13 +700,23 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
             name: this.getValueOrDefault(
                 attributesById.get(this.getIdOrThrow(metadata.trackedEntityAttributes.name.id))
             ),
-            endDate: this.getValueOrDefault(
-                attributesById.get(this.getIdOrThrow(metadata.trackedEntityAttributes.endDate.id))
+            endDate: QualityAnalysis.normalizePeriodBoundary(
+                this.getValueOrDefault(
+                    attributesById.get(
+                        this.getIdOrThrow(metadata.trackedEntityAttributes.endDate.id)
+                    )
+                ),
+                "end"
             ),
             sections: sections,
             module: module,
-            startDate: this.getValueOrDefault(
-                attributesById.get(this.getIdOrThrow(metadata.trackedEntityAttributes.startDate.id))
+            startDate: QualityAnalysis.normalizePeriodBoundary(
+                this.getValueOrDefault(
+                    attributesById.get(
+                        this.getIdOrThrow(metadata.trackedEntityAttributes.startDate.id)
+                    )
+                ),
+                "start"
             ),
             status: status,
             lastModification: this.getValueOrDefault(

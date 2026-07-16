@@ -1,4 +1,5 @@
 import { Maybe } from "$/utils/ts-utils";
+import { PeriodType } from "./PeriodType";
 import { Id, NamedCodeRef, Ref } from "./Ref";
 
 export interface OptionSet extends NamedCodeRef {
@@ -14,7 +15,7 @@ export interface ProgramStage extends NamedCodeRef {
 export interface MetadataItem {
     trackedEntityTypes: { dataQuality: NamedCodeRef };
     organisationUnits: { global: NamedCodeRef };
-    dataSets: NamedCodeRef[];
+    dataSets: Array<NamedCodeRef & { periodType: PeriodType }>;
     optionSets: { action: OptionSet; status: OptionSet };
     trackedEntityAttributes: {
         endDate: NamedCodeRef;

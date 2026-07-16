@@ -10,7 +10,7 @@ export interface SettingsAttrs {
     module: ModuleBase;
     startDate: string;
     countryIds: Id[];
-    usePreviousYear: boolean;
+    usePreviousPeriod: boolean;
 }
 
 export class Settings extends Struct<SettingsAttrs>() {
@@ -23,7 +23,7 @@ export class Settings extends Struct<SettingsAttrs>() {
                 errors: validateRequired(settings.module.id),
                 value: settings.module.id,
             },
-            ...(settings.usePreviousYear
+            ...(settings.usePreviousPeriod
                 ? []
                 : [
                       {
