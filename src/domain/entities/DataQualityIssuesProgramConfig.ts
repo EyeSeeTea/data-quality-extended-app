@@ -5,18 +5,20 @@ import {
     validateDateRange,
     validateMustBeEmpty,
     validateRequired,
+    validateSamePeriodType,
 } from "$/domain/entities/generic/validations";
 import { Code, Id } from "$/domain/entities/Ref";
 import { StepSettings } from "$/domain/entities/StepSettings";
 
-interface DataQualityIssuesProgramConfigAttrs {
+export interface DataQualityIssuesProgramConfigAttrs {
     selectedProgramCode: Code;
     selectedModuleCodes: Code[];
+    selectedModulePeriodTypes?: string[];
     defaultSettings: {
         dataSet: Code;
         startDate: string;
         endDate: string;
-        usePreviousYear: boolean;
+        usePreviousPeriod: boolean;
         orgUnits: Id[];
     };
     steps: StepSettings[];
@@ -29,7 +31,7 @@ export class DataQualityIssuesProgramConfig extends Struct<DataQualityIssuesProg
         const config = new DataQualityIssuesProgramConfig(attrs);
         const ds = config.defaultSettings;
 
-        const dateErrors = ds?.usePreviousYear
+        const dateErrors = ds?.usePreviousPeriod
             ? [
                   {
                       property: "defaultSettings" as const,
@@ -88,6 +90,12 @@ export class DataQualityIssuesProgramConfig extends Struct<DataQualityIssuesProg
                 errors: validateRequired(config.steps),
                 value: config.steps,
                 fieldName: "steps configuration",
+            },
+            {
+                property: "selectedModuleCodes" as const,
+                errors: validateSamePeriodType(config.selectedModulePeriodTypes ?? []),
+                value: config.selectedModulePeriodTypes,
+                fieldName: "selected datasets periodicity",
             },
             ...dateErrors,
         ].filter(validation => validation.errors.length > 0);

@@ -5,8 +5,9 @@ import { Dropdown, OrgUnitsSelector } from "@eyeseetea/d2-ui-components";
 import i18n from "$/utils/i18n";
 import { useAppContext } from "$/webapp/contexts/app-context";
 import { QualityAnalysis } from "$/domain/entities/QualityAnalysis";
+import { validateDateRange } from "$/domain/entities/generic/validations";
 import { Maybe } from "$/utils/ts-utils";
-import { periods } from "$/webapp/components/analysis-filter/AnalysisFilter";
+import { PeriodDateSelector } from "$/webapp/components/period-selector/PeriodDateSelector";
 import { Id } from "$/domain/entities/Ref";
 import _ from "$/domain/entities/generic/Collection";
 import styled from "styled-components";
@@ -51,12 +52,16 @@ export const ConfigurationForm: React.FC<ConfigurationFormProps> = React.memo(pr
             if (!formData) return undefined;
             if (!inputRef.current?.value) return undefined;
             if (formData) {
-                const newValue = QualityAnalysis.build({
+                QualityAnalysis.build({
                     ...formData,
                     name: inputRef.current.value,
                     countriesAnalysis: getIdFromCountriesPaths(selectedOrgUnits),
-                }).get();
-                onSave(newValue);
+                }).match({
+                    success: onSave,
+                    // Nothing to do: the inline Start/End Date Alert already reports
+                    // date_range_invalid, and the Save button is disabled while it holds.
+                    error: () => undefined,
+                });
             }
         },
         [formData, onSave, selectedOrgUnits]
@@ -66,10 +71,14 @@ export const ConfigurationForm: React.FC<ConfigurationFormProps> = React.memo(pr
         const selectedModule = modules.find(module => module.id === value);
         if (selectedModule) {
             setFormData(prev => {
-                return QualityAnalysis.build({
+                const candidate = {
                     ...prev,
                     module: { ...selectedModule, dataElements: [], disaggregations: [] },
-                }).get();
+                };
+                return QualityAnalysis.build(candidate).match({
+                    success: qualityAnalysis => qualityAnalysis,
+                    error: () => new QualityAnalysis(candidate),
+                });
             });
         }
     };
@@ -77,9 +86,16 @@ export const ConfigurationForm: React.FC<ConfigurationFormProps> = React.memo(pr
     const onChangePeriod = (value: Maybe<string>, attributeName: string) => {
         if (!value) return false;
         setFormData(prev => {
-            return QualityAnalysis.build({ ...prev, [attributeName]: value }).get();
+            const candidate = { ...prev, [attributeName]: value };
+            return QualityAnalysis.build(candidate).match({
+                success: qualityAnalysis => qualityAnalysis,
+                error: () => new QualityAnalysis(candidate),
+            });
         });
     };
+
+    const dateRangeErrors = validateDateRange(formData.startDate, formData.endDate);
+    const hasDateRangeError = dateRangeErrors.length > 0;
 
     const onOrgUnitsChange = (value: Id[]) => {
         setSelectedOrgUnits(value);
@@ -95,6 +111,14 @@ export const ConfigurationForm: React.FC<ConfigurationFormProps> = React.memo(pr
                 <AlertContainer>
                     <Alert severity="error">
                         {i18n.t("Select at least one organisation unit")}
+                    </Alert>
+                </AlertContainer>
+            )}
+
+            {hasDateRangeError && (
+                <AlertContainer>
+                    <Alert severity="error">
+                        {i18n.t("Start Date must not be later than End Date")}
                     </Alert>
                 </AlertContainer>
             )}
@@ -116,23 +140,31 @@ export const ConfigurationForm: React.FC<ConfigurationFormProps> = React.memo(pr
                         label={i18n.t("Module")}
                     />
 
-                    <Dropdown
-                        className={selectorClass}
-                        hideEmpty
-                        items={periods}
-                        onChange={value => onChangePeriod(value, "startDate")}
-                        value={formData?.startDate}
-                        label={i18n.t("Start Date")}
-                    />
+                    <PeriodDateSelectorContainer>
+                        <PeriodDateSelector
+                            className={selectorClass}
+                            label={i18n.t("Start Date")}
+                            periodType={formData.module.periodType}
+                            edge="start"
+                            value={formData?.startDate ?? ""}
+                            onChange={value => onChangePeriod(value, "startDate")}
+                            disabled={disableSave}
+                            clearable={false}
+                        />
+                    </PeriodDateSelectorContainer>
 
-                    <Dropdown
-                        className={selectorClass}
-                        hideEmpty
-                        items={periods}
-                        onChange={value => onChangePeriod(value, "endDate")}
-                        value={formData?.endDate}
-                        label={i18n.t("End Date")}
-                    />
+                    <PeriodDateSelectorContainer>
+                        <PeriodDateSelector
+                            className={selectorClass}
+                            label={i18n.t("End Date")}
+                            periodType={formData.module.periodType}
+                            edge="end"
+                            value={formData?.endDate ?? ""}
+                            onChange={value => onChangePeriod(value, "endDate")}
+                            disabled={disableSave}
+                            clearable={false}
+                        />
+                    </PeriodDateSelectorContainer>
                 </DropdownWrapper>
             </FormControlsContainer>
 
@@ -149,7 +181,12 @@ export const ConfigurationForm: React.FC<ConfigurationFormProps> = React.memo(pr
             </OrgUnitContainer>
 
             <ActionsContainer>
-                <Button type="submit" variant="contained" color="primary">
+                <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    disabled={hasDateRangeError}
+                >
                     {i18n.t("Save Config Analysis")}
                 </Button>
             </ActionsContainer>
@@ -178,6 +215,7 @@ const FormControlsContainer = styled.div`
 const DropdownWrapper = styled.div`
     display: flex;
     gap: 1rem;
+    align-items: flex-end;
 `;
 
 const StyledTextField = styled(TextField)`
@@ -196,4 +234,10 @@ const ActionsContainer = styled.div`
 
 const AlertContainer = styled.div`
     margin-block: 1em;
+`;
+
+const PeriodDateSelectorContainer = styled.div`
+    > div {
+        margin-block-end: 0px;
+    }
 `;

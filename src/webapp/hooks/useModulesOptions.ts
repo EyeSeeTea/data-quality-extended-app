@@ -8,6 +8,7 @@ import { Option } from "$/webapp/entities/Option";
 
 type State = {
     modulesOptions: Option[];
+    modules: ModuleBase[];
 };
 
 export function useModulesOptions(): State {
@@ -49,5 +50,6 @@ export function useModulesOptions(): State {
 
     return {
         modulesOptions: modulesOptions,
+        modules: modules ?? [],
     };
 }

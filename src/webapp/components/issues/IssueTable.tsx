@@ -11,7 +11,8 @@ import { useAppContext } from "$/webapp/contexts/app-context";
 import { QualityAnalysisIssue } from "$/domain/entities/QualityAnalysisIssue";
 import { GetIssuesOptions } from "$/domain/repositories/IssueRepository";
 import i18n from "$/utils/i18n";
-import { Id } from "$/domain/entities/Ref";
+import { DateISOString, Id } from "$/domain/entities/Ref";
+import { PeriodType } from "$/domain/entities/PeriodType";
 import { IssueFilters } from "./IssueFilters";
 import { initialFilters } from "$/webapp/utils/issues";
 import { Maybe } from "$/utils/ts-utils";
@@ -95,8 +96,8 @@ export function useExportIssues() {
 }
 
 export function useTableConfig(props: UseTableConfigProps) {
-    const { analysisId, filters, sectionId, showExport } = props;
-    const { issueColumns, refresh, setRefresh } = useIssueColumns();
+    const { analysisId, filters, periodType, sectionId, showExport } = props;
+    const { issueColumns, refresh, setRefresh } = useIssueColumns(periodType);
     const { metadataItem } = useMetadataItemContext();
 
     const { saveColumns, columnsToShow } = useTableUtils<QualityAnalysisIssue>({
@@ -236,13 +237,50 @@ export function useGetRows(
     return { getRows, loading };
 }
 
+function useAnalysisPeriodInfo(analysisId: Id): {
+    periodType: PeriodType;
+    startDate: DateISOString;
+    endDate: DateISOString;
+} {
+    const { compositionRoot } = useAppContext();
+    const { metadataItem } = useMetadataItemContext();
+    const snackbar = useSnackbar();
+    const [info, setInfo] = React.useState<{
+        periodType: PeriodType;
+        startDate: DateISOString;
+        endDate: DateISOString;
+    }>({ periodType: "Yearly", startDate: "", endDate: "" });
+
+    React.useEffect(() => {
+        compositionRoot.qualityAnalysis.getById.execute(analysisId, metadataItem).run(
+            analysis =>
+                setInfo({
+                    periodType: analysis.module.periodType,
+                    startDate: analysis.startDate,
+                    endDate: analysis.endDate,
+                }),
+            error =>
+                snackbar.error(
+                    i18n.t("Could not load analysis period information: {{message}}", {
+                        message: error.message,
+                        nsSeparator: false,
+                    })
+                )
+        );
+    }, [analysisId, compositionRoot.qualityAnalysis.getById, metadataItem, snackbar]);
+
+    return info;
+}
+
 export const IssueTable: React.FC<IssueTableProps> = React.memo(props => {
     const { analysisId, reload, sectionId, showExport, showStepFilter } = props;
     const [filters, setFilters] = React.useState(initialFilters);
+    const analysisPeriodInfo = useAnalysisPeriodInfo(analysisId);
 
     const { tableConfig, refresh } = useTableConfig({
         filters,
         analysisId: analysisId,
+        periodType: analysisPeriodInfo.periodType,
         sectionId: sectionId,
         showExport: showExport,
         showStepFilter: showStepFilter,
@@ -256,9 +294,12 @@ export const IssueTable: React.FC<IssueTableProps> = React.memo(props => {
                 initialFilters={filters}
                 showStepFilter={showStepFilter}
                 onChange={setFilters}
+                periodType={analysisPeriodInfo.periodType}
+                rangeStartDate={analysisPeriodInfo.startDate}
+                rangeEndDate={analysisPeriodInfo.endDate}
             />
         );
-    }, [filters, showStepFilter]);
+    }, [filters, showStepFilter, analysisPeriodInfo]);
 
     return (
         <ObjectsTable
@@ -281,6 +322,7 @@ type IssueTableProps = {
 type UseTableConfigProps = {
     analysisId: Id;
     filters: GetIssuesOptions["filters"];
+    periodType: PeriodType;
     sectionId: Maybe<Id>;
     showExport?: boolean;
     showStepFilter?: boolean;

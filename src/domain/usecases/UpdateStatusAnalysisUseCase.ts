@@ -17,6 +17,7 @@ export class UpdateStatusAnalysisUseCase {
                     name: undefined,
                     startDate: undefined,
                     status: undefined,
+                    periodType: undefined,
                     ids: ids,
                 },
                 pagination: {

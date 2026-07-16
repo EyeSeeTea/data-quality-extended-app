@@ -102,8 +102,8 @@ export class RunValidationsUseCase {
             countriesIds.map(countryId =>
                 this.validationRuleAnalysisRepository.get({
                     countryId: countryId,
-                    startDate: `${analysis.startDate}-01-01`,
-                    endDate: `${analysis.endDate}-12-31`,
+                    startDate: QualityAnalysis.normalizePeriodBoundary(analysis.startDate, "start"),
+                    endDate: QualityAnalysis.normalizePeriodBoundary(analysis.endDate, "end"),
                     validationRuleGroupId: options.validationRuleGroupId,
                 })
             ),

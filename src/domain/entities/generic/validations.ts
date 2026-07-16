@@ -51,3 +51,8 @@ export function validateAtLeastOneDisaggregation(
     const count = disaggregations?.length ?? 0;
     return count > 0 ? [] : ["at_least_one_disaggregation_required"];
 }
+
+export function validateSamePeriodType(periodTypes: string[]): ValidationErrorKey[] {
+    const distinctPeriodTypes = new Set(periodTypes.filter(periodType => periodType.length > 0));
+    return distinctPeriodTypes.size > 1 ? ["mixed_period_type"] : [];
+}

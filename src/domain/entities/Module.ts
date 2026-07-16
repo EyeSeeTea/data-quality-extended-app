@@ -1,4 +1,5 @@
 import { DataElement } from "./DataElement";
+import { PeriodType } from "./PeriodType";
 import { NamedCodeRef, NamedRef } from "./Ref";
 
 type ModuleExtra = {
@@ -6,6 +7,8 @@ type ModuleExtra = {
     disaggregations: NamedRef[];
 };
 
-export type ModuleBase = NamedCodeRef;
+export type ModuleBase = NamedCodeRef & {
+    periodType: PeriodType;
+};
 
 export type Module = ModuleBase & ModuleExtra;

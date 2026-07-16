@@ -139,8 +139,9 @@ The following Tracked Entity Attributes **must exist** (codes must match exactly
 -   `PREFIX_DQI_TEA_Name`
 -   `PREFIX_DQI_TEA_Dataset`
 -   `PREFIX_DQI_TEA_Status`
--   `PREFIX_DQI_TEA_Start_Date`
--   `PREFIX_DQI_TEA_End_Date`
+-   `PREFIX_DQI_TEA_Start_Date` — **DATE**
+-   `PREFIX_DQI_TEA_End_Date` — **DATE**
+    -   Both must use the **DATE** value type (not the default **TEXT**); program configuration validation fails if either value type is not `DATE`.
 -   `PREFIX_DQI_TEA_Last_Modification`
 -   `PREFIX_DQI_TEA_Countries_Analysis` — **LONG_TEXT**
 -   `PREFIX_DQI_TEA_Sequential` — **TEXT**

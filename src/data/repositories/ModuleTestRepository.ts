@@ -8,12 +8,31 @@ import {
 } from "$/domain/repositories/ModuleRepository";
 import { FutureData } from "$/data/api-futures";
 
+const testModules: Module[] = [
+    {
+        id: "module-monthly",
+        code: "MONTHLY",
+        name: "Monthly Module",
+        periodType: "Monthly",
+        dataElements: [],
+        disaggregations: [],
+    },
+    {
+        id: "module-yearly",
+        code: "YEARLY",
+        name: "Yearly Module",
+        periodType: "Yearly",
+        dataElements: [],
+        disaggregations: [],
+    },
+];
+
 export class ModuleTestRepository implements ModuleRepository {
     getByIds(): FutureData<Module[]> {
-        return Future.success([]);
+        return Future.success(testModules);
     }
     get(): FutureData<Module[]> {
-        return Future.success([]);
+        return Future.success(testModules);
     }
 
     getAllBase(_options?: ModulesSortingFilterOptions): FutureData<ModuleBase[]> {

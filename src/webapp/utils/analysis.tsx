@@ -25,8 +25,18 @@ function mapAnalysisStatusToColor(sectionStatus: string) {
 export const analysisColumns: TableColumn<QualityAnalysis>[] = [
     { name: "name", text: i18n.t("Name"), sortable: true },
     { name: "module", text: i18n.t("Dataset"), sortable: true },
-    { name: "startDate", text: i18n.t("Start Date"), sortable: true },
-    { name: "endDate", text: i18n.t("End Date"), sortable: true },
+    {
+        name: "startDate",
+        text: i18n.t("Start Date"),
+        sortable: true,
+        getValue: row => row.startDate,
+    },
+    {
+        name: "endDate",
+        text: i18n.t("End Date"),
+        sortable: true,
+        getValue: row => row.endDate,
+    },
     {
         name: "status",
         text: i18n.t("Status"),

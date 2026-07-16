@@ -64,9 +64,9 @@ export const DashboardPage: React.FC = React.memo(() => {
         ),
     });
 
-    const { getRows, loading } = useGetRows(filters, reload);
-
     const modules = useModules();
+
+    const { getRows, loading } = useGetRows(filters, reload, modules);
 
     const config = useObjectsTable(tableConfig, getRows);
 

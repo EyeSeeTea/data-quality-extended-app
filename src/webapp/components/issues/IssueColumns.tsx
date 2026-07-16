@@ -6,8 +6,10 @@ import i18n from "$/utils/i18n";
 import { EditIssueValue } from "./EditIssueValue";
 import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
 import { hasUserGroups } from "$/webapp/components/issues/utils";
+import { PeriodType } from "$/domain/entities/PeriodType";
+import { getPeriodLabel } from "$/domain/entities/Period";
 
-export function useIssueColumns() {
+export function useIssueColumns(periodType: PeriodType) {
     const { metadataItem } = useMetadataItemContext();
 
     const [refresh, setRefresh] = React.useState(0);
@@ -20,7 +22,7 @@ export function useIssueColumns() {
                 name: "period",
                 text: i18n.t("Period"),
                 sortable: false,
-                getValue: value => value.period,
+                getValue: value => (value.period ? getPeriodLabel(periodType, value.period) : ""),
             },
             { name: "dataElement", text: i18n.t("Data Element"), sortable: false },
             {
@@ -150,7 +152,7 @@ export function useIssueColumns() {
         ];
 
         return hasUserGroups(metadataItem.userGroups) ? columnsWithContactEmails : baseColumns;
-    }, [metadataItem.userGroups]);
+    }, [metadataItem.userGroups, periodType]);
 
     return { refresh, setRefresh, issueColumns };
 }

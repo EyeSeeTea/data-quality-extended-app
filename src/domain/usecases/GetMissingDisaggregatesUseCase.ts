@@ -442,7 +442,9 @@ export class GetMissingDisaggregatesUseCase {
         return this.dataValueUseCase.get(
             analysis.countriesAnalysis,
             [analysis.module.id],
-            [analysis.startDate, analysis.endDate]
+            analysis.module.periodType,
+            analysis.startDate,
+            analysis.endDate
         );
     }
 }

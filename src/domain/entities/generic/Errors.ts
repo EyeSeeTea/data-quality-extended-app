@@ -9,7 +9,8 @@ export type ValidationErrorKey =
     | "at_least_one_step_required"
     | "duplicate_step_types"
     | "invalid_value"
-    | "at_least_one_disaggregation_required";
+    | "at_least_one_disaggregation_required"
+    | "mixed_period_type";
 
 export const validationErrorMessages: Record<ValidationErrorKey, (fieldName: string) => string> = {
     country_validation: () => i18n.t("Select at least one organisation unit"),
@@ -25,6 +26,8 @@ export const validationErrorMessages: Record<ValidationErrorKey, (fieldName: str
     invalid_value: (fieldName: string) =>
         i18n.t(`Invalid value: {{fieldName}}`, { fieldName: fieldName, nsSeparator: false }),
     at_least_one_disaggregation_required: () => i18n.t("At least one disaggregation is required"),
+    mixed_period_type: () =>
+        i18n.t("All selected datasets must share the same periodicity (period type)"),
 };
 
 export function getErrors<T>(errors: ValidationError<T>[]) {

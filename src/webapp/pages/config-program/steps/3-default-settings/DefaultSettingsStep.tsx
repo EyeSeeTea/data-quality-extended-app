@@ -4,31 +4,26 @@ import styled from "styled-components";
 import { Dropdown, OrgUnitsSelector } from "@eyeseetea/d2-ui-components";
 
 import i18n from "$/utils/i18n";
-import {
-    generatePeriodYearOptions,
-    ORG_UNIT_LEVELS,
-    ORG_UNIT_SELECTABLE_LEVELS,
-} from "$/webapp/utils/form";
+import { ORG_UNIT_LEVELS, ORG_UNIT_SELECTABLE_LEVELS } from "$/webapp/utils/form";
 import { DataQualityIssuesProgramConfigOptions } from "$/domain/usecases/SaveDataQualityIssuesProgramConfigUseCase";
 import { useAppContext } from "$/webapp/contexts/app-context";
 import { Id } from "$/domain/entities/Ref";
+import { PeriodType } from "$/domain/entities/PeriodType";
 import { CheckboxInline } from "$/webapp/components/issues/CheckboxInline";
 import { getIdFromCountriesPaths } from "$/webapp/components/configuration-form/ConfigurationForm";
+import { PeriodDateSelector } from "$/webapp/components/period-selector/PeriodDateSelector";
 import { Option } from "$/webapp/entities/Option";
 
 type Props = {
     values: DataQualityIssuesProgramConfigOptions["defaultSettings"];
     onChange: (patch: Partial<DataQualityIssuesProgramConfigOptions["defaultSettings"]>) => void;
     selectedModuleOptions: Option[];
+    defaultDataSetPeriodType: PeriodType;
 };
-
-const currentYear = new Date().getFullYear();
-
-const periods = generatePeriodYearOptions(2000, currentYear);
 
 export const DefaultSettingsStep: React.FC<Props> = React.memo(props => {
     const { api, currentUser } = useAppContext();
-    const { values, onChange, selectedModuleOptions } = props;
+    const { values, onChange, selectedModuleOptions, defaultDataSetPeriodType } = props;
 
     const onOrgUnitsChange = React.useCallback(
         (paths: Id[]) => {
@@ -38,12 +33,12 @@ export const DefaultSettingsStep: React.FC<Props> = React.memo(props => {
         [onChange]
     );
 
-    const onUsePreviousYearChange = React.useCallback(
+    const onUsePreviousPeriodChange = React.useCallback(
         (checked: boolean) => {
             if (checked) {
-                onChange({ usePreviousYear: true, startDate: "", endDate: "" });
+                onChange({ usePreviousPeriod: true, startDate: "", endDate: "" });
             } else {
-                onChange({ usePreviousYear: false });
+                onChange({ usePreviousPeriod: false });
             }
         },
         [onChange]
@@ -63,27 +58,29 @@ export const DefaultSettingsStep: React.FC<Props> = React.memo(props => {
             <FieldsContainer>
                 <CheckboxContainer>
                     <CheckboxInline
-                        value={values.usePreviousYear}
-                        onChange={onUsePreviousYearChange}
+                        value={values.usePreviousPeriod}
+                        onChange={onUsePreviousPeriodChange}
                     />
-                    <span>{i18n.t("Use previous year for start and end dates")}</span>
+                    <span>{i18n.t("Use previous period for start and end dates")}</span>
                 </CheckboxContainer>
 
-                <DisabledWrapper disabled={values.usePreviousYear}>
-                    <Dropdown
-                        items={periods}
-                        onChange={value => onChange({ startDate: value })}
-                        value={values.startDate}
+                <DisabledWrapper disabled={values.usePreviousPeriod}>
+                    <PeriodDateSelector
                         label={i18n.t("Start Date")}
+                        periodType={defaultDataSetPeriodType}
+                        edge="start"
+                        value={values.startDate ?? ""}
+                        onChange={value => onChange({ startDate: value })}
                     />
                 </DisabledWrapper>
 
-                <DisabledWrapper disabled={values.usePreviousYear}>
-                    <Dropdown
-                        items={periods}
-                        onChange={value => onChange({ endDate: value })}
-                        value={values.endDate}
+                <DisabledWrapper disabled={values.usePreviousPeriod}>
+                    <PeriodDateSelector
                         label={i18n.t("End Date")}
+                        periodType={defaultDataSetPeriodType}
+                        edge="end"
+                        value={values.endDate ?? ""}
+                        onChange={value => onChange({ endDate: value })}
                     />
                 </DisabledWrapper>
             </FieldsContainer>

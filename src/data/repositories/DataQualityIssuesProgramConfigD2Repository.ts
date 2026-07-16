@@ -7,12 +7,17 @@ import {
 import { apiToFuture, FutureData } from "$/data/api-futures";
 import { Future } from "$/domain/entities/generic/Future";
 import { DataQualityIssuesProgramConfig } from "$/domain/entities/DataQualityIssuesProgramConfig";
+import { QualityAnalysis } from "$/domain/entities/QualityAnalysis";
 import { Code } from "$/domain/entities/Ref";
 import {
     buildProgramConfigByProgramCode,
     DatastoreProgramConfig,
 } from "$/data/repositories/entities/DatastoreProgramConfig";
 import { DATA_QUALITY_NAMESPACE, dataStoreKeys } from "$/data/common/DataStoreConfig";
+import {
+    DefaultConfigDatastore,
+    readUsePreviousPeriod,
+} from "$/data/common/DefaultConfigDatastore";
 import { DataStore } from "@eyeseetea/d2-api/api";
 import {
     mapStepsDatastoreToStepSettings,
@@ -170,12 +175,24 @@ export class DataQualityIssuesProgramConfigD2Repository
     ): boolean {
         const expectedTEAs: Code[] = Object.values(datastoreProgramConfig.trackedEntityAttributes);
 
-        const actualTEAs = new Set(
-            (programTrackedEntityAttributes ?? []).map(p => p.trackedEntityAttribute.code)
+        const actualTEAsByCode = new Map(
+            (programTrackedEntityAttributes ?? []).map(p => [
+                p.trackedEntityAttribute.code,
+                p.trackedEntityAttribute,
+            ])
         );
-        const missingTEAs = expectedTEAs.filter(code => !actualTEAs.has(code));
+        const missingTEAs = expectedTEAs.filter(code => !actualTEAsByCode.has(code));
 
-        return missingTEAs.length === 0;
+        const dateTEACodes = [
+            datastoreProgramConfig.trackedEntityAttributes.startDate,
+            datastoreProgramConfig.trackedEntityAttributes.endDate,
+        ];
+        const wrongValueTypeTEAs = dateTEACodes.filter(code => {
+            const tea = actualTEAsByCode.get(code);
+            return tea !== undefined && tea.valueType !== "DATE";
+        });
+
+        return missingTEAs.length === 0 && wrongValueTypeTEAs.length === 0;
     }
 
     private checkProgramStages(
@@ -349,16 +366,21 @@ export class DataQualityIssuesProgramConfigD2Repository
         programCode: Code
     ): FutureData<DataQualityIssuesProgramConfig["defaultSettings"]> {
         return apiToFuture(
-            dataStore.get<{ defaultConfig: DataQualityIssuesProgramConfig["defaultSettings"] }>(
-                `settings-${programCode}`
-            )
+            dataStore.get<{ defaultConfig: DefaultConfigDatastore }>(`settings-${programCode}`)
         ).flatMap(settings => {
             if (!settings) {
                 return Future.error(
                     new Error(`No settings found for program code: ${programCode}`)
                 );
             }
-            return Future.success(settings.defaultConfig);
+            const raw = settings.defaultConfig;
+            return Future.success({
+                dataSet: raw.dataSet,
+                startDate: QualityAnalysis.normalizePeriodBoundary(raw.startDate, "start"),
+                endDate: QualityAnalysis.normalizePeriodBoundary(raw.endDate, "end"),
+                orgUnits: raw.orgUnits,
+                usePreviousPeriod: readUsePreviousPeriod(raw),
+            });
         });
     }
 
@@ -384,6 +406,7 @@ const programFields = {
     programTrackedEntityAttributes: {
         trackedEntityAttribute: {
             code: true,
+            valueType: true,
         },
     },
     trackedEntityType: {

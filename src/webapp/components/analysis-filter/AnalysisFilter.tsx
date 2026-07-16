@@ -1,17 +1,15 @@
 import React from "react";
 import { Dropdown } from "@eyeseetea/d2-ui-components";
+import styled from "styled-components";
 
 import i18n from "$/utils/i18n";
 import { Module } from "$/domain/entities/Module";
+import { PeriodType } from "$/domain/entities/PeriodType";
 import { qualityAnalysisStatus } from "$/domain/entities/QualityAnalysisStatus";
 import { Maybe } from "$/utils/ts-utils";
 import { MenuButton } from "$/webapp/components/menu-button/MenuButton";
 import { Id } from "$/domain/entities/Ref";
-import { generatePeriodYearOptions } from "$/webapp/utils/form";
-
-const currentYear = new Date().getFullYear();
-
-export const periods = generatePeriodYearOptions(2000, currentYear);
+import { PeriodDateSelector } from "$/webapp/components/period-selector/PeriodDateSelector";
 
 type AnalysisFiltersProps = {
     modules: Module[];
@@ -20,12 +18,19 @@ type AnalysisFiltersProps = {
     onCreateAnalysis: (module: Module) => void;
 };
 
+export function getModulesPeriodType(modules: Module[], selectedModuleId: Maybe<Id>): PeriodType {
+    const selectedModule = modules.find(module => module.id === selectedModuleId);
+    return selectedModule?.periodType ?? modules[0]?.periodType ?? "";
+}
+
 export const AnalysisFilters: React.FC<AnalysisFiltersProps> = props => {
     const { modules, initialFilters, onChange, onCreateAnalysis } = props;
 
     const modulesFilters = modules.map(module => {
         return { value: module.id, text: module.name };
     });
+
+    const filterPeriodType: PeriodType = getModulesPeriodType(modules, initialFilters.module);
 
     const analysisStatus = qualityAnalysisStatus.map(status => {
         return { value: status, text: status };
@@ -54,18 +59,27 @@ export const AnalysisFilters: React.FC<AnalysisFiltersProps> = props => {
                 value={initialFilters.module}
                 label={i18n.t("Dataset")}
             />
-            <Dropdown
-                items={periods}
-                onChange={value => onFilterChange(value, "startDate")}
-                value={initialFilters.startDate}
-                label={i18n.t("Start Date")}
-            />
-            <Dropdown
-                items={periods}
-                onChange={value => onFilterChange(value, "endDate")}
-                value={initialFilters.endDate}
-                label={i18n.t("End Date")}
-            />
+
+            <PeriodDateSelectorContainer>
+                <PeriodDateSelector
+                    label={i18n.t("Start Date")}
+                    periodType={filterPeriodType}
+                    edge="start"
+                    value={initialFilters.startDate ?? ""}
+                    onChange={value => onFilterChange(value, "startDate")}
+                />
+            </PeriodDateSelectorContainer>
+
+            <PeriodDateSelectorContainer>
+                <PeriodDateSelector
+                    label={i18n.t("End Date")}
+                    periodType={filterPeriodType}
+                    edge="end"
+                    value={initialFilters.endDate ?? ""}
+                    onChange={value => onFilterChange(value, "endDate")}
+                />
+            </PeriodDateSelectorContainer>
+
             <Dropdown
                 items={analysisStatus}
                 onChange={value => onFilterChange(value, "status")}
@@ -97,3 +111,11 @@ export const initialFilters: AnalysisFilterState = {
     startDate: undefined,
     status: undefined,
 };
+
+const PeriodDateSelectorContainer = styled.div`
+    margin-inline-start: 10px;
+
+    > div {
+        margin-block-end: 24px;
+    }
+`;

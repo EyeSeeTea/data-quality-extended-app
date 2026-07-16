@@ -5,7 +5,10 @@ import i18n from "$/utils/i18n";
 import { QualityAnalysis } from "$/domain/entities/QualityAnalysis";
 import { useAppContext } from "$/webapp/contexts/app-context";
 import { analysisColumns } from "$/webapp/utils/analysis";
-import { AnalysisFilterState } from "$/webapp/components/analysis-filter/AnalysisFilter";
+import {
+    AnalysisFilterState,
+    getModulesPeriodType,
+} from "$/webapp/components/analysis-filter/AnalysisFilter";
 import {
     ActionType,
     useAnalysisTableActions,
@@ -40,7 +43,7 @@ export function useTableConfig(props: UseTableConfigProps) {
     return { tableConfig };
 }
 
-export function useGetRows(filters: AnalysisFilterState, reloadKey: number) {
+export function useGetRows(filters: AnalysisFilterState, reloadKey: number, modules: Module[]) {
     const { compositionRoot } = useAppContext();
     const { metadataItem } = useMetadataItemContext();
 
@@ -60,6 +63,7 @@ export function useGetRows(filters: AnalysisFilterState, reloadKey: number) {
                             startDate: filters.startDate,
                             status: filters.status,
                             module: filters.module,
+                            periodType: getModulesPeriodType(modules, filters.module),
                             ids: undefined,
                         },
                         metadata: metadataItem,
@@ -85,6 +89,7 @@ export function useGetRows(filters: AnalysisFilterState, reloadKey: number) {
             filters.module,
             filters.startDate,
             filters.status,
+            modules,
             reloadKey,
             metadataItem,
         ]

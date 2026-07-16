@@ -354,7 +354,9 @@ export class ValidateMidwiferyAndPersonnelUseCase {
             .get(
                 analysis.countriesAnalysis,
                 [analysis.module.id],
-                [analysis.startDate, analysis.endDate]
+                analysis.module.periodType,
+                analysis.startDate,
+                analysis.endDate
             )
             .flatMap(dataValues => {
                 const dataElementsByKey = _(dataElements)

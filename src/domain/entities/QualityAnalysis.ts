@@ -1,11 +1,11 @@
 import { Either } from "./generic/Either";
 import { ValidationError } from "./generic/Errors";
 import { Struct } from "./generic/Struct";
-import { validateRequired } from "./generic/validations";
+import { validateDateRange, validateRequired } from "./generic/validations";
 import { Module } from "./Module";
 import { QualityAnalysisSection } from "./QualityAnalysisSection";
 import { QualityAnalysisStatus } from "./QualityAnalysisStatus";
-import { Id } from "./Ref";
+import { DateISOString, Id } from "./Ref";
 import { Sequential } from "./Sequential";
 
 export interface QualityAnalysisAttrs {
@@ -71,12 +71,30 @@ export class QualityAnalysis extends Struct<QualityAnalysisAttrs>() {
                 value: qualityAnalysis.endDate,
             },
             {
+                property: "startDate" as const,
+                errors: validateDateRange(qualityAnalysis.startDate, qualityAnalysis.endDate),
+                value: {
+                    startDate: qualityAnalysis.startDate,
+                    endDate: qualityAnalysis.endDate,
+                },
+            },
+            {
                 property: "status" as const,
                 errors: validateRequired(qualityAnalysis.status),
                 value: qualityAnalysis.status,
             },
             ...countryProperty,
         ].filter(validation => validation.errors.length > 0);
+    }
+
+    // Normalizes a stored boundary to an ISO date. Legacy bare-year values (all
+    // historical data was Yearly, e.g. "2024") become the year's start/end; values
+    // that are already ISO pass through unchanged. No datastore migration: this runs
+    // at the read boundary so legacy and ISO records coexist.
+    static normalizePeriodBoundary(value: string, edge: "start" | "end"): DateISOString {
+        const isBareYear = /^\d{4}$/.test(value);
+        if (!isBareYear) return value;
+        return edge === "start" ? `${value}-01-01` : `${value}-12-31`;
     }
 
     static updateConfiguration(

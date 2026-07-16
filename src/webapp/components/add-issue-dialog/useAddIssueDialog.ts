@@ -9,7 +9,7 @@ import _ from "$/domain/entities/generic/Collection";
 import { Maybe } from "$/utils/ts-utils";
 import { IssueTemplate } from "$/domain/usecases/CreateIssueUseCase";
 import { getIdFromCountriesPaths } from "$/webapp/components/configuration-form/ConfigurationForm";
-import { generatePeriodYearOptions } from "$/webapp/utils/form";
+import { getPeriodOptionsForRange } from "$/domain/entities/Period";
 import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
 
 type UseAddIssueDialogProps = {
@@ -67,11 +67,13 @@ export function useAddIssueDialog(props: UseAddIssueDialogProps) {
     }, [dataElementsMap, addIssueForm]);
 
     const periodOptions = React.useMemo(() => {
-        const { startDate, endDate } = analysis;
-        const startYear = parseInt(startDate);
-        const endYear = parseInt(endDate);
-
-        return generatePeriodYearOptions(startYear, endYear);
+        return [
+            ...getPeriodOptionsForRange(
+                analysis.module.periodType,
+                QualityAnalysis.normalizePeriodBoundary(analysis.startDate, "start"),
+                QualityAnalysis.normalizePeriodBoundary(analysis.endDate, "end")
+            ),
+        ];
     }, [analysis]);
 
     const onSave = React.useCallback(() => {

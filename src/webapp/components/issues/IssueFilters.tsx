@@ -1,9 +1,10 @@
 import React from "react";
 
-import { Id, Period } from "$/domain/entities/Ref";
+import { DateISOString, Id, Period } from "$/domain/entities/Ref";
+import { PeriodType } from "$/domain/entities/PeriodType";
+import { getPeriodOptionsForRange } from "$/domain/entities/Period";
 import { GetIssuesOptions } from "$/domain/repositories/IssueRepository";
 import { SelectMultiCheckboxes } from "$/webapp/components/selectmulti-checkboxes/SelectMultiCheckboxes";
-import { periods } from "$/webapp/components/analysis-filter/AnalysisFilter";
 import { Maybe } from "$/utils/ts-utils";
 import i18n from "$/utils/i18n";
 import { useAppContext } from "$/webapp/contexts/app-context";
@@ -50,7 +51,8 @@ export const IssueFilters: React.FC<IssueFiltersProps> = props => {
     const { metadataItem } = useMetadataItemContext();
 
     const snackbar = useSnackbar();
-    const { initialFilters, onChange, showStepFilter } = props;
+    const { initialFilters, onChange, showStepFilter, periodType, rangeStartDate, rangeEndDate } =
+        props;
     const [openCountry, setOpenCountry] = React.useState(false);
     const [selectedCountriesIds, setSelectedCountriesIds] = React.useState<Id[]>([]);
     const [countries, setCountries] = React.useState<Country[]>([]);
@@ -75,6 +77,11 @@ export const IssueFilters: React.FC<IssueFiltersProps> = props => {
     const step = metadataItem.programs.qualityIssues.programStages.map((option, index) => {
         return { value: String(index + 1), text: option.name };
     });
+
+    const periodOptions = React.useMemo(
+        () => getPeriodOptionsForRange(periodType, rangeStartDate, rangeEndDate),
+        [periodType, rangeStartDate, rangeEndDate]
+    );
 
     const onClickCountry = () => {
         setOpenCountry(true);
@@ -141,7 +148,7 @@ export const IssueFilters: React.FC<IssueFiltersProps> = props => {
             <SelectMultiCheckboxes
                 label={i18n.t("Periods")}
                 onChange={values => onFilterChange(values, "periods")}
-                options={periods}
+                options={[...periodOptions]}
                 value={initialFilters.periods}
             />
 
@@ -181,6 +188,9 @@ type IssueFiltersProps = {
     initialFilters: IssueFilterState;
     onChange: React.Dispatch<React.SetStateAction<GetIssuesOptions["filters"]>>;
     showStepFilter?: boolean;
+    periodType: PeriodType;
+    rangeStartDate: DateISOString;
+    rangeEndDate: DateISOString;
 };
 
 export type IssueFilterState = {
