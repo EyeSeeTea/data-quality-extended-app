@@ -3,7 +3,6 @@ import { OrgUnitsSelector } from "@eyeseetea/d2-ui-components";
 
 import { D2Api } from "$/types/d2-api";
 import { Id } from "$/domain/entities/Ref";
-import { ORG_UNIT_LEVELS } from "$/webapp/utils/form";
 
 export const CountrySelector: React.FC<CountrySelectorProps> = props => {
     const { api, onChange, rootIds, selectedCountriesIds: selectedOrgUnits } = props;
@@ -17,8 +16,6 @@ export const CountrySelector: React.FC<CountrySelectorProps> = props => {
             api={api}
             onChange={onOrgUnitsChange}
             selected={selectedOrgUnits}
-            levels={ORG_UNIT_LEVELS}
-            selectableLevels={ORG_UNIT_LEVELS}
             rootIds={rootIds}
             withElevation={false}
         />

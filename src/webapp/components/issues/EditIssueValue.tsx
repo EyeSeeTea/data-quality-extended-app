@@ -7,9 +7,11 @@ import { SelectorInline } from "./SelectorInline";
 import { useAppContext } from "$/webapp/contexts/app-context";
 import { SnackbarState, useLoading, useSnackbar } from "@eyeseetea/d2-ui-components";
 import { Id } from "$/domain/entities/Ref";
+import { MetadataItem } from "$/domain/entities/MetadataItem";
 import i18n from "$/utils/i18n";
 import { useParams } from "react-router-dom";
 import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
+import { hasUserGroups, shouldNotifyNoContactUser } from "$/webapp/components/issues/utils";
 
 type UpdateIssuePropertyProps = {
     analysisId: Id;
@@ -22,9 +24,17 @@ function getContactEmailNotification(
     field: IssuePropertyName,
     value: boolean,
     emailChanged: boolean,
+    metadataItem: MetadataItem,
     snackbar: SnackbarState
 ) {
-    if (field === "followUp" && value === true && !emailChanged) {
+    if (
+        shouldNotifyNoContactUser({
+            field,
+            value,
+            emailChanged,
+            userGroupsConfigured: hasUserGroups(metadataItem.userGroups),
+        })
+    ) {
         snackbar.warning(
             i18n.t(
                 "No user with Capture rights and Organisation Unit or Region associated to the issue was found"
@@ -60,6 +70,7 @@ export function useUpdateIssueProperty(props: UpdateIssuePropertyProps) {
                             field,
                             value as boolean,
                             Boolean(result.contactEmailsChanged),
+                            metadataItem,
                             snackbar
                         );
                     },

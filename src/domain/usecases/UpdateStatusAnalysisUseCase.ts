@@ -21,7 +21,7 @@ export class UpdateStatusAnalysisUseCase {
                 },
                 pagination: {
                     page: 1,
-                    pageSize: 1e6,
+                    pageSize: ids.length,
                 },
                 sorting: {
                     field: "name",

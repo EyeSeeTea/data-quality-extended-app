@@ -15,7 +15,7 @@ export function useIssueColumns() {
     const issueColumns = React.useMemo(() => {
         const baseColumns: TableColumn<QualityAnalysisIssue>[] = [
             { name: "number", text: i18n.t("Issue"), sortable: true },
-            { name: "country", text: i18n.t("Country"), sortable: false },
+            { name: "country", text: i18n.t("Org Unit"), sortable: false },
             {
                 name: "period",
                 text: i18n.t("Period"),

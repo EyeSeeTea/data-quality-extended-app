@@ -36,9 +36,9 @@ function extractCountriesNames(countries: Country[], totalCountriesSelected: num
 
     const countryNamesString =
         moreCountriesCount > 0
-            ? i18n.t("{{countryNames}} and {{moreCountriesCount}} more", {
-                  countryNames,
-                  moreCountriesCount,
+            ? i18n.t("{{orgUnitNames}} and {{moreOrgUnitsCount}} more", {
+                  orgUnitNames: countryNames,
+                  moreOrgUnitsCount: moreCountriesCount,
               })
             : countryNames;
 
@@ -132,7 +132,7 @@ export const IssueFilters: React.FC<IssueFiltersProps> = props => {
             <div>
                 <TextField
                     name="countries"
-                    label={i18n.t("Countries")}
+                    label={i18n.t("Org Units")}
                     onClick={onClickCountry}
                     title={countryNamesString}
                     value={countryNamesString}

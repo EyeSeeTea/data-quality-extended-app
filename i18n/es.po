@@ -20,7 +20,7 @@ msgstr ""
 msgid "Period"
 msgstr ""
 
-msgid "Country"
+msgid "Org Unit"
 msgstr ""
 
 msgid "Data Element"
@@ -154,7 +154,7 @@ msgstr ""
 msgid "Issue"
 msgstr ""
 
-msgid "{{countryNames}} and {{moreCountriesCount}} more"
+msgid "{{orgUnitNames}} and {{moreOrgUnitsCount}} more"
 msgstr ""
 
 msgid "Close"
@@ -163,7 +163,7 @@ msgstr ""
 msgid "Issue Number"
 msgstr ""
 
-msgid "Countries"
+msgid "Org Units"
 msgstr ""
 
 msgid "Step"

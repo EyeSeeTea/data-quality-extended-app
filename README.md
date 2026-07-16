@@ -61,12 +61,19 @@ The application supports the analysis steps described below and can also support
 > If the configuration in this DataStore entry is incorrect,
 > custom analysis steps will not be displayed or executed correctly.
 
+> **Program Stage naming (required)**
+>
+> The application maps each Program Stage to an analysis step **by its `name`**. Some DHIS2 versions require Program Stage names to be unique across the **whole instance**, not just within their own program. To avoid that conflict, Program Stage names **must** now be prefixed with the same prefix used for the Tracker Program code, followed by an underscore
+> (for example: `TEST_DQI_001_Outliers`, `TEST_DQI_001_Validation`, `TEST_DQI_001_Manual Issues`). This applies to every program, including the first one.
+>
+> **Deprecated:** the plain, unprefixed name (for example: `Outliers`, with no prefix) is no longer a valid convention for new configurations. It is only supported for **backward compatibility** with Program Stages created before this requirement — the application still recognizes it, but it must not be used when creating new Data Quality programs.
+
 ##### Program Stage: Outliers
 
 This Program Stage is used to store **data quality issues detected through outlier analysis**,
 based on the standard DHIS2 min–max outlier detection functionality.
 
--   **Name:** Outliers
+-   **Name:** `PREFIX_DQI_001_Outliers` (`Outliers`, without prefix, is deprecated — see "Program Stage naming" note above)
 -   **Scheduled days from start:** `0`
 -   **Repeatable:** enabled
 -   **Auto-generate event:** enabled
@@ -79,7 +86,7 @@ All other options should remain with their default values.
 
 This Program Stage is used to store **data quality issues detected through validation rules analysis**.
 
--   **Name:** Validation
+-   **Name:** `PREFIX_DQI_001_Validation` (`Validation`, without prefix, is deprecated — see "Program Stage naming" note above)
 -   **Scheduled days from start:** `1`
 -   **Repeatable:** enabled
 -   **Auto-generate event:** enabled
@@ -93,7 +100,7 @@ All other options should remain with their default values.
 This Program Stage is used to **manually register data quality issues**
 that cannot be automatically detected through data analysis.
 
--   **Name:** Manual Issues
+-   **Name:** `PREFIX_DQI_001_Manual Issues` (`Manual Issues`, without prefix, is deprecated — see "Program Stage naming" note above)
 -   **Scheduled days from start:** `0`
 -   **Repeatable:** enabled
 -   **Auto-generate event:** enabled
@@ -171,7 +178,7 @@ The following Option Sets **must exist**:
 
     -   Name: No action — Code: `0`
     -   Name: Data modification from HQ — Code: `1`
-    -   Name: Data modification from country — Code: `2`
+    -   Name: Data modification from Organisation Unit — Code: `2`
 
 -   `PREFIX_DQI_Status`
     -   Name: Not treated — Code: `0`
