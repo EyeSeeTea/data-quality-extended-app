@@ -8,6 +8,7 @@ type DataElements = {
     comments: Code;
     contactEmails: Code;
     correlative: Code;
+    conversationId: Code;
     country: Code;
     dataElement: Code;
     description: Code;
