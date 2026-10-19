@@ -6,7 +6,7 @@ import { useAppContext } from "$/webapp/contexts/app-context";
 import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
 import { Maybe } from "$/utils/ts-utils";
 import { IssueNotification } from "$/domain/entities/IssueNotification";
-import { parseQualityAnalysisId } from "$/webapp/components/issues/IssueTable";
+import { parseQualityAnalysisId } from "$/webapp/components/issues/utils";
 
 type NotificationHistoryModalProps = {
     isOpen: boolean;

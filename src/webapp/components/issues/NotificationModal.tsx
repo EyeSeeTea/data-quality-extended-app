@@ -21,7 +21,7 @@ import { SearchResult } from "$/domain/usecases/GetUserByIdentifierUseCase";
 import { Maybe } from "$/utils/ts-utils";
 import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
 import styled from "styled-components";
-import { parseQualityAnalysisId } from "$/webapp/components/issues/IssueTable";
+import { parseQualityAnalysisId } from "$/webapp/components/issues/utils";
 
 type RecipientSearchProps = {
     selectedUsers: SearchResult[];
