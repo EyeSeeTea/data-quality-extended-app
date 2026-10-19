@@ -1,4 +1,5 @@
 import { MetadataItem } from "$/domain/entities/MetadataItem";
+import { Pagination } from "$/domain/entities/Pagination";
 import { Id } from "$/domain/entities/Ref";
 import { TrackedEntitiesGetResponse } from "$/types/d2-api";
 import { TrackerEventsResponse } from "@eyeseetea/d2-api/api/trackerEvents";
@@ -9,6 +10,23 @@ export function getProgramStageIndexById(programStageId: Id, metadata: MetadataI
     );
     if (programStageIndex === -1) throw Error(`Cannot found programStage: ${programStageId}`);
     return programStageIndex;
+}
+
+type D2TrackerPager = Partial<Pagination>;
+
+// DHIS2 2.40 returns the pagination at the root of tracker responses, 2.41 at the root
+// and in "pager", and 2.42+ only in "pager"
+export function getTrackerPagination(
+    response: D2TrackerPager & { pager?: D2TrackerPager }
+): Pagination {
+    const pager = response.pager ?? response;
+
+    return {
+        page: pager.page ?? 1,
+        pageSize: pager.pageSize ?? 0,
+        total: pager.total ?? 0,
+        pageCount: pager.pageCount ?? 0,
+    };
 }
 
 export function buildTrackerResponse(

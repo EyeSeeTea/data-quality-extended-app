@@ -23,6 +23,7 @@ import {
     buildTrackerEventsResponse,
     buildTrackerResponse,
     getProgramStageIndexById,
+    getTrackerPagination,
 } from "$/data/common/utils";
 
 export class IssueD2Repository implements IssueRepository {
@@ -82,13 +83,7 @@ export class IssueD2Repository implements IssueRepository {
                 categoryOptions: this.d2CategoryOption.getByIds(categoryOptionIds),
             }).flatMap(({ countries, dataElements, categoryOptions }) => {
                 return Future.success({
-                    pagination: {
-                        pageSize: d2Response.pageSize,
-                        // @ts-ignore
-                        pageCount: d2Response.pageCount,
-                        page: d2Response.page,
-                        total: d2Response.total || 0,
-                    },
+                    pagination: getTrackerPagination(d2Response),
                     rows: this.buildIssues(
                         instances,
                         countries,
