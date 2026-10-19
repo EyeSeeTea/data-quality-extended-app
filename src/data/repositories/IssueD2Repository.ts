@@ -43,6 +43,7 @@ export class IssueD2Repository implements IssueRepository {
         const filtersParams = this.buildFilters(options.filters, options.metadata);
         return apiToFuture(
             this.api.tracker.events.get({
+                program: options.metadata.programs.qualityIssues.id,
                 programStage: filters.sectionId ? filters.sectionId : undefined,
                 fields: { dataValues: true, event: true, programStage: true },
                 totalPages: true,
@@ -103,6 +104,7 @@ export class IssueD2Repository implements IssueRepository {
     getById(id: Id, metadata: MetadataItem): FutureData<QualityAnalysisIssue> {
         return apiToFuture(
             this.api.tracker.events.get({
+                program: metadata.programs.qualityIssues.id,
                 fields: { dataValues: true, event: true, programStage: true },
                 event: id ? id : undefined,
             })
