@@ -85,7 +85,6 @@ export class MetadataD2Repository implements MetadataRepository {
     ): FutureData<MetadataItemWithoutOrgUnits> {
         const codeValues = <T extends Record<string, string>>(obj: T): string[] =>
             Object.values(obj);
-
         const metadata = {
             ...METADATA_FIELDS,
 
@@ -252,6 +251,7 @@ type MetadataCodes = {
         contactEmails: Code;
         comments: Code;
         correlative: Code;
+        conversationId: Code;
         sectionNumber: Code;
     };
     programs: { qualityIssues: Code };

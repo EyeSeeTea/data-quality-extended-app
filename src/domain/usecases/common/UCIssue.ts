@@ -73,6 +73,7 @@ export class UCIssue {
             comments: "",
             contactEmails: "",
             correlative: correlative,
+            conversationId: "",
         });
     }
 

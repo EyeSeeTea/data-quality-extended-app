@@ -37,6 +37,7 @@ export class IssueSpreadSheetRepository implements IssueExportRepository {
                         actionDescription: { title: i18n.t("Action Description") },
                         comments: { title: i18n.t("Comments") },
                         contactEmails: { title: i18n.t("Contact Emails") },
+                        conversationId: { title: i18n.t("Conversation ID") },
                     },
                     records: issuesInStep.map(
                         (
@@ -56,6 +57,7 @@ export class IssueSpreadSheetRepository implements IssueExportRepository {
                             actionDescription: record.actionDescription,
                             comments: record.comments,
                             contactEmails: record.contactEmails,
+                            conversationId: record.conversationId,
                         })
                     ),
                 };
@@ -87,4 +89,5 @@ export const issuesFields: Record<keyof IssueExport, null> = {
     actionDescription: null,
     comments: null,
     contactEmails: null,
+    conversationId: null,
 };

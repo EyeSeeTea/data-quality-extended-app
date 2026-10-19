@@ -1,4 +1,3 @@
-import { HeaderBar } from "@dhis2/ui";
 import { SnackbarProvider } from "@eyeseetea/d2-ui-components";
 import { Feedback } from "@eyeseetea/feedback-component";
 import { MuiThemeProvider } from "@material-ui/core/styles";
@@ -9,6 +8,7 @@ import React, { useEffect, useState } from "react";
 import { appConfig } from "$/app-config";
 import { CompositionRoot } from "$/CompositionRoot";
 import Share from "$/webapp/components/share/Share";
+import { HeaderBar } from "$/webapp/components/header-bar/HeaderBar";
 import { AppContext, AppContextState } from "$/webapp/contexts/app-context";
 import { Router } from "$/webapp/pages/Router";
 import "./App.css";

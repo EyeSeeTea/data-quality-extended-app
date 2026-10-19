@@ -14,4 +14,7 @@ export class UserTestRepository implements UserRepository {
     public getCurrent(): FutureData<User> {
         return Future.success(createAdminUser());
     }
+    getByIdentifiable(): FutureData<User[]> {
+        return Future.success([createAdminUser()]);
+    }
 }
