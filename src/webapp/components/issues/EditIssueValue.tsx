@@ -10,6 +10,7 @@ import { Id } from "$/domain/entities/Ref";
 import i18n from "$/utils/i18n";
 import { useParams } from "react-router-dom";
 import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
+import { parseQualityAnalysisId } from "$/webapp/components/issues/utils";
 
 type UpdateIssuePropertyProps = {
     analysisId: Id;
@@ -46,7 +47,11 @@ export function useUpdateIssueProperty(props: UpdateIssuePropertyProps) {
             compositionRoot.issues.save
                 .execute({
                     analysisId: analysisId,
-                    issue: issue,
+                    // Table rows carry a composite id ("<event>:<number>"); use cases need the event id
+                    issue: new QualityAnalysisIssue({
+                        ...issue,
+                        id: parseQualityAnalysisId(issue.id).issueId,
+                    }),
                     propertyToUpdate: field,
                     valueToUpdate: value,
                     metadata: metadataItem,

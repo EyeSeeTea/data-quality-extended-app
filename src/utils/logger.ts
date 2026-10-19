@@ -10,10 +10,9 @@ export async function setupLogger(
 ): Promise<void> {
     const { isDebug = false } = options ?? {};
     logger = await initLogger({
-        type: "trackerProgram",
+        type: "trackerProgram" as const,
         debug: isDebug,
-        baseUrl: baseUrl,
-        auth: undefined,
+        d2ApiOptions: { baseUrl: baseUrl },
         trackerProgramId: trackerProgramId,
         messageTypeId: undefined,
     });

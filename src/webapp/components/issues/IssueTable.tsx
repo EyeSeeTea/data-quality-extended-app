@@ -20,7 +20,11 @@ import CloudDownload from "@material-ui/icons/CloudDownload";
 import { useTableUtils } from "$/webapp/hooks/useTable";
 import { useIssueColumns } from "./IssueColumns";
 import { useMetadataItemContext } from "$/webapp/contexts/metadata-item-context";
-import { hasUserGroups } from "$/webapp/components/issues/utils";
+import {
+    getQualityAnalysisId,
+    hasUserGroups,
+    parseQualityAnalysisId,
+} from "$/webapp/components/issues/utils";
 import {
     NotificationModal,
     useIssueNotification,
@@ -160,8 +164,9 @@ export function useTableConfig(props: UseTableConfigProps) {
                 text: i18n.t("Extend Follow-Up + Contact Emails"),
                 primary: false,
                 onClick(selectedIds) {
-                    const issueId = selectedIds[0];
-                    if (!issueId) return false;
+                    const rowId = selectedIds[0];
+                    if (!rowId) return false;
+                    const { issueId } = parseQualityAnalysisId(rowId);
                     copyContactEmails(issueId, analysisId, sectionId, filters);
                 },
             },
@@ -370,20 +375,3 @@ type UseTableConfigProps = {
 };
 
 type UseCopyContactEmailsProps = { onSuccess?: () => void };
-
-function getQualityAnalysisId(row: QualityAnalysisIssue): string {
-    return `${row.id}:${row.number}`;
-}
-
-export function parseQualityAnalysisId(qualityAnalysisId: string): {
-    issueId: string;
-    issueNumber: string;
-} {
-    const [id, number] = qualityAnalysisId.split(":");
-
-    if (!id || !number) {
-        throw new Error(`Invalid quality analysis ID: ${qualityAnalysisId}`);
-    }
-
-    return { issueId: id, issueNumber: number };
-}

@@ -34,11 +34,16 @@ import { D2DataElement } from "$/data/common/D2DataElement";
 import { D2OrgUnit } from "$/data/common/D2Country";
 import { getUid } from "$/utils/uid";
 import { getDefaultModules } from "$/data/common/D2Module";
-import { buildTrackerResponse, getProgramStageIndexById } from "$/data/common/utils";
+import {
+    buildTrackerResponse,
+    getProgramStageIndexById,
+    getTrackedEntitiesFilter,
+    getTrackerPagination,
+} from "$/data/common/utils";
 import { DATA_QUALITY_NAMESPACE } from "$/data/common/DataStoreConfig";
 import { DataStore } from "@eyeseetea/d2-api/api";
 
-const DEFAULT_PAGE_SIZE = 150;
+const DEFAULT_PAGE_SIZE = 500;
 const DEFAULT_DELETE_CHUNK_SIZE = 300;
 
 export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
@@ -63,12 +68,10 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
                 program: this.getIdOrThrow(options.metadata.programs.qualityIssues?.id),
                 page: options.pagination.page,
                 pageSize: options.pagination.pageSize,
-                // TODO: Update d2-api to support para "trackedEntities" since "trackedEntity"
-                // is deprecated
-                // @ts-ignore
-                trackedEntities: options.filters.ids ? options.filters.ids.join(";") : undefined,
+                ...getTrackedEntitiesFilter(options.filters.ids),
                 filter:
                     this.buildFilters(options.filters, options.metadata)?.join(",") || undefined,
+                // @ts-ignore d2-api types don't declare "order" for tracked entities
                 order: this.buildOrder(options.sorting, options.metadata) || undefined,
                 totalPages: true,
             })
@@ -86,13 +89,7 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
                 ),
             }).map(({ sectionInformation }) => {
                 return {
-                    pagination: {
-                        pageSize: d2Response.pageSize,
-                        // @ts-ignore
-                        pageCount: d2Response.pageCount,
-                        page: d2Response.page,
-                        total: d2Response.total || 0,
-                    },
+                    pagination: getTrackerPagination(d2Response),
                     rows: _(instances)
                         .map(tei =>
                             this.buildQualityAnalysis(tei, sectionInformation, options.metadata)
@@ -116,7 +113,7 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
             },
             pagination: {
                 page: 1,
-                pageSize: 1e6,
+                pageSize: DEFAULT_PAGE_SIZE,
             },
             sorting: {
                 field: "name",
@@ -222,11 +219,10 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
                 const apiTeis: D2TrackerTrackedEntity[] = buildTrackerResponse(response).instances;
                 const nextAccTeis = [...accTeis, ...apiTeis];
 
-                // @ts-ignore. The d2-api types should be updated to reflect that pageCount is always returned when totalPages is true
-                const pageCount = response.pageCount;
-                const nextPage = (response.page ?? page) + 1;
+                const pagination = getTrackerPagination(response);
+                const nextPage = pagination.page + 1;
 
-                if (pageCount !== undefined && nextPage <= pageCount) {
+                if (nextPage <= pagination.pageCount) {
                     return fetchPage(nextPage, nextAccTeis);
                 }
 
@@ -371,7 +367,7 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
                 orgUnit: metadata.organisationUnits.global.id,
                 program: metadata.programs.qualityIssues.id,
                 fields: { $all: true },
-                trackedEntity: qaIds.join(";"),
+                ...getTrackedEntitiesFilter(qaIds),
             })
         ).flatMap(d2Response => {
             const instances = buildTrackerResponse(d2Response).instances;

@@ -23,6 +23,9 @@ import {
     buildTrackerEventsResponse,
     buildTrackerResponse,
     getProgramStageIndexById,
+    getEventsFilter,
+    getTrackedEntitiesFilter,
+    getTrackerPagination,
 } from "$/data/common/utils";
 
 export class IssueD2Repository implements IssueRepository {
@@ -43,6 +46,7 @@ export class IssueD2Repository implements IssueRepository {
         const filtersParams = this.buildFilters(options.filters, options.metadata);
         return apiToFuture(
             this.api.tracker.events.get({
+                program: options.metadata.programs.qualityIssues.id,
                 programStage: filters.sectionId ? filters.sectionId : undefined,
                 fields: { dataValues: true, event: true, programStage: true },
                 totalPages: true,
@@ -59,7 +63,7 @@ export class IssueD2Repository implements IssueRepository {
                           options.metadata
                       )}:asc,${this.buildOrder(options.sorting, options.metadata)}`,
                 filter: filtersParams,
-                event: filters.id ? filters.id : undefined,
+                ...getEventsFilter(filters.id ? [filters.id] : undefined),
             })
         ).flatMap(d2Response => {
             const instances = buildTrackerEventsResponse(d2Response).instances;
@@ -81,13 +85,7 @@ export class IssueD2Repository implements IssueRepository {
                 categoryOptions: this.d2CategoryOption.getByIds(categoryOptionIds),
             }).flatMap(({ countries, dataElements, categoryOptions }) => {
                 return Future.success({
-                    pagination: {
-                        pageSize: d2Response.pageSize,
-                        // @ts-ignore
-                        pageCount: d2Response.pageCount,
-                        page: d2Response.page,
-                        total: d2Response.total || 0,
-                    },
+                    pagination: getTrackerPagination(d2Response),
                     rows: this.buildIssues(
                         instances,
                         countries,
@@ -103,8 +101,9 @@ export class IssueD2Repository implements IssueRepository {
     getById(id: Id, metadata: MetadataItem): FutureData<QualityAnalysisIssue> {
         return apiToFuture(
             this.api.tracker.events.get({
+                program: metadata.programs.qualityIssues.id,
                 fields: { dataValues: true, event: true, programStage: true },
-                event: id ? id : undefined,
+                ...getEventsFilter([id]),
             })
         ).flatMap(d2Response => {
             const d2Event = buildTrackerEventsResponse(d2Response).instances[0];
@@ -152,7 +151,7 @@ export class IssueD2Repository implements IssueRepository {
                 orgUnit: metadata.organisationUnits.global.id,
                 fields: { trackedEntity: true, enrollments: true },
                 program: metadata.programs.qualityIssues.id,
-                trackedEntity: analysisId,
+                ...getTrackedEntitiesFilter([analysisId]),
             })
         ).flatMap(d2Response => {
             const instances = buildTrackerResponse(d2Response).instances;
