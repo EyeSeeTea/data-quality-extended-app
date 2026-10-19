@@ -1,6 +1,7 @@
 import { MetadataItem } from "$/domain/entities/MetadataItem";
 import { Pagination } from "$/domain/entities/Pagination";
 import { Id } from "$/domain/entities/Ref";
+import { Maybe } from "$/utils/ts-utils";
 import { TrackedEntitiesGetResponse } from "$/types/d2-api";
 import { TrackerEventsResponse } from "@eyeseetea/d2-api/api/trackerEvents";
 
@@ -10,6 +11,16 @@ export function getProgramStageIndexById(programStageId: Id, metadata: MetadataI
     );
     if (programStageIndex === -1) throw Error(`Cannot found programStage: ${programStageId}`);
     return programStageIndex;
+}
+
+// d2-api types don't declare the plural filters that replace the deprecated "trackedEntity" and
+// "event" params, which DHIS2 2.42+ silently ignores. They are spread into the request params.
+export function getTrackedEntitiesFilter(ids: Maybe<Id[]>): { trackedEntities?: string } {
+    return ids && ids.length > 0 ? { trackedEntities: ids.join(",") } : {};
+}
+
+export function getEventsFilter(ids: Maybe<Id[]>): { events?: string } {
+    return ids && ids.length > 0 ? { events: ids.join(",") } : {};
 }
 
 type D2TrackerPager = Partial<Pagination>;

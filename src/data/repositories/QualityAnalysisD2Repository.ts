@@ -37,6 +37,7 @@ import { getDefaultModules } from "$/data/common/D2Module";
 import {
     buildTrackerResponse,
     getProgramStageIndexById,
+    getTrackedEntitiesFilter,
     getTrackerPagination,
 } from "$/data/common/utils";
 import { DATA_QUALITY_NAMESPACE } from "$/data/common/DataStoreConfig";
@@ -67,12 +68,10 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
                 program: this.getIdOrThrow(options.metadata.programs.qualityIssues?.id),
                 page: options.pagination.page,
                 pageSize: options.pagination.pageSize,
-                // TODO: Update d2-api to support para "trackedEntities" since "trackedEntity"
-                // is deprecated
-                // @ts-ignore
-                trackedEntities: options.filters.ids ? options.filters.ids.join(";") : undefined,
+                ...getTrackedEntitiesFilter(options.filters.ids),
                 filter:
                     this.buildFilters(options.filters, options.metadata)?.join(",") || undefined,
+                // @ts-ignore d2-api types don't declare "order" for tracked entities
                 order: this.buildOrder(options.sorting, options.metadata) || undefined,
                 totalPages: true,
             })
@@ -368,7 +367,7 @@ export class QualityAnalysisD2Repository implements QualityAnalysisRepository {
                 orgUnit: metadata.organisationUnits.global.id,
                 program: metadata.programs.qualityIssues.id,
                 fields: { $all: true },
-                trackedEntity: qaIds.join(";"),
+                ...getTrackedEntitiesFilter(qaIds),
             })
         ).flatMap(d2Response => {
             const instances = buildTrackerResponse(d2Response).instances;

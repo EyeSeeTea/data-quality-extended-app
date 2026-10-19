@@ -1,5 +1,24 @@
 import { describe, expect, it } from "vitest";
-import { getTrackerPagination } from "$/data/common/utils";
+import {
+    getEventsFilter,
+    getTrackedEntitiesFilter,
+    getTrackerPagination,
+} from "$/data/common/utils";
+
+describe("tracker id filters", () => {
+    it("should join the ids with commas, the only separator DHIS2 2.41+ accepts", () => {
+        expect(getTrackedEntitiesFilter(["tei1", "tei2"])).toEqual({
+            trackedEntities: "tei1,tei2",
+        });
+        expect(getEventsFilter(["event1", "event2"])).toEqual({ events: "event1,event2" });
+    });
+
+    it("should not filter when there are no ids", () => {
+        expect(getTrackedEntitiesFilter(undefined)).toEqual({});
+        expect(getTrackedEntitiesFilter([])).toEqual({});
+        expect(getEventsFilter(undefined)).toEqual({});
+    });
+});
 
 const pagination = { page: 2, pageSize: 25, total: 60, pageCount: 3 };
 
