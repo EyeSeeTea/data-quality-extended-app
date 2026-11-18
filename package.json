@@ -9,12 +9,13 @@
         "type": "git",
         "url": "git+https://github.com/EyeSeeTea/data-quality-dev"
     },
+    "packageManager": "yarn@4.15.0",
     "dependencies": {
         "$": "link:./src",
         "@dhis2/app-runtime": "2.8.0",
+        "@dhis2/d2-i18n": "1.1.3",
         "@dhis2/d2-i18n-extract": "1.0.8",
         "@dhis2/d2-i18n-generate": "1.2.0",
-        "@dhis2/d2-i18n": "1.1.3",
         "@dhis2/ui": "6.12.0",
         "@eyeseetea/d2-api": "1.14.0",
         "@eyeseetea/d2-logger": "1.2.0-beta.1",
@@ -25,16 +26,16 @@
         "@material-ui/lab": "4.0.0-alpha.60",
         "@material-ui/styles": "4.11.5",
         "classnames": "2.5.1",
-        "d2-manifest": "1.0.0",
         "d2": "31.10.2",
+        "d2-manifest": "1.0.0",
         "eslint-plugin-no-relative-import-paths": "^1.5.3",
         "font-awesome": "4.7.0",
         "lodash": "4.17.21",
-        "purify-ts-extra-codec": "0.6.0",
         "purify-ts": "2.0.3",
+        "purify-ts-extra-codec": "0.6.0",
+        "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-router-dom": "5.2.0",
-        "react": "^18.2.0",
         "real-cancellable-promise": "^1.1.2",
         "styled-components": "5.3.5",
         "styled-jsx": "3.4.5",
@@ -110,15 +111,15 @@
         "extract-pot": "yarn d2-i18n-extract -p src/ -o i18n/",
         "localize": "yarn update-po && d2-i18n-generate -n data-quality -p ./i18n/ -o ./src/locales/",
         "update-po": "yarn extract-pot && find i18n/ -name '*.po' -exec msgmerge --backup=off -U {} i18n/en.pot \\;",
-        "prepare": "husky install",
+        "prepare": "corepack enable 2>/dev/null || true && husky install",
         "script-example": "npx ts-node src/scripts/example.ts"
     },
     "manifest.webapp": {
         "name": "Data Quality Extended",
         "description": "Data Quality Extended",
         "icons": {
-            "128": "icon-128.png",
-            "48": "icon-48.png"
+            "48": "icon-48.png",
+            "128": "icon-128.png"
         },
         "developer": {
             "url": "https://www.eyeseetea.com/",

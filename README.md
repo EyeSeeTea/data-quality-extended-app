@@ -275,6 +275,18 @@ $ nvm use # uses node version in .nvmrc
 $ yarn install
 ```
 
+This project uses **Yarn 4** managed by **Corepack** and declares `"packageManager": "yarn@4.15.0"` (the Yarn release is committed in `.yarn/releases`).
+
+If running `yarn` fails with a `packageManager` error because you have Yarn 1 installed globally:
+
+```bash
+npm uninstall -g yarn      # optional but recommended
+corepack enable            # shipped with Node >= 16.9
+corepack prepare yarn@1.22.22 --activate   # default for projects WITHOUT packageManager
+```
+
+Then, inside this repo, `yarn --version` should print `4.15.0`.
+
 ## Build
 
 Build a production distributable DHIS2 zip file:
