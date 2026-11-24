@@ -86,7 +86,7 @@ None of these reach the browser bundle. They arrive with `@dhis2/cli-app-scripts
 
 #### `@dhis2/cli-app-scripts/vite: ^7.3.7`
 
-- **Why:** `@dhis2/cli-app-scripts` requests `vite@^5.2.9` (5.4.21), a second copy next to the application's own `vite`. Eight advisories cover `<= 6.4.3`.
+- **Why:** `@dhis2/cli-app-scripts` requests `vite@^5.2.9` (5.4.21), a second copy next to the application's own `vite@^7.3.7`. Eight advisories cover `<= 6.4.3`.
 - **Drop when:** `@dhis2/cli-app-scripts` requests `vite >= 7.3.7` natively.
 
 #### `@dhis2/cli-helpers-engine/tar: ^7.5.21`
@@ -136,6 +136,7 @@ These are changes to the direct dependencies, not resolutions. They are listed b
 - **`@eyeseetea/feedback-component` `0.0.3` → `0.3.0`.** Removes a second `moment` copy. Not exercised by the smoke test.
 - **`lodash` `4.17.21` → `^4.18.0`.** See the resolution above.
 - **`@dhis2/d2-i18n-extract` and `@dhis2/d2-i18n-generate` replaced by `@dhis2/cli-app-scripts@12.11.1`.** The new generator does **not** make the app namespace the default one, so Spanish translations stopped applying (`Back` instead of `Volver`, found by comparing against the original build). `configI18n` in `Dhis2App.tsx` now calls `i18n.setDefaultNamespace("data-quality")` after the platform adapter has set `"default"`. Keep it in sync with `-n data-quality` in the `localize` script.
+- **Toolchain: `vite ^7.3.7`, `vitest ^4.1.12`, `@vitejs/plugin-react ^5.1.0`, `vite-plugin-checker ^0.11.0`, Node 22 (`.nvmrc` `v22.22.2`).** Same lines as home-page-app-dev, Bulk-Load and dhis2-app-skeleton. `vite-plugin-eslint`, `@vitest/coverage-v8` and `bundle-phobia-cli` were removed because nothing uses them. The `test-unit` script no longer passes `--reporter=basic`, which vitest 4 does not have. The JS bundle grew from 3,317 kB to 4,323 kB with `vite 7` and the other changes of the round; this was not investigated.
 - **`@babel/core` re-resolved with `yarn up -R`.** The lockfile held 7.22.20, below the fix for a low advisory.
 - **`styled-jsx` kept.** See the `styled-jsx/loader-utils` entry.
 
