@@ -79,11 +79,8 @@ export class D2User {
             }),
             countries: [...readAccessCountries, ...writeAccessCountries],
             email: d2User.email,
-            // @ts-expect-error - upgrade d2-api for up-to-date types
             lastLogin: d2User.lastLogin,
-            // @ts-expect-error - upgrade d2-api for up-to-date types
             username: d2User.username,
-            // @ts-expect-error - upgrade d2-api for up-to-date types
             userRoles: d2User.userRoles,
         });
     }

@@ -14,7 +14,7 @@ import { getDefaultModules } from "$/data/common/D2Module";
 import { DataElement } from "$/domain/entities/DataElement";
 import _ from "$/domain/entities/generic/Collection";
 import { Maybe } from "$/utils/ts-utils";
-import { D2CategoryCombo, MetadataPick } from "@eyeseetea/d2-api/2.36";
+import { D2CategoryCombo, MetadataPick } from "@eyeseetea/d2-api/2.41";
 
 export class ModuleD2Repository implements ModuleRepository {
     constructor(private api: D2Api) {}

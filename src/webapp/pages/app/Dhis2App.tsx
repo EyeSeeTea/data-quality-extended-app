@@ -91,7 +91,13 @@ const isLangRTL = (code: string) => {
     return langs.includes(code) || prefixed.filter(c => code && code.startsWith(c)).length > 0;
 };
 
+// Must match the namespace passed with -n to `d2-app-scripts i18n generate` (package.json, "localize").
+// The generated locales/index.js registers the bundles in it but does not make it the default, and the
+// platform adapter sets the default namespace to "default" when it renders, so this runs after it.
+const I18N_NAMESPACE = "data-quality";
+
 const configI18n = ({ keyUiLocale }: { keyUiLocale: string }) => {
+    i18n.setDefaultNamespace(I18N_NAMESPACE);
     i18n.changeLanguage(keyUiLocale);
     document.documentElement.setAttribute("dir", isLangRTL(keyUiLocale) ? "rtl" : "ltr");
 };
