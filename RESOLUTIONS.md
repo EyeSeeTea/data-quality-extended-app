@@ -157,9 +157,11 @@ Registry advisory data for the final tree, 2026-11-23: 0 critical, 2 high, 5 mod
 #### `uuid@3.4.0`: GHSA-w5hq-g745-h8pq (moderate)
 
 - **Chain:** `@dhis2/cli-app-scripts` → `@dhis2/cli-helpers-engine@3.2.2` → `request@2.88.2` → `uuid@^3.3.2`.
-- **Not reachable in this tree.** The advisory is a missing bounds check in `v3()`, `v5()` and `v6()` when the caller supplies an output buffer. `request` only requires the `uuid/v4` subpath (`lib/auth.js`, `lib/oauth.js` and `lib/multipart.js`) and calls it with no arguments. Checked in `node_modules` on 2026-11-23: `uuid@3.4.0` is the only copy and `request` its only consumer.
-- **Why it cannot be fixed:** the advisory is patched at 11.1.1, but the `uuid/v4` subpath was removed in uuid 7, so no version both fixes it and keeps what `request` imports. The same dismissal was recorded in dhis2-app-skeleton #121 and data-approval-dev #24.
-- **Impact:** build tooling only.
+- **Not reachable in this tree.** The advisory is a missing bounds check in `v3()`, `v5()` and `v6()` when the caller supplies an output buffer. `request` only requires the `uuid/v4` subpath (`lib/auth.js`, `lib/oauth.js` and `lib/multipart.js`) and calls it with no arguments (`uuid()`). Checked in `node_modules` on 2026-11-24: `uuid@3.4.0` is the only copy and `request` its only consumer.
+- **Why it cannot be fixed:** the advisory is patched at 11.1.1, but the `uuid/v4` subpath was removed in uuid 7, so no version both fixes it and keeps what `request` imports. Forcing `request/uuid: ^11.1.1` fails at load with `ERR_PACKAGE_PATH_NOT_EXPORTED`, as recorded in [dhis2-app-skeleton](https://github.com/EyeSeeTea/dhis2-app-skeleton/blob/master/RESOLUTIONS.md).
+- **Impact:** build tooling only. Dependency-Track scores it high; the GitHub advisory database rates it medium.
+- **Why the gate counts it:** `@dhis2/cli-app-scripts` (and so `request` and `uuid`) enters the tree in this PR, replacing the archived `d2-i18n-extract` and `d2-i18n-generate`, so Dependency-Track reports alert [#234](https://github.com/EyeSeeTea/data-quality-extended-app/security/code-scanning/234) as new against the base.
+- **Approval:** alert [#234](https://github.com/EyeSeeTea/data-quality-extended-app/security/code-scanning/234) dismissed as "won't fix" on 2026-11-24 by @xurxodev ([comment in #95](https://github.com/EyeSeeTea/data-quality-extended-app/pull/95#issuecomment-7123943458)), following the same decision on dhis2-app-skeleton [#735](https://github.com/EyeSeeTea/dhis2-app-skeleton/security/code-scanning/735), accepted and dismissed by @cgbautista ([comment in #121](https://github.com/EyeSeeTea/dhis2-app-skeleton/pull/121#issuecomment-6984611519)), and on data-approval-dev [#226](https://github.com/EyeSeeTea/data-approval-dev/security/code-scanning/226).
 - **Drop when:** `request` leaves the tree.
 
 #### `request@2.88.2`: GHSA-p8p7-x288-28g6 (moderate)
