@@ -25,11 +25,18 @@ function givenADHIS2WithAnalysesInTwoPages() {
 
     mock.onGet(trackedEntitiesUrl).reply(config => {
         const page = config.params.page;
-        return [200, page === 1 ? trackedEntitiesPage(1, ["tei1", "tei2"]) : trackedEntitiesPage(2, ["tei3"])];
+        return [
+            200,
+            page === 1
+                ? trackedEntitiesPage(1, ["tei1", "tei2"])
+                : trackedEntitiesPage(2, ["tei3"]),
+        ];
     });
 
     mock.onPost("/tracker").reply(config => {
-        const { trackedEntities } = JSON.parse(config.data) as { trackedEntities: TrackedEntityBody[] };
+        const { trackedEntities } = JSON.parse(config.data) as {
+            trackedEntities: TrackedEntityBody[];
+        };
         return [
             200,
             {
@@ -37,7 +44,9 @@ function givenADHIS2WithAnalysesInTwoPages() {
                 bundleReport: {
                     typeReportMap: {
                         TRACKED_ENTITY: {
-                            objectReports: trackedEntities.map(({ trackedEntity }) => ({ uid: trackedEntity })),
+                            objectReports: trackedEntities.map(({ trackedEntity }) => ({
+                                uid: trackedEntity,
+                            })),
                         },
                     },
                 },
