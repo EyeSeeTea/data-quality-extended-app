@@ -21,9 +21,12 @@ import { IssueAction } from "$/domain/entities/IssueAction";
 import { IssueStatus } from "$/domain/entities/IssueStatus";
 import {
     buildTrackerEventsResponse,
+    getTrackerPagination,
     buildTrackerResponse,
     getProgramStageIndexById,
 } from "$/data/common/utils";
+
+type IssueEvent = Pick<D2TrackerEvent, "event" | "programStage" | "dataValues">;
 
 export class IssueD2Repository implements IssueRepository {
     d2DataElement: D2DataElement;
@@ -81,13 +84,7 @@ export class IssueD2Repository implements IssueRepository {
                 categoryOptions: this.d2CategoryOption.getByIds(categoryOptionIds),
             }).flatMap(({ countries, dataElements, categoryOptions }) => {
                 return Future.success({
-                    pagination: {
-                        pageSize: d2Response.pageSize,
-                        // @ts-ignore
-                        pageCount: d2Response.pageCount,
-                        page: d2Response.page,
-                        total: d2Response.total || 0,
-                    },
+                    pagination: getTrackerPagination(d2Response),
                     rows: this.buildIssues(
                         instances,
                         countries,
@@ -150,7 +147,7 @@ export class IssueD2Repository implements IssueRepository {
             this.api.tracker.trackedEntities.get({
                 ouMode: "SELECTED",
                 orgUnit: metadata.organisationUnits.global.id,
-                fields: { trackedEntity: true, enrollments: true },
+                fields: { trackedEntity: true, enrollments: { enrollment: true } },
                 program: metadata.programs.qualityIssues.id,
                 trackedEntity: analysisId,
             })
@@ -248,7 +245,7 @@ export class IssueD2Repository implements IssueRepository {
     }
 
     private buildIssues(
-        events: D2TrackerEvent[],
+        events: IssueEvent[],
         countries: Country[],
         dataElements: DataElement[],
         categoryOptions: CategoryOption[],
@@ -340,7 +337,9 @@ export class IssueD2Repository implements IssueRepository {
         return option ? new IssueAction(option) : undefined;
     }
 
-    private buildDataElementsById(dataValues: DataValue[]): HashMap<Id, string> {
+    private buildDataElementsById(
+        dataValues: Pick<DataValue, "dataElement" | "value">[]
+    ): HashMap<Id, string> {
         const attributesByPair = _(dataValues)
             .map(a => [a.dataElement, a.value] as [Id, string])
             .value();
@@ -362,7 +361,7 @@ export class IssueD2Repository implements IssueRepository {
         return value || defaultValue || "";
     }
 
-    private getRelatedIdsFromDataValues(events: D2TrackerEvent[], dataElementId: Id): Id[] {
+    private getRelatedIdsFromDataValues(events: IssueEvent[], dataElementId: Id): Id[] {
         const valuesFromEvents = _(events)
             .map(d2Event => {
                 return _(d2Event.dataValues)

@@ -11,7 +11,7 @@ import {
     IssueNotificationRepository,
 } from "$/domain/repositories/IssueNotificationRepository";
 import { SearchResult } from "$/domain/usecases/GetUserByIdentifierUseCase";
-import { D2Api, D2TrackerTrackedEntity } from "$/types/d2-api";
+import { D2Api, D2TrackerTrackedEntity, TrackedEntityToPost } from "$/types/d2-api";
 import { Maybe } from "$/utils/ts-utils";
 
 type MessageConversation = {
@@ -161,7 +161,7 @@ export class IssueNotificationD2Repository implements IssueNotificationRepositor
         metadata: MetadataItem;
         programStage: Maybe<string>;
         existingTei: Maybe<D2TrackerTrackedEntity>;
-    }): D2TrackerTrackedEntity[] {
+    }): TrackedEntityToPost[] {
         const { conversationId, metadata, programStage, eventId, existingTei } = options;
         const firstEnrollment = _c(existingTei?.enrollments || []).first();
         const conversationIdDataElement = metadata.dataElements.conversationId;
@@ -175,7 +175,8 @@ export class IssueNotificationD2Repository implements IssueNotificationRepositor
 
         return [
             {
-                trackedEntity: existingTei?.trackedEntity,
+                // Undefined for a new TEI: the server generates the id
+                trackedEntity: existingTei?.trackedEntity as string,
                 orgUnit: metadata.organisationUnits.global.id,
                 trackedEntityType: metadata.trackedEntityTypes.dataQuality.id,
                 enrollments: [
@@ -202,7 +203,7 @@ export class IssueNotificationD2Repository implements IssueNotificationRepositor
                                 status: "ACTIVE",
                                 program: metadata.programs.qualityIssues.id,
                                 orgUnit: metadata.organisationUnits.global.id,
-                                programStage: programStage,
+                                programStage: programStage as string,
                                 occurredAt: new Date().toISOString(),
                                 dataValues: [
                                     {
@@ -212,12 +213,13 @@ export class IssueNotificationD2Repository implements IssueNotificationRepositor
                                 ],
                             },
                         ],
+                        // `relationships` is accepted by the tracker API but missing in d2-api's types
                         relationships: [],
                         attributes: [],
                         notes: [],
                     },
                 ],
             },
-        ];
+        ] as unknown as TrackedEntityToPost[]; // d2-api requires `attributes`, but this payload has never sent it
     }
 }

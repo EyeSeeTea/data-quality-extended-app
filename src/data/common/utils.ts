@@ -1,4 +1,5 @@
 import { MetadataItem } from "$/domain/entities/MetadataItem";
+import { Pagination } from "$/domain/entities/Pagination";
 import { Id } from "$/domain/entities/Ref";
 import { TrackedEntitiesGetResponse } from "$/types/d2-api";
 import { TrackerEventsResponse } from "@eyeseetea/d2-api/api/trackerEvents";
@@ -11,11 +12,11 @@ export function getProgramStageIndexById(programStageId: Id, metadata: MetadataI
     return programStageIndex;
 }
 
-export function buildTrackerResponse(
-    response: TrackedEntitiesGetResponse & {
-        trackedEntities?: TrackedEntitiesGetResponse["instances"];
+export function buildTrackerResponse<Fields>(
+    response: TrackedEntitiesGetResponse<Fields> & {
+        trackedEntities?: TrackedEntitiesGetResponse<Fields>["instances"];
     }
-): TrackedEntitiesGetResponse {
+): TrackedEntitiesGetResponse<Fields> {
     if (!response.instances && response.trackedEntities) {
         return { ...response, instances: response.trackedEntities };
     } else if (!response.trackedEntities && response.instances) {
@@ -25,11 +26,11 @@ export function buildTrackerResponse(
     }
 }
 
-export function buildTrackerEventsResponse(
-    response: TrackerEventsResponse & {
-        events?: TrackerEventsResponse["instances"];
+export function buildTrackerEventsResponse<Fields>(
+    response: TrackerEventsResponse<Fields> & {
+        events?: TrackerEventsResponse<Fields>["instances"];
     }
-): TrackerEventsResponse {
+): TrackerEventsResponse<Fields> {
     if (!response.instances && response.events) {
         return { ...response, instances: response.events };
     } else if (!response.events && response.instances) {
@@ -37,4 +38,32 @@ export function buildTrackerEventsResponse(
     } else {
         return response;
     }
+}
+
+type D2TrackerPager = Partial<Pagination>;
+
+// DHIS2 2.40 returns the pagination at the root of tracker responses, 2.41 at the root
+// and in "pager", and 2.42+ only in "pager"
+export function getTrackerPagination(
+    response: D2TrackerPager & { pager?: D2TrackerPager }
+): Pagination {
+    const pager = response.pager ?? response;
+
+    return {
+        page: pager.page ?? 1,
+        pageSize: pager.pageSize ?? 0,
+        total: pager.total ?? 0,
+        pageCount: pager.pageCount ?? 0,
+    };
+}
+
+// Page to request after `page`, or undefined when it was the last one. A response without
+// pagination data (pageCount 0) ends the loop instead of repeating the same page forever.
+export function getNextTrackerPage(
+    response: D2TrackerPager & { pager?: D2TrackerPager },
+    page: number
+): number | undefined {
+    const { pageCount } = getTrackerPagination(response);
+    const nextPage = page + 1;
+    return nextPage <= pageCount ? nextPage : undefined;
 }
